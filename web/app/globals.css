@@ -1,0 +1,191 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Urbanist:wght@400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 5%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 5%;
+  --muted: 0 0% 96%;
+  --muted-foreground: 0 0% 45%;
+  --border: 0 0% 90%;
+  --input: 0 0% 90%;
+  --ring: 0 0% 20%;
+  --accent: 15 90% 55%;
+  --gradient-hero: radial-gradient(circle at top, rgba(255, 168, 110, 0.2), transparent 45%), linear-gradient(135deg, rgba(255, 241, 235, 0.9), rgba(245, 247, 250, 1));
+  --gradient-card: linear-gradient(135deg, rgba(255, 241, 235, 0.95), rgba(245, 247, 250, 0.95));
+  --gradient-accent: linear-gradient(135deg, rgba(255, 170, 120, 0.15), rgba(255, 225, 206, 0.3));
+  --shadow-sm: 0 2px 6px rgba(10, 10, 10, 0.04);
+  --shadow-md: 0 12px 30px rgba(10, 10, 10, 0.08);
+  --shadow-lg: 0 20px 40px rgba(10, 10, 10, 0.12);
+  --shadow-xl: 0 30px 80px rgba(10, 10, 10, 0.14);
+  --shadow-card: 0 24px 60px rgba(10, 10, 10, 0.08);
+  --shadow-card-hover: 0 32px 80px rgba(10, 10, 10, 0.14);
+  --trend-surface-start: 210 18% 98%;
+  --trend-surface-end: 340 100% 97%;
+  --trend-area-start: 220 14% 93%;
+  --trend-area-end: 338 100% 88%;
+  --trend-line-start: 215 13% 72%;
+  --trend-line-end: 336 92% 74%;
+  --trend-guide: 220 16% 72%;
+  --trend-grid: 220 14% 84%;
+  --trend-glow-warm: 26 100% 83%;
+  --trend-glow-cool: 336 95% 86%;
+  --trend-point-core: 336 92% 74%;
+  --trend-point-stroke: 0 0% 100%;
+  --trend-motion-fast: 160ms;
+  --trend-motion-medium: 210ms;
+}
+
+.dark {
+  --background: 324 11% 16%;
+  --foreground: 0 0% 95%;
+  --card: 324 10% 19%;
+  --card-foreground: 0 0% 96%;
+  --muted: 318 9% 24%;
+  --muted-foreground: 0 0% 68%;
+  --border: 322 10% 26%;
+  --input: 322 10% 26%;
+  --ring: 0 0% 86%;
+  --accent: 15 85% 60%;
+  --gradient-hero: radial-gradient(circle at top, rgba(255, 165, 97, 0.18), transparent 40%), linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 25%);
+  --gradient-card: linear-gradient(135deg, rgba(255, 205, 171, 0.28), rgba(255, 182, 193, 0.2), rgba(190, 220, 255, 0.24));
+  --gradient-accent: linear-gradient(135deg, rgba(255, 154, 139, 0.18), rgba(255, 215, 150, 0.2));
+  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.18);
+  --shadow-md: 0 20px 40px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 30px 60px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 40px 90px rgba(0, 0, 0, 0.38);
+  --shadow-card: 0 30px 60px rgba(0, 0, 0, 0.22);
+  --shadow-card-hover: 0 35px 90px rgba(0, 0, 0, 0.32);
+  --trend-surface-start: 320 16% 22%;
+  --trend-surface-end: 332 25% 26%;
+  --trend-area-start: 322 18% 30%;
+  --trend-area-end: 336 35% 38%;
+  --trend-line-start: 325 20% 73%;
+  --trend-line-end: 336 84% 78%;
+  --trend-guide: 322 20% 74%;
+  --trend-grid: 320 15% 58%;
+  --trend-glow-warm: 24 96% 74%;
+  --trend-glow-cool: 336 70% 76%;
+  --trend-point-core: 334 90% 76%;
+  --trend-point-stroke: 0 0% 100%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+    background-image:
+      radial-gradient(circle at top left, rgba(255, 170, 120, 0.08), transparent 18rem),
+      radial-gradient(circle at bottom right, rgba(146, 200, 255, 0.08), transparent 18rem);
+    min-height: 100vh;
+  }
+
+  h1 {
+    @apply font-display text-4xl font-medium tracking-tight sm:text-5xl md:text-6xl lg:text-7xl;
+  }
+
+  h2 {
+    @apply font-display text-3xl font-medium tracking-tight sm:text-4xl md:text-5xl;
+  }
+
+  h3 {
+    @apply font-display text-2xl font-normal tracking-tight md:text-3xl;
+  }
+
+  h4 {
+    @apply font-display text-xl font-normal md:text-2xl;
+  }
+
+  h5,
+  h6 {
+    @apply font-display font-light;
+  }
+
+  p {
+    @apply text-base font-light leading-relaxed text-foreground/80 md:text-lg;
+  }
+
+  ::selection {
+    background: rgba(255, 142, 76, 0.24);
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply border border-border/40 bg-background/70 backdrop-blur-xl;
+    box-shadow: var(--shadow-card);
+  }
+
+  .metric-number {
+    @apply font-display text-3xl font-medium tracking-tight md:text-4xl;
+  }
+
+  .section-frame {
+    @apply rounded-3xl border border-border/30 bg-background/60 p-6 shadow-card backdrop-blur-xl md:p-8;
+  }
+
+  .subtle-grid {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .trend-tooltip {
+    transition:
+      opacity var(--trend-motion-fast) ease,
+      transform var(--trend-motion-medium) cubic-bezier(0.22, 1, 0.36, 1),
+      left var(--trend-motion-fast) ease,
+      top var(--trend-motion-fast) ease;
+    will-change: transform, left, top, opacity;
+  }
+
+  .trend-matrix-overlay {
+    background-image:
+      linear-gradient(
+        122deg,
+        transparent 38%,
+        hsl(var(--trend-line-end) / 0.12) 49%,
+        hsl(var(--trend-line-start) / 0.08) 53%,
+        transparent 64%
+      );
+    background-size: 240% 240%;
+    background-position: 140% -40%;
+    mix-blend-mode: screen;
+    opacity: 0.32;
+  }
+
+  .trend-matrix-overlay-active {
+    animation: trend-matrix-sweep 4.8s linear infinite;
+  }
+}
+
+@keyframes trend-matrix-sweep {
+  0% {
+    background-position: 140% -40%;
+  }
+  100% {
+    background-position: -40% 130%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trend-tooltip {
+    transition: none;
+  }
+
+  .trend-matrix-overlay-active {
+    animation: none;
+  }
+}

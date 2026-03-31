@@ -1,0 +1,75 @@
+services:
+  redis:
+    image: redis:7
+    container_name: xhs_redis
+    restart: always
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: xhs_fastapi
+    restart: always
+    depends_on:
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      PYTHONPATH: /app
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: xhs_worker
+    restart: always
+    depends_on:
+      redis:
+        condition: service_healthy
+      fastapi:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      PYTHONPATH: /app
+    volumes:
+      - .:/app
+    command: celery -A app.tasks.celery_app:celery_app worker -Q xhs_priority_queue,xhs_queue --loglevel=info
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: xhs_scheduler
+    restart: always
+    depends_on:
+      redis:
+        condition: service_healthy
+      fastapi:
+        condition: service_started
+      worker:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      PYTHONPATH: /app
+    volumes:
+      - .:/app
+    command: python /app/scripts/industry_scheduler.py
+
+volumes:
+  redis_data:

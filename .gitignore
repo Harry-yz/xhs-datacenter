@@ -1,0 +1,23 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+.env
+
+.pytest_cache/
+.mypy_cache/
+
+# local/dev artifacts
+.venv/
+.codex/
+logs/
+
+# frontend artifacts
+web/node_modules/
+web/.next/
+web/.next*/
+
+# OS/editor
+.DS_Store
+*.swp
