@@ -20,6 +20,7 @@ settings = get_settings()
 _schema_ready = False
 _schema_lock = threading.Lock()
 _PBKDF2_ITERATIONS = 180_000
+_AUTH_SCHEMA_LOCK_KEY = 890240013447
 
 
 def _b64url_encode(data: bytes) -> str:
@@ -110,6 +111,7 @@ def ensure_auth_schema() -> None:
             return
 
         with engine.begin() as conn:
+            conn.execute(text("SELECT pg_advisory_xact_lock(:lock_key)"), {"lock_key": _AUTH_SCHEMA_LOCK_KEY})
             conn.execute(
                 text(
                     """

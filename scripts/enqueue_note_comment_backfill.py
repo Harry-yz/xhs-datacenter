@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 from sqlalchemy import text
 
+from app.config import get_settings
 from app.db import SessionLocal
 from app.tasks.jobs import trigger_note_comments
 from scripts.enqueue_utils import dispatch_staggered, normalize_limit, resolve_enqueue_capacity
@@ -19,6 +20,7 @@ def main(
     pause_every: int = 5,
     pause_seconds: float = 1.5,
 ) -> int:
+    settings = get_settings()
     db = SessionLocal()
     try:
         recent_hours_filter = recent_hours or 0
@@ -33,6 +35,39 @@ def main(
         print(f"pending_note_comment={pending} max_pending={max_pending} effective_limit={effective_limit}")
         if effective_limit <= 0:
             print("skip_enqueue_note_comment=true")
+            return 0
+
+        limit_error_count = int(
+            db.execute(
+                text(
+                    """
+                    SELECT COUNT(*)
+                    FROM xhs_crawl_log
+                    WHERE task_type = 'note_comment'
+                      AND status = 'failed'
+                      AND created_at >= now() - (:window_minutes || ' minute')::interval
+                      AND (
+                            COALESCE(error_msg, '') ILIKE '%当前任务已达上限%'
+                         OR COALESCE(error_msg, '') ILIKE '%任务已达上限%'
+                         OR COALESCE(error_msg, '') ILIKE '%task limit%'
+                         OR COALESCE(error_msg, '') ILIKE '%reached the limit%'
+                         OR COALESCE(response_payload::text, '') ILIKE '%当前任务已达上限%'
+                         OR COALESCE(response_payload::text, '') ILIKE '%任务已达上限%'
+                         OR COALESCE(response_payload::text, '') ILIKE '%task limit%'
+                         OR COALESCE(response_payload::text, '') ILIKE '%reached the limit%'
+                      )
+                    """
+                ),
+                {"window_minutes": max(5, settings.huitun_limit_guard_window_minutes)},
+            ).scalar()
+            or 0
+        )
+        if limit_error_count >= max(10, settings.huitun_limit_guard_threshold):
+            print(
+                "skip_enqueue_note_comment=true "
+                f"reason=provider_limit_guard "
+                f"limit_error_count={limit_error_count}"
+            )
             return 0
 
         sql_limit = normalize_limit(effective_limit)

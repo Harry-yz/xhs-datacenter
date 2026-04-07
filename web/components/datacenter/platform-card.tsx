@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { type PlatformCardVM } from "@/types/datacenter";
 
 export function PlatformCard({
@@ -61,9 +59,9 @@ export function PlatformCard({
   const wrapperClassName = `group block h-full ${item.status === "available" && href ? "cursor-pointer" : "cursor-default"}`;
 
   return item.status === "available" && href ? (
-    <Link className={wrapperClassName} href={href}>
+    <a className={wrapperClassName} href={href}>
       {content}
-    </Link>
+    </a>
   ) : (
     <div className={wrapperClassName}>{content}</div>
   );

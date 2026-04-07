@@ -21,7 +21,7 @@ type LiveIndustriesApiData = {
 
 export async function GET() {
   try {
-    const response = await fetch(`${env.apiBaseUrl}/dashboard/xhs/live-industries`, {
+    const response = await fetch(`${env.internalApiBaseUrl}/dashboard/xhs/live-industries`, {
       cache: "no-store"
     });
 

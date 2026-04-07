@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 
 import { env } from "@/config/env";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 type ApiEnvelope<T> = {
   code: number;
   message: string;
@@ -17,8 +20,9 @@ type LiveTotalsApiData = {
 
 export async function GET() {
   try {
-    const response = await fetch(`${env.apiBaseUrl}/dashboard/xhs/live-totals`, {
-      cache: "no-store"
+    const response = await fetch(`${env.internalApiBaseUrl}/dashboard/xhs/live-totals`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(8000)
     });
 
     if (!response.ok) {
@@ -33,7 +37,12 @@ export async function GET() {
         commentsTotal: Number(payload.data?.comments_total ?? 0),
         generatedAt: String(payload.data?.generated_at ?? "")
       },
-      { status: 200 }
+      {
+        status: 200,
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0"
+        }
+      }
     );
   } catch {
     return NextResponse.json({ message: "upstream unavailable" }, { status: 502 });

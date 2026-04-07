@@ -35,12 +35,13 @@ class InfluencerSearchRequest(BaseModel):
     industry: str | None = Field(default=None, max_length=100)
     follower_range: str | None = Field(default=None, max_length=64, description="min,max")
     interaction_range: str | None = Field(default=None, max_length=64, description="min,max")
-    sort: Literal["followers", "notes", "sumStat"] = "followers"
+    sort: Literal["relevance", "followers", "notes", "sumStat"] = "relevance"
     order: Literal["asc", "desc"] = "desc"
     date_range: Literal[7, 30, 90] = 30
     freshness_hours: int = Field(default=24, ge=1, le=168)
     page: int = Field(default=1, ge=1)
     size: int = Field(default=20, ge=1, le=100)
+    include_notes: bool = False
     force_refresh: bool = False
 
 
@@ -91,6 +92,7 @@ class Pagination(BaseModel):
     page: int
     size: int
     has_more: bool
+    total_is_estimate: bool = False
 
 
 class NoteListItem(BaseModel):

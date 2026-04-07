@@ -19,13 +19,16 @@ function parseMetricValue(raw: string | undefined) {
 
 function AnimatedTotalValue({
   locale,
-  value
+  value,
+  tickToken
 }: {
   locale: Locale;
   value: number;
+  tickToken: number;
 }) {
   const [display, setDisplay] = useState(value);
   const [rising, setRising] = useState(false);
+  const [refreshed, setRefreshed] = useState(false);
   const previousRef = useRef(value);
 
   useEffect(() => {
@@ -60,10 +63,21 @@ function AnimatedTotalValue({
     return () => window.cancelAnimationFrame(frameId);
   }, [value]);
 
+  useEffect(() => {
+    if (tickToken <= 0) return;
+    setRefreshed(true);
+    const timer = window.setTimeout(() => setRefreshed(false), 260);
+    return () => window.clearTimeout(timer);
+  }, [tickToken]);
+
   return (
     <div
-      className={`text-lg font-semibold tabular-nums transition-all duration-500 ${
-        rising ? "text-[#ff7fa5] [text-shadow:0_0_18px_rgba(255,127,165,0.42)]" : "text-foreground"
+      className={`text-lg font-semibold tabular-nums transition-all duration-500 will-change-transform ${
+        rising
+          ? "text-[#ff7fa5] -translate-y-0.5 scale-[1.02] [text-shadow:0_0_18px_rgba(255,127,165,0.42)]"
+          : refreshed
+            ? "text-foreground/95 -translate-y-px scale-[1.015] [text-shadow:0_0_14px_rgba(255,176,136,0.25)]"
+            : "text-foreground translate-y-0 scale-100"
       }`}
     >
       {toLocaleCount(locale, display)}
@@ -83,14 +97,18 @@ function buildFallbackTotals(fallbackKpis: DashboardKPI[]): XhsLiveTotals {
 export function LiveKpiPanel({
   locale,
   initialTotals,
-  fallbackKpis
+  fallbackKpis,
+  pollMs = 5000
 }: {
   locale: Locale;
   initialTotals: XhsLiveTotals | null;
   fallbackKpis: DashboardKPI[];
+  pollMs?: number;
 }) {
   const fallbackTotals = useMemo(() => buildFallbackTotals(fallbackKpis), [fallbackKpis]);
   const [totals, setTotals] = useState<XhsLiveTotals>(initialTotals ?? fallbackTotals);
+  const [refreshTick, setRefreshTick] = useState(0);
+  const fetchingRef = useRef(false);
 
   useEffect(() => {
     if (initialTotals) {
@@ -100,18 +118,35 @@ export function LiveKpiPanel({
 
   useEffect(() => {
     async function refreshTotals() {
-      if (document.hidden) {
+      if (document.hidden || fetchingRef.current) {
         return;
       }
+      fetchingRef.current = true;
       try {
-        const response = await fetch("/api/dashboard/xhs/live-totals", { cache: "no-store" });
+        const response = await fetch(`/api/dashboard/xhs/live-totals?t=${Date.now()}`, {
+          cache: "no-store",
+          signal: AbortSignal.timeout(Math.max(5000, pollMs + 2000))
+        });
         if (!response.ok) {
           throw new Error("live totals api failed");
         }
         const payload = (await response.json()) as XhsLiveTotals;
-        setTotals(payload);
+        setTotals((previous) => {
+          if (
+            previous.notesTotal === payload.notesTotal &&
+            previous.creatorsTotal === payload.creatorsTotal &&
+            previous.commentsTotal === payload.commentsTotal &&
+            previous.generatedAt === payload.generatedAt
+          ) {
+            return previous;
+          }
+          return payload;
+        });
+        setRefreshTick((value) => value + 1);
       } catch {
         // Keep previous values on transient failures.
+      } finally {
+        fetchingRef.current = false;
       }
     }
 
@@ -121,16 +156,18 @@ export function LiveKpiPanel({
       }
     }
 
+    void refreshTotals();
+
     const timer = window.setInterval(() => {
       void refreshTotals();
-    }, 60000);
+    }, Math.max(1000, pollMs));
     document.addEventListener("visibilitychange", onVisibilityChange);
 
     return () => {
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, []);
+  }, [pollMs]);
 
   const cards = [
     {
@@ -156,7 +193,7 @@ export function LiveKpiPanel({
         {cards.map((item) => (
           <div className="rounded-xl border border-border/25 bg-background/68 px-2.5 py-2" key={item.label}>
             <div className="text-[11px] text-foreground/52">{item.label}</div>
-            <AnimatedTotalValue locale={locale} value={item.value} />
+            <AnimatedTotalValue locale={locale} tickToken={refreshTick} value={item.value} />
           </div>
         ))}
       </div>

@@ -250,11 +250,28 @@ class HuitunClient:
         )
 
     # 11. 接口剩余次数
-    # 如果你文档里的实际 path 不是这个，只改 path
     def get_quota(self) -> dict[str, Any]:
-        return self._request(
-            method="GET",
-            path="/api/v1/cg/quota",
-            params={},
-            include_platform=True,
-        )
+        # Current API doc path: /api/v1/cg/task/surplus
+        # Keep a legacy fallback for backward compatibility.
+        paths = ("/api/v1/cg/task/surplus", "/api/v1/cg/quota")
+        last_exc: Exception | None = None
+        for path in paths:
+            try:
+                return self._request(
+                    method="GET",
+                    path=path,
+                    params={},
+                    include_platform=True,
+                )
+            except requests.HTTPError as exc:
+                last_exc = exc
+                status_code = exc.response.status_code if exc.response is not None else None
+                if status_code == 404:
+                    continue
+                raise
+            except Exception as exc:
+                last_exc = exc
+                raise
+        if last_exc:
+            raise last_exc
+        raise RuntimeError("huitun quota request failed")

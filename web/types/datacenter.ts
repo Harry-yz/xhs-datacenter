@@ -93,12 +93,15 @@ export type BrandRankingItem = {
 };
 
 export type CreatorOpportunityVM = {
+  authorId?: string;
   name: string;
   followers: string;
+  followersValue?: number;
   direction: string;
   cpe: string;
   notesCount?: number;
   totalInteractions?: number;
+  profileUrl?: string;
 };
 
 export type NoteAnalysisCardVM = {
@@ -108,8 +111,13 @@ export type NoteAnalysisCardVM = {
   author: string;
   followers: string;
   likeCount: string;
+  likeCountValue?: number;
   collectionCount: string;
+  collectionCountValue?: number;
   commentCount: string;
+  commentCountValue?: number;
+  readCount?: number;
+  interactionTotal?: number;
   tags: string[];
   aiLabels: string[];
 };
@@ -129,18 +137,58 @@ export type SearchWorkbenchVM = {
   contentTypes: Array<{ label: string; value: number }>;
   notes: NoteAnalysisCardVM[];
   creators: CreatorOpportunityVM[];
+  searchSummary?: {
+    noteTotal: number;
+    creatorTotal: number;
+    totalComments: number;
+  };
   pending?: {
     status: "pending" | "failed";
     type: "category" | "creator";
     jobId?: string;
+    pendingReason?: string;
+    nextPollAfterMs?: number;
+    dataFreshnessSeconds?: number;
   };
   resultTotals?: {
     category: number;
     creator: number;
     page: number;
     size: number;
+    categoryHasMore?: boolean;
+    creatorHasMore?: boolean;
+    categoryTotalIsEstimate?: boolean;
+    creatorTotalIsEstimate?: boolean;
   };
   aiDecisionCards: Array<{ title: string; points: string[] }>;
+};
+
+export type SearchResultsSliceVM = {
+  notes: NoteAnalysisCardVM[];
+  creators: CreatorOpportunityVM[];
+  searchSummary: {
+    noteTotal: number;
+    creatorTotal: number;
+    totalComments: number;
+  };
+  pending?: {
+    status: "pending" | "failed";
+    type: "category" | "creator";
+    jobId?: string;
+    pendingReason?: string;
+    nextPollAfterMs?: number;
+    dataFreshnessSeconds?: number;
+  };
+  resultTotals: {
+    category: number;
+    creator: number;
+    page: number;
+    size: number;
+    categoryHasMore?: boolean;
+    creatorHasMore?: boolean;
+    categoryTotalIsEstimate?: boolean;
+    creatorTotalIsEstimate?: boolean;
+  };
 };
 
 export type CategoryDetailVM = {

@@ -13,6 +13,7 @@ from app.api.search import router as search_router
 from app.api.dashboard import router as dashboard_router
 from app.api.auth import router as auth_router
 from app.services.auth_service import ensure_auth_schema
+from app.services.search_center import bootstrap_search_runtime
 
 settings = get_settings()
 app = FastAPI(title=settings.app_name)
@@ -38,3 +39,4 @@ app.include_router(auth_router, prefix=settings.api_prefix)
 @app.on_event("startup")
 def _startup_bootstrap() -> None:
     ensure_auth_schema()
+    bootstrap_search_runtime()

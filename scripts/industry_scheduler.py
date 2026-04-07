@@ -13,6 +13,7 @@ from app.config import get_settings
 from app.db import SessionLocal
 from app.services.brand_recognition import sync_brand_dictionary, sync_note_brand_relations
 from app.services.industry_catalog import get_all_industry_keywords, sync_industry_catalog
+from app.services.search_center import get_term_rel_coverage_stats, process_note_change_log
 from scripts.crawl_xhs_beauty import crawl_keywords_for_list
 from scripts.backfill_unclassified_industries import run_backfill_batch
 from scripts.enrich_anchor_ids_from_nickname import main as enrich_anchor_ids_from_nickname
@@ -22,6 +23,9 @@ from scripts.enqueue_note_comment_backfill import main as enqueue_note_comment_b
 from scripts.enqueue_note_info_backfill import main as enqueue_note_info_backfill
 
 STATE_FILE = Path("/tmp/xhs_industry_scheduler_offset.txt")
+RECOVER_TASK_TYPES = ("note_search", "note_info", "note_comment", "anchor_info", "fans_portrait")
+_last_search_incremental_run_at: float = 0.0
+_last_running_recover_at: float = 0.0
 
 
 @dataclass
@@ -219,6 +223,10 @@ def _recent_comment_limit_errors(window_minutes: int = 20) -> int:
                      OR COALESCE(error_msg, '') ILIKE '%任务已达上限%'
                      OR COALESCE(error_msg, '') ILIKE '%task limit%'
                      OR COALESCE(error_msg, '') ILIKE '%reached the limit%'
+                     OR COALESCE(response_payload::text, '') ILIKE '%当前任务已达上限%'
+                     OR COALESCE(response_payload::text, '') ILIKE '%任务已达上限%'
+                     OR COALESCE(response_payload::text, '') ILIKE '%task limit%'
+                     OR COALESCE(response_payload::text, '') ILIKE '%reached the limit%'
                   )
                 """
             ),
@@ -229,9 +237,113 @@ def _recent_comment_limit_errors(window_minutes: int = 20) -> int:
         db.close()
 
 
-def run_cycle() -> dict[str, int | str | float]:
+def _recover_stale_running_tasks(timeout_minutes: int) -> int:
+    db = SessionLocal()
+    try:
+        result = db.execute(
+            text(
+                """
+                UPDATE xhs_crawl_log
+                SET status = 'failed_timeout',
+                    error_msg = COALESCE(NULLIF(error_msg, ''), 'timeout auto-recovered by scheduler'),
+                    completed_at = COALESCE(completed_at, now()),
+                    updated_at = now()
+                WHERE status = 'running'
+                  AND COALESCE(is_callback_received, false) = false
+                  AND task_type = ANY(CAST(:task_types AS text[]))
+                  AND created_at < now() - ((:timeout_minutes)::text || ' minute')::interval
+                """
+            ),
+            {"task_types": list(RECOVER_TASK_TYPES), "timeout_minutes": max(10, int(timeout_minutes))},
+        )
+        recovered = int(result.rowcount or 0)
+        if recovered > 0:
+            db.commit()
+        else:
+            db.rollback()
+        return recovered
+    except Exception:
+        db.rollback()
+        return 0
+    finally:
+        db.close()
+
+
+def _run_search_incremental_cycle() -> dict[str, int | float]:
     settings = get_settings()
+    db = SessionLocal()
+    try:
+        pending_before = int(
+            db.execute(
+                text("SELECT COUNT(*) FROM xhs_note_change_log WHERE processed_at IS NULL")
+            ).scalar()
+            or 0
+        )
+        timeout_ms = max(1000, int(getattr(settings, "search_incremental_worker_timeout_ms", 12000)))
+        db.execute(text(f"SET LOCAL statement_timeout = {timeout_ms}"))
+        result = process_note_change_log(
+            db,
+            batch_size=max(1, int(getattr(settings, "search_incremental_batch_size", 3000))),
+        )
+        coverage = get_term_rel_coverage_stats(db)
+        if int(result.get("changes") or 0) > 0:
+            db.commit()
+        else:
+            db.rollback()
+        return {
+            "search_incremental_changes": int(result.get("changes") or 0),
+            "search_incremental_notes": int(result.get("notes") or 0),
+            "search_incremental_authors": int(result.get("authors") or 0),
+            "search_incremental_terms": int(result.get("terms") or 0),
+            "search_incremental_backlog": pending_before,
+            "search_incremental_backlog_warn": int(
+                pending_before >= max(1, int(getattr(settings, "search_incremental_backlog_warn_threshold", 10000)))
+            ),
+            "term_rel_note_total": int(coverage.get("term_note_total") or 0),
+            "term_rel_note_coverage": float(coverage.get("coverage_ratio") or 0.0),
+        }
+    except Exception:
+        db.rollback()
+        return {
+            "search_incremental_changes": 0,
+            "search_incremental_notes": 0,
+            "search_incremental_authors": 0,
+            "search_incremental_terms": 0,
+            "search_incremental_backlog": 0,
+            "search_incremental_backlog_warn": 0,
+            "term_rel_note_total": 0,
+            "term_rel_note_coverage": 0.0,
+        }
+    finally:
+        db.close()
+
+
+def run_cycle() -> dict[str, int | str | float]:
+    global _last_search_incremental_run_at, _last_running_recover_at
+    settings = get_settings()
+    now_monotonic = time.monotonic()
     adaptive = _compute_adaptive_profile()
+    recovered_running_timeout = 0
+    recover_interval = max(60, int(getattr(settings, "search_running_recover_interval_seconds", 300)))
+    if now_monotonic - _last_running_recover_at >= recover_interval:
+        recovered_running_timeout = _recover_stale_running_tasks(
+            timeout_minutes=int(getattr(settings, "crawl_running_timeout_minutes", 90))
+        )
+        _last_running_recover_at = now_monotonic
+    incremental = {
+        "search_incremental_changes": 0,
+        "search_incremental_notes": 0,
+        "search_incremental_authors": 0,
+        "search_incremental_terms": 0,
+        "search_incremental_backlog": 0,
+        "search_incremental_backlog_warn": 0,
+        "term_rel_note_total": 0,
+        "term_rel_note_coverage": 0.0,
+    }
+    incremental_interval = max(30, int(getattr(settings, "search_incremental_refresh_interval_seconds", 60)))
+    if now_monotonic - _last_search_incremental_run_at >= incremental_interval:
+        incremental = _run_search_incremental_cycle()
+        _last_search_incremental_run_at = now_monotonic
 
     db = SessionLocal()
     try:
@@ -276,11 +388,11 @@ def run_cycle() -> dict[str, int | str | float]:
     comment_limit_errors = _recent_comment_limit_errors()
     comment_protection_mode = comment_limit_errors >= 60
     if comment_protection_mode:
-        # Provider task pool is saturated: reduce heavy note/anchor inflow so comments can recover.
+        # Provider task pool is saturated: pause comment enqueue and reduce heavy inflow.
         note_info_limit = min(note_info_limit, 220)
         anchor_limit = min(anchor_limit, 60)
         fans_limit = min(fans_limit, 20)
-        note_comment_limit = min(note_comment_limit, 30)
+        note_comment_limit = 0
 
     nickname_anchor_matches = enrich_anchor_ids_from_nickname(
         limit=nickname_anchor_limit,
@@ -346,6 +458,15 @@ def run_cycle() -> dict[str, int | str | float]:
         "note_comment_jobs": note_comment_jobs,
         "comment_limit_errors_20m": comment_limit_errors,
         "comment_protection_mode": int(comment_protection_mode),
+        "recovered_running_timeout": recovered_running_timeout,
+        "search_incremental_changes": int(incremental["search_incremental_changes"]),
+        "search_incremental_notes": int(incremental["search_incremental_notes"]),
+        "search_incremental_authors": int(incremental["search_incremental_authors"]),
+        "search_incremental_terms": int(incremental["search_incremental_terms"]),
+        "search_incremental_backlog": int(incremental["search_incremental_backlog"]),
+        "search_incremental_backlog_warn": int(incremental["search_incremental_backlog_warn"]),
+        "term_rel_note_total": int(incremental["term_rel_note_total"]),
+        "term_rel_note_coverage": float(incremental["term_rel_note_coverage"]),
         "anchor_jobs": anchor_jobs,
         "fans_jobs": fans_jobs,
         "backfill_scanned": int(backfill_result.get("scanned") or 0),
@@ -397,6 +518,15 @@ def main() -> None:
                 f"nickname_anchor_matches={result['nickname_anchor_matches']} "
                 f"note_info_jobs={result['note_info_jobs']} "
                 f"note_comment_jobs={result['note_comment_jobs']} "
+                f"recovered_running_timeout={result['recovered_running_timeout']} "
+                f"search_incremental_changes={result['search_incremental_changes']} "
+                f"search_incremental_notes={result['search_incremental_notes']} "
+                f"search_incremental_authors={result['search_incremental_authors']} "
+                f"search_incremental_terms={result['search_incremental_terms']} "
+                f"search_incremental_backlog={result['search_incremental_backlog']} "
+                f"search_incremental_backlog_warn={result['search_incremental_backlog_warn']} "
+                f"term_rel_note_total={result['term_rel_note_total']} "
+                f"term_rel_note_coverage={result['term_rel_note_coverage']:.4f} "
                 f"anchor_jobs={result['anchor_jobs']} "
                 f"fans_jobs={result['fans_jobs']} "
                 f"backfill_scanned={result['backfill_scanned']} "

@@ -430,6 +430,72 @@ xhs_crawl_log = Table(
 )
 Index("idx_xhs_crawl_log_status", xhs_crawl_log.c.status)
 Index("idx_xhs_crawl_log_task_type", xhs_crawl_log.c.task_type)
+Index("idx_xhs_crawl_log_status_created_task", xhs_crawl_log.c.status, xhs_crawl_log.c.created_at, xhs_crawl_log.c.task_type)
+
+xhs_search_job = Table(
+    "xhs_search_job",
+    metadata,
+    Column("job_id", String(64), primary_key=True),
+    Column("search_type", String(32), nullable=False),
+    Column("query", String(255), nullable=False),
+    Column("mode", String(32)),
+    Column("industry_key", String(64)),
+    Column("status", String(20), nullable=False, server_default="pending"),
+    Column("crawl_batch_id", String(64)),
+    Column("task_id", String(128)),
+    Column("request_payload", JSONB),
+    Column("response_payload", JSONB),
+    Column("error_msg", Text),
+    Column("created_at", DateTime(timezone=True), server_default=func.now(), nullable=False),
+    Column("updated_at", DateTime(timezone=True), server_default=func.now(), nullable=False),
+    Column("completed_at", DateTime(timezone=True)),
+)
+Index("idx_xhs_search_job_status", xhs_search_job.c.status, xhs_search_job.c.created_at)
+Index("idx_xhs_search_job_query", xhs_search_job.c.search_type, xhs_search_job.c.query, xhs_search_job.c.created_at)
+
+xhs_note_term_rel = Table(
+    "xhs_note_term_rel",
+    metadata,
+    Column("id", BigInteger, primary_key=True, autoincrement=True),
+    Column("note_id", String(64), nullable=False),
+    Column("term", String(255), nullable=False),
+    Column("term_type", String(32), nullable=False, server_default="text"),
+    Column("weight", Integer, nullable=False, server_default="1"),
+    Column("updated_at", DateTime(timezone=True), server_default=func.now(), nullable=False),
+)
+Index("uq_xhs_note_term_rel_note_term_type", xhs_note_term_rel.c.note_id, xhs_note_term_rel.c.term, xhs_note_term_rel.c.term_type, unique=True)
+Index("idx_xhs_note_term_rel_term_weight_time", xhs_note_term_rel.c.term, xhs_note_term_rel.c.weight, xhs_note_term_rel.c.updated_at)
+Index("idx_xhs_note_term_rel_note_id", xhs_note_term_rel.c.note_id)
+
+xhs_author_metrics_30d = Table(
+    "xhs_author_metrics_30d",
+    metadata,
+    Column("author_id", String(128), primary_key=True),
+    Column("author_nickname", String(255)),
+    Column("note_count", BigInteger, nullable=False, server_default="0"),
+    Column("interaction_total", BigInteger, nullable=False, server_default="0"),
+    Column("like_total", BigInteger, nullable=False, server_default="0"),
+    Column("comment_total", BigInteger, nullable=False, server_default="0"),
+    Column("collection_total", BigInteger, nullable=False, server_default="0"),
+    Column("share_total", BigInteger, nullable=False, server_default="0"),
+    Column("note_max_fans", BigInteger, nullable=False, server_default="0"),
+    Column("latest_data_at", DateTime(timezone=True)),
+    Column("updated_at", DateTime(timezone=True), server_default=func.now(), nullable=False),
+)
+Index("idx_xhs_author_metrics_30d_interaction_total", xhs_author_metrics_30d.c.interaction_total)
+Index("idx_xhs_author_metrics_30d_latest_data_at", xhs_author_metrics_30d.c.latest_data_at)
+
+xhs_note_change_log = Table(
+    "xhs_note_change_log",
+    metadata,
+    Column("id", BigInteger, primary_key=True, autoincrement=True),
+    Column("note_id", String(64), nullable=False),
+    Column("change_source", String(64), nullable=False, server_default="unknown"),
+    Column("changed_at", DateTime(timezone=True), server_default=func.now(), nullable=False),
+    Column("processed_at", DateTime(timezone=True)),
+)
+Index("idx_xhs_note_change_log_processed_changed", xhs_note_change_log.c.processed_at, xhs_note_change_log.c.changed_at)
+Index("idx_xhs_note_change_log_note_changed", xhs_note_change_log.c.note_id, xhs_note_change_log.c.changed_at)
 
 
 def init_db() -> None:
@@ -446,6 +512,15 @@ def init_db() -> None:
             pass
         conn.execute(text("ALTER TABLE xhs_note_fact ADD COLUMN IF NOT EXISTS interaction_total bigint NOT NULL DEFAULT 0"))
         conn.execute(text("ALTER TABLE xhs_note_fact ADD COLUMN IF NOT EXISTS ext_payload jsonb"))
+        conn.execute(
+            text(
+                """
+                CREATE UNIQUE INDEX IF NOT EXISTS uq_xhs_note_change_log_pending_note
+                ON xhs_note_change_log(note_id)
+                WHERE processed_at IS NULL
+                """
+            )
+        )
         conn.execute(
             text(
                 """

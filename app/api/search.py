@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
+import re
 import time
 import uuid
 from decimal import Decimal
@@ -25,21 +27,25 @@ from app.services.search_center import (
     build_fetch_decision,
     create_search_job,
     get_search_job,
+    mark_search_job_failed,
     mark_search_job_running,
     query_brand_category_db_first,
+    query_brand_category_db_first_v2,
     query_influencers_db_first,
+    query_influencers_db_first_v2,
     try_sync_job_status_with_crawl,
 )
 from app.services.ingest import create_crawl_log
 from app.services.industry_catalog import resolve_industry_key
-from app.tasks.jobs import run_search_notes, trigger_anchor_info, trigger_fans_portrait
+from app.tasks.jobs import run_search_anchors, run_search_notes, trigger_anchor_info, trigger_fans_portrait
 
 router = APIRouter(prefix="/search", tags=["search"])
 settings = get_settings()
+logger = logging.getLogger(__name__)
 
 _redis_client: Redis | None = None
 _last_stale_recover_at: datetime | None = None
-_RECOVER_TASK_TYPES = ("note_info", "note_comment", "anchor_info", "fans_portrait")
+_RECOVER_TASK_TYPES = ("note_search", "note_info", "note_comment", "anchor_info", "fans_portrait")
 
 
 def _sort_label(sort: int) -> str:
@@ -134,6 +140,7 @@ def _get_search_result_page(
             "page": page,
             "size": size,
             "has_more": offset + len(items) < total,
+            "total_is_estimate": False,
         },
     }
 
@@ -148,6 +155,153 @@ def _safe_payload(value):
         except json.JSONDecodeError:
             return {}
     return {}
+
+
+def _parse_iso_datetime(raw: str | None) -> datetime | None:
+    if not raw:
+        return None
+    text_value = str(raw).strip()
+    if not text_value:
+        return None
+    if text_value.endswith("Z"):
+        text_value = f"{text_value[:-1]}+00:00"
+    try:
+        parsed = datetime.fromisoformat(text_value)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed
+
+
+def _freshness_seconds(result: dict) -> int | None:
+    freshness = _parse_iso_datetime(str(result.get("freshness") or ""))
+    if not freshness:
+        return None
+    age_seconds = int((datetime.now(timezone.utc) - freshness).total_seconds())
+    return max(0, age_seconds)
+
+
+def _add_result_meta(result: dict, *, health: dict, pending: bool, pending_reason: str | None = None) -> dict:
+    payload = dict(result)
+    payload["health"] = health
+    payload["data_freshness_seconds"] = _freshness_seconds(result)
+    if pending or pending_reason:
+        payload["pending_reason"] = pending_reason or ("|".join(health.get("reasons") or []) or "refreshing")
+    if pending:
+        payload["next_poll_after_ms"] = max(1000, int(settings.search_pending_poll_ms))
+    return payload
+
+
+def _result_total(result: dict | None) -> int:
+    if not isinstance(result, dict):
+        return 0
+    pagination = result.get("pagination")
+    if not isinstance(pagination, dict):
+        return 0
+    try:
+        return max(0, int(pagination.get("total") or 0))
+    except Exception:
+        return 0
+
+
+def _result_hit(result: dict | None) -> bool:
+    if not isinstance(result, dict):
+        return False
+    return bool(result.get("hit"))
+
+
+def _result_has_more(result: dict | None) -> bool:
+    if not isinstance(result, dict):
+        return False
+    pagination = result.get("pagination")
+    if not isinstance(pagination, dict):
+        return False
+    return bool(pagination.get("has_more"))
+
+
+def _result_items_count(result: dict | None) -> int:
+    if not isinstance(result, dict):
+        return 0
+    items = result.get("items")
+    if not isinstance(items, list):
+        return 0
+    return len(items)
+
+
+def _should_schedule_background_backfill(
+    result: dict | None,
+    *,
+    force_refresh: bool,
+    page_size: int,
+    min_results: int = 30,
+) -> tuple[bool, dict]:
+    should_backfill, health = _needs_backfill(
+        result or {},
+        force_refresh=force_refresh,
+        min_results=max(1, int(min_results)),
+    )
+    visible_items = _result_items_count(result)
+    if visible_items < max(1, int(page_size)):
+        should_backfill = True
+        reasons = list(health.get("reasons") or [])
+        if "page_underfilled" not in reasons:
+            reasons.append("page_underfilled")
+        health["reasons"] = reasons
+        health["healthy"] = False
+    return should_backfill, health
+
+
+def _should_keep_pending_until_first_page_full(result: dict | None, *, page_size: int) -> bool:
+    if not isinstance(result, dict):
+        return True
+    if not _result_hit(result):
+        return True
+    visible_items = _result_items_count(result)
+    if visible_items > 0:
+        return False
+    return True
+
+
+def _should_run_v2_recall_guard(
+    *,
+    query: str,
+    v2_result: dict | None,
+    page_size: int | None = None,
+    page: int | None = None,
+) -> bool:
+    if not settings.search_v2_recall_guard_enabled:
+        return False
+    if not query.strip():
+        return False
+    if not isinstance(v2_result, dict):
+        return False
+    if not _result_hit(v2_result):
+        return True
+
+    total = _result_total(v2_result)
+    min_total = max(1, int(settings.search_v2_recall_guard_min_total))
+    if total < min_total:
+        return True
+
+    if page_size is not None and int(page_size) > 0:
+        # Guard against under-recall plateaus: exactly one page returned and no
+        # more pages, while legacy may still have much larger coverage.
+        if total <= int(page_size) and not _result_has_more(v2_result):
+            return True
+        # Guard deep-page empties where v2 estimated totals stop early and user
+        # lands on an empty page despite non-empty prior pages.
+        if int(page or 1) > 1 and _result_items_count(v2_result) == 0 and total > 0:
+            return True
+
+    return False
+
+
+def _should_prefer_legacy_for_recall_guard(*, v2_result: dict | None, legacy_result: dict | None) -> bool:
+    if not isinstance(v2_result, dict) or not isinstance(legacy_result, dict):
+        return False
+    delta = max(0, int(settings.search_v2_recall_guard_delta))
+    return _result_total(legacy_result) >= (_result_total(v2_result) + delta)
 
 
 def _get_redis_client() -> Redis | None:
@@ -222,7 +376,7 @@ def _write_result_cache(cache_key: str, payload: dict, ttl_seconds: int) -> None
 def _load_active_job(db: Session, job_id: str | None) -> dict | None:
     if not job_id:
         return None
-    job = get_search_job(db, job_id)
+    job = try_sync_job_status_with_crawl(db, job_id=job_id) or get_search_job(db, job_id)
     if not job:
         return None
     if str(job.get("status") or "") not in {"pending", "running"}:
@@ -255,16 +409,260 @@ def _try_reuse_coalesced_job(db: Session, *, cache_key: str, wait_ms: int) -> di
     return None
 
 
-def _needs_backfill(result: dict, *, force_refresh: bool) -> tuple[bool, dict]:
+def _schedule_influencer_backfill_job(
+    db: Session,
+    *,
+    query: str,
+    industry: str | None,
+    date_range: int,
+    request_payload: dict,
+    wait_ms_if_locked: int,
+) -> dict | None:
+    cache_key = _coalesce_cache_key(
+        search_type="influencer",
+        query=query,
+        mode=None,
+        industry=industry,
+        date_range=date_range,
+    )
+    lock_key = f"{cache_key}:lock"
+    redis_client = _get_redis_client()
+
+    reused_job = _try_reuse_coalesced_job(db, cache_key=cache_key, wait_ms=0)
+    if reused_job:
+        return reused_job
+
+    lock_token = uuid.uuid4().hex
+    lock_acquired = True
+    if redis_client:
+        try:
+            lock_acquired = bool(
+                redis_client.set(lock_key, lock_token, nx=True, ex=settings.search_coalesce_lock_ttl_seconds)
+            )
+        except RedisError:
+            lock_acquired = True
+
+    if not lock_acquired:
+        reused_job = _try_reuse_coalesced_job(
+            db,
+            cache_key=cache_key,
+            wait_ms=max(0, int(wait_ms_if_locked)),
+        )
+        if reused_job:
+            return reused_job
+        return None
+
+    try:
+        if query and _has_recent_zero_result_note_search_task(
+            db,
+            keyword=query,
+            minutes=5,
+        ):
+            return None
+        job_id = create_search_job(
+            db,
+            search_type="influencer",
+            query=query,
+            mode=None,
+            industry=industry,
+            request_payload=request_payload,
+        )
+        batch_id = uuid.uuid4().hex[:16]
+        trigger_task = run_search_notes.apply_async(
+            kwargs={
+                "batch_id": batch_id,
+                "keyword": query or str(industry or "小红书"),
+                "sort": 1,
+                "max_items": 240,
+                "auto_enrich": True,
+                "trigger_comments": False,
+            },
+            queue=settings.task_priority_queue,
+        )
+        run_search_anchors.apply_async(
+            kwargs={
+                "keyword": query or str(industry or "小红书"),
+                "max_items": 120,
+                "auto_enrich": True,
+            },
+            queue=settings.task_priority_queue,
+        )
+        mark_search_job_running(
+            db,
+            job_id=job_id,
+            crawl_batch_id=batch_id,
+            task_id=trigger_task.id,
+        )
+        if redis_client:
+            try:
+                redis_client.set(cache_key, job_id, ex=settings.search_coalesce_job_ttl_seconds)
+            except RedisError:
+                pass
+        return {"job_id": job_id, "task_id": trigger_task.id}
+    finally:
+        if redis_client and lock_acquired:
+            try:
+                current = redis_client.get(lock_key)
+                if current == lock_token:
+                    redis_client.delete(lock_key)
+            except RedisError:
+                pass
+
+
+def _schedule_brand_category_backfill_job(
+    db: Session,
+    *,
+    query: str,
+    mode: str,
+    industry: str | None,
+    date_range: int,
+    request_payload: dict,
+    wait_ms_if_locked: int,
+) -> dict | None:
+    cache_key = _coalesce_cache_key(
+        search_type="brand_category",
+        query=query,
+        mode=mode,
+        industry=industry,
+        date_range=date_range,
+    )
+    lock_key = f"{cache_key}:lock"
+    redis_client = _get_redis_client()
+
+    reused_job = _try_reuse_coalesced_job(db, cache_key=cache_key, wait_ms=0)
+    if reused_job:
+        return reused_job
+
+    lock_token = uuid.uuid4().hex
+    lock_acquired = True
+    if redis_client:
+        try:
+            lock_acquired = bool(
+                redis_client.set(lock_key, lock_token, nx=True, ex=settings.search_coalesce_lock_ttl_seconds)
+            )
+        except RedisError:
+            lock_acquired = True
+
+    if not lock_acquired:
+        reused_job = _try_reuse_coalesced_job(
+            db,
+            cache_key=cache_key,
+            wait_ms=max(0, int(wait_ms_if_locked)),
+        )
+        if reused_job:
+            return reused_job
+        return None
+
+    try:
+        if query and _has_recent_zero_result_note_search_task(
+            db,
+            keyword=query,
+            minutes=5,
+        ):
+            return None
+        job_id = create_search_job(
+            db,
+            search_type="brand_category",
+            query=query,
+            mode=mode,
+            industry=industry,
+            request_payload=request_payload,
+        )
+        batch_id = uuid.uuid4().hex[:16]
+        trigger_task = run_search_notes.apply_async(
+            kwargs={
+                "batch_id": batch_id,
+                "keyword": query,
+                "sort": 1,
+                "max_items": 260,
+                "auto_enrich": True,
+                "trigger_comments": False,
+            },
+            queue=settings.task_priority_queue,
+        )
+        mark_search_job_running(
+            db,
+            job_id=job_id,
+            crawl_batch_id=batch_id,
+            task_id=trigger_task.id,
+        )
+        if redis_client:
+            try:
+                redis_client.set(cache_key, job_id, ex=settings.search_coalesce_job_ttl_seconds)
+            except RedisError:
+                pass
+        return {"job_id": job_id, "task_id": trigger_task.id}
+    finally:
+        if redis_client and lock_acquired:
+            try:
+                current = redis_client.get(lock_key)
+                if current == lock_token:
+                    redis_client.delete(lock_key)
+            except RedisError:
+                pass
+
+
+def _safe_schedule_backfill(
+    schedule_fn,
+    db: Session,
+    *,
+    context: str,
+    **kwargs,
+):
+    try:
+        return schedule_fn(db=db, **kwargs)
+    except Exception as exc:
+        db.rollback()
+        logger.warning("search backfill schedule failed: %s (%s)", context, exc)
+        return None
+
+
+def _needs_backfill(
+    result: dict,
+    *,
+    force_refresh: bool,
+    min_results: int | None = None,
+    stale_hours: int | None = None,
+) -> tuple[bool, dict]:
+    effective_stale_hours: float | None = float(stale_hours) if stale_hours is not None else None
+    if effective_stale_hours is None:
+        # Keep compatibility with historical SEARCH_STALE_HOURS, but prefer minute-level control.
+        stale_minutes = max(1, int(getattr(settings, "search_stale_minutes", 30)))
+        effective_stale_hours = max(1 / 60, stale_minutes / 60)
     decision = build_fetch_decision(
         result,
         force_refresh=force_refresh,
-        min_results=settings.search_min_healthy_results,
-        stale_hours=settings.search_stale_hours,
+        min_results=min_results if min_results is not None else settings.search_min_healthy_results,
+        stale_hours=effective_stale_hours,
     )
     health = dict(decision["health"])
     health["reasons"] = decision["reasons"]
     return bool(decision["need_fetch"]), health
+
+
+def _should_use_brand_mode(db: Session, *, query: str, requested_mode: str, industry: str | None) -> bool:
+    normalized_query = query.strip()
+    if requested_mode != "category" or not normalized_query or industry:
+        return requested_mode == "brand"
+    # Brand-like pattern fallback: uppercase acronyms / alphanumeric tokens (YSL, K18, SK-II).
+    if re.search(r"[A-Z0-9]", normalized_query):
+        return True
+    row = db.execute(
+        text(
+            """
+            SELECT 1
+            FROM xhs_brand_alias_dim
+            WHERE COALESCE(status, 'enabled') = 'enabled'
+              AND (
+                    lower(alias) = lower(:query)
+                 OR lower(brand_name) = lower(:query)
+              )
+            LIMIT 1
+            """
+        ),
+        {"query": normalized_query},
+    ).first()
+    return row is not None
 
 
 def _recover_stale_running_collect_tasks(db: Session) -> int:
@@ -280,7 +678,7 @@ def _recover_stale_running_collect_tasks(db: Session) -> int:
             text(
                 """
                 UPDATE xhs_crawl_log
-                SET status = 'failed',
+                SET status = 'failed_timeout',
                     error_msg = COALESCE(NULLIF(error_msg, ''), 'timeout auto-recovered'),
                     completed_at = COALESCE(completed_at, now()),
                     updated_at = now()
@@ -344,6 +742,30 @@ def _has_recent_note_search_task(
             """
         ),
         {"keyword": keyword, "hours": max(1, hours)},
+    ).first()
+    return row is not None
+
+
+def _has_recent_zero_result_note_search_task(
+    db: Session,
+    *,
+    keyword: str,
+    minutes: int,
+) -> bool:
+    row = db.execute(
+        text(
+            """
+            SELECT 1
+            FROM xhs_crawl_log
+            WHERE task_type = 'note_search'
+              AND lower(keyword) = lower(:keyword)
+              AND status = 'success'
+              AND COALESCE(row_count, 0) = 0
+              AND created_at >= now() - (:minutes || ' minute')::interval
+            LIMIT 1
+            """
+        ),
+        {"keyword": keyword, "minutes": max(1, minutes)},
     ).first()
     return row is not None
 
@@ -445,7 +867,7 @@ def _enqueue_creator_note_backfill(db: Session, items: list[dict]) -> None:
                     "keyword": keyword,
                     "sort": 1,
                     "auto_enrich": True,
-                    "trigger_comments": True,
+                    "trigger_comments": False,
                     "max_items": max_items,
                 },
                 queue=settings.task_priority_queue,
@@ -626,33 +1048,137 @@ def search_influencer(req: InfluencerSearchRequest, db: Session = Depends(get_db
         cached = _read_result_cache(result_cache_key)
         if cached:
             return APIResponse(data=cached)
-    if req.force_refresh:
-        _recover_stale_running_collect_tasks(db)
-    result = query_influencers_db_first(
-        db,
-        query=query,
-        industry=req.industry,
-        follower_range=req.follower_range,
-        interaction_range=req.interaction_range,
-        date_range=req.date_range,
-        page=req.page,
-        size=req.size,
-        freshness_hours=req.freshness_hours,
-        sort=req.sort,
-        order=req.order,
+    legacy_result: dict | None = None
+    v2_result: dict | None = None
+
+    if settings.search_v2_enabled:
+        try:
+            v2_result = query_influencers_db_first_v2(
+                db,
+                query=query,
+                industry=req.industry,
+                follower_range=req.follower_range,
+                interaction_range=req.interaction_range,
+                date_range=req.date_range,
+                page=req.page,
+                size=req.size,
+                freshness_hours=req.freshness_hours,
+                sort=req.sort,
+                order=req.order,
+                include_notes=req.include_notes,
+            )
+        except Exception:
+            db.rollback()
+            if settings.search_v2_fallback_on_error:
+                legacy_result = query_influencers_db_first(
+                    db,
+                    query=query,
+                    industry=req.industry,
+                    follower_range=req.follower_range,
+                    interaction_range=req.interaction_range,
+                    date_range=req.date_range,
+                    page=req.page,
+                    size=req.size,
+                    freshness_hours=req.freshness_hours,
+                    sort=req.sort,
+                    order=req.order,
+                    include_notes=req.include_notes,
+                )
+            else:
+                raise HTTPException(status_code=503, detail="search_v2_unavailable")
+        result = v2_result or legacy_result
+        if settings.search_v2_dual_read and v2_result is not None:
+            try:
+                legacy_result = query_influencers_db_first(
+                    db,
+                    query=query,
+                    industry=req.industry,
+                    follower_range=req.follower_range,
+                    interaction_range=req.interaction_range,
+                    date_range=req.date_range,
+                    page=req.page,
+                    size=req.size,
+                    freshness_hours=req.freshness_hours,
+                    sort=req.sort,
+                    order=req.order,
+                    include_notes=req.include_notes,
+                )
+            except Exception:
+                db.rollback()
+                legacy_result = None
+    else:
+        legacy_result = query_influencers_db_first(
+            db,
+            query=query,
+            industry=req.industry,
+            follower_range=req.follower_range,
+            interaction_range=req.interaction_range,
+            date_range=req.date_range,
+            page=req.page,
+            size=req.size,
+            freshness_hours=req.freshness_hours,
+            sort=req.sort,
+            order=req.order,
+            include_notes=req.include_notes,
+        )
+        result = legacy_result
+        if settings.search_v2_dual_read:
+            try:
+                v2_result = query_influencers_db_first_v2(
+                    db,
+                    query=query,
+                    industry=req.industry,
+                    follower_range=req.follower_range,
+                    interaction_range=req.interaction_range,
+                    date_range=req.date_range,
+                    page=req.page,
+                    size=req.size,
+                    freshness_hours=req.freshness_hours,
+                    sort=req.sort,
+                    order=req.order,
+                    include_notes=req.include_notes,
+                )
+            except Exception:
+                db.rollback()
+                v2_result = None
+
+    if not result:
+        raise HTTPException(status_code=503, detail="search_unavailable")
+
+    should_backfill, health = _should_schedule_background_backfill(
+        result,
+        force_refresh=req.force_refresh,
+        min_results=max(settings.search_min_healthy_results, 30),
+        page_size=req.size,
     )
-    _enqueue_creator_profile_backfill(db, result.get("items") or [])
-    _enqueue_creator_note_backfill(db, result.get("items") or [])
-    should_backfill, health = _needs_backfill(result, force_refresh=req.force_refresh)
-    if result["hit"] and not should_backfill:
-        payload = {
-            "mode": "cache",
-            "status": "ready",
-            "search_type": "influencer",
-            "query": query,
-            "health": health,
-            **result,
+    if settings.search_v2_dual_read and v2_result is not None:
+        health["dual_read_compare"] = {
+            "legacy_total": int(((legacy_result or {}).get("pagination") or {}).get("total") or 0),
+            "v2_total": int((v2_result.get("pagination") or {}).get("total") or 0),
         }
+    if result["hit"]:
+        if should_backfill:
+            _safe_schedule_backfill(
+                _schedule_influencer_backfill_job,
+                db,
+                context="influencer_hit_background_refresh",
+                query=query,
+                industry=req.industry,
+                date_range=req.date_range,
+                request_payload=req.model_dump(),
+                wait_ms_if_locked=0,
+            )
+        payload = _add_result_meta(
+            {
+                "mode": "cache",
+                "status": "ready",
+                "search_type": "influencer",
+                "query": query,
+                **result,
+            },
+            health=health,
+            pending=False,
+        )
         _write_result_cache(
             result_cache_key,
             payload,
@@ -660,122 +1186,57 @@ def search_influencer(req: InfluencerSearchRequest, db: Session = Depends(get_db
         )
         return APIResponse(data=payload)
 
-    cache_key = _coalesce_cache_key(
-        search_type="influencer",
+    job = _safe_schedule_backfill(
+        _schedule_influencer_backfill_job,
+        db,
+        context="influencer_pending_backfill",
         query=query,
-        mode=None,
         industry=req.industry,
         date_range=req.date_range,
+        request_payload=req.model_dump(),
+        wait_ms_if_locked=settings.search_coalesce_wait_ms,
     )
-    lock_key = f"{cache_key}:lock"
-    redis_client = _get_redis_client()
-
-    reused_job = _try_reuse_coalesced_job(db, cache_key=cache_key, wait_ms=0)
-    if reused_job:
-        return APIResponse(
-            data={
-                "mode": "async",
-                "status": "pending",
+    if not job:
+        failed_payload = _add_result_meta(
+            {
+                "mode": "cache",
+                "status": "failed",
                 "search_type": "influencer",
                 "query": query,
-                "job_id": reused_job["job_id"],
-                "task_id": reused_job.get("task_id"),
-                "health": health,
                 **result,
-            }
-        )
-
-    lock_token = uuid.uuid4().hex
-    lock_acquired = True
-    if redis_client:
-        try:
-            lock_acquired = bool(
-                redis_client.set(lock_key, lock_token, nx=True, ex=settings.search_coalesce_lock_ttl_seconds)
-            )
-        except RedisError:
-            lock_acquired = True
-
-    if not lock_acquired:
-        reused_job = _try_reuse_coalesced_job(db, cache_key=cache_key, wait_ms=settings.search_coalesce_wait_ms)
-        if reused_job:
-            return APIResponse(
-                data={
-                    "mode": "async",
-                    "status": "pending",
-                    "search_type": "influencer",
-                    "query": query,
-                    "job_id": reused_job["job_id"],
-                    "task_id": reused_job.get("task_id"),
-                    "health": health,
-                    **result,
-                }
-            )
-
-    try:
-        job_id = create_search_job(
-            db,
-            search_type="influencer",
-            query=query,
-            mode=None,
-            industry=req.industry,
-            request_payload=req.model_dump(),
-        )
-        batch_id = uuid.uuid4().hex[:16]
-        trigger_task = run_search_notes.apply_async(
-            kwargs={
-                "batch_id": batch_id,
-                "keyword": query or str(req.industry or "小红书"),
-                "sort": 1,
-                "max_items": 240,
-                "auto_enrich": True,
-                "trigger_comments": False,
             },
-            queue=settings.task_priority_queue,
+            health=health,
+            pending=False,
         )
-        mark_search_job_running(
-            db,
-            job_id=job_id,
-            crawl_batch_id=batch_id,
-            task_id=trigger_task.id,
-        )
-        if redis_client:
-            try:
-                redis_client.set(cache_key, job_id, ex=settings.search_coalesce_job_ttl_seconds)
-            except RedisError:
-                pass
-    finally:
-        if redis_client and lock_acquired:
-            try:
-                current = redis_client.get(lock_key)
-                if current == lock_token:
-                    redis_client.delete(lock_key)
-            except RedisError:
-                pass
+        return APIResponse(data=failed_payload)
 
-    return APIResponse(
-        data={
+    pending_payload = _add_result_meta(
+        {
             "mode": "async",
             "status": "pending",
             "search_type": "influencer",
             "query": query,
-            "job_id": job_id,
-            "task_id": trigger_task.id,
-            "health": health,
-            "poll_job_url": f"/api/v1/search/jobs/{job_id}",
+            "job_id": job["job_id"],
+            "task_id": job.get("task_id"),
+            "poll_job_url": f"/api/v1/search/jobs/{job['job_id']}",
             **result,
-        }
+        },
+        health=health,
+        pending=True,
     )
+    return APIResponse(data=pending_payload)
 
 
 @router.post("/brand-category", response_model=APIResponse)
 def search_brand_or_category(req: BrandCategorySearchRequest, db: Session = Depends(get_db)) -> APIResponse:
     query = req.query.strip()
+    effective_mode: str = "brand" if _should_use_brand_mode(db, query=query, requested_mode=req.mode, industry=req.industry) else req.mode
     date_range = 90 if req.mode == "category" and req.industry else req.date_range
     result_cache_key = _result_cache_key(
         "brand_category",
         {
             "query": query,
-            "mode": req.mode,
+            "mode": effective_mode,
             "industry": req.industry,
             "min_like": req.min_like,
             "date_range": date_range,
@@ -789,32 +1250,149 @@ def search_brand_or_category(req: BrandCategorySearchRequest, db: Session = Depe
         cached = _read_result_cache(result_cache_key)
         if cached:
             return APIResponse(data=cached)
-    if req.force_refresh:
-        _recover_stale_running_collect_tasks(db)
-    result = query_brand_category_db_first(
-        db,
-        query=query,
-        mode=req.mode,
-        industry=req.industry,
-        min_like=req.min_like,
-        date_range=date_range,
-        page=req.page,
-        size=req.size,
-        freshness_hours=req.freshness_hours,
-        sort=req.sort,
-        order=req.order,
+
+    def run_legacy_query() -> dict:
+        return query_brand_category_db_first(
+            db,
+            query=query,
+            mode=effective_mode,  # type: ignore[arg-type]
+            industry=req.industry,
+            min_like=req.min_like,
+            date_range=date_range,
+            page=req.page,
+            size=req.size,
+            freshness_hours=req.freshness_hours,
+            sort=req.sort,
+            order=req.order,
+            fast_pagination=req.page > 1,
+        )
+
+    legacy_result: dict | None = None
+    v2_result: dict | None = None
+    result_source = "legacy_only"
+    recall_guard_triggered = False
+    recall_guard_fallback = False
+    if settings.search_v2_enabled:
+        try:
+            v2_result = query_brand_category_db_first_v2(
+                db,
+                query=query,
+                mode=effective_mode,  # type: ignore[arg-type]
+                industry=req.industry,
+                min_like=req.min_like,
+                date_range=date_range,
+                page=req.page,
+                size=req.size,
+                freshness_hours=req.freshness_hours,
+                sort=req.sort,
+                order=req.order,
+            )
+        except Exception:
+            db.rollback()
+            if settings.search_v2_fallback_on_error:
+                legacy_result = run_legacy_query()
+            else:
+                raise HTTPException(status_code=503, detail="search_v2_unavailable")
+        if v2_result is not None:
+            result = v2_result
+            result_source = "v2"
+            recall_guard_triggered = _should_run_v2_recall_guard(
+                query=query,
+                v2_result=v2_result,
+                page_size=req.size,
+                page=req.page,
+            )
+            if recall_guard_triggered and legacy_result is None:
+                try:
+                    legacy_result = run_legacy_query()
+                except Exception:
+                    db.rollback()
+                    legacy_result = None
+            if _should_prefer_legacy_for_recall_guard(v2_result=v2_result, legacy_result=legacy_result):
+                result = legacy_result
+                result_source = "legacy_recall_guard"
+                recall_guard_fallback = True
+        else:
+            result = legacy_result
+            result_source = "legacy_v2_error"
+
+        if settings.search_v2_dual_read and v2_result is not None and legacy_result is None:
+            try:
+                legacy_result = run_legacy_query()
+            except Exception:
+                db.rollback()
+                legacy_result = None
+    else:
+        legacy_result = run_legacy_query()
+        result = legacy_result
+        result_source = "legacy"
+        if settings.search_v2_dual_read:
+            try:
+                v2_result = query_brand_category_db_first_v2(
+                    db,
+                    query=query,
+                    mode=effective_mode,  # type: ignore[arg-type]
+                    industry=req.industry,
+                    min_like=req.min_like,
+                    date_range=date_range,
+                    page=req.page,
+                    size=req.size,
+                    freshness_hours=req.freshness_hours,
+                    sort=req.sort,
+                    order=req.order,
+                )
+            except Exception:
+                db.rollback()
+                v2_result = None
+
+    if not result:
+        raise HTTPException(status_code=503, detail="search_unavailable")
+
+    should_backfill, health = _should_schedule_background_backfill(
+        result,
+        force_refresh=req.force_refresh,
+        min_results=max(settings.search_min_healthy_results, 30),
+        page_size=req.size,
     )
-    should_backfill, health = _needs_backfill(result, force_refresh=req.force_refresh)
-    if result["hit"] and not should_backfill:
-        payload = {
-            "mode": "cache",
-            "status": "ready",
-            "search_type": "brand_category",
-            "query": query,
-            "mode_type": req.mode,
-            "health": health,
-            **result,
+    if settings.search_v2_dual_read and v2_result is not None:
+        health["dual_read_compare"] = {
+            "legacy_total": int(((legacy_result or {}).get("pagination") or {}).get("total") or 0),
+            "v2_total": int((v2_result.get("pagination") or {}).get("total") or 0),
         }
+    if v2_result is not None and settings.search_v2_recall_guard_enabled:
+        health["recall_guard"] = {
+            "enabled": True,
+            "triggered": bool(recall_guard_triggered),
+            "fallback_to_legacy": bool(recall_guard_fallback),
+            "selected_source": result_source,
+            "v2_total": _result_total(v2_result),
+            "legacy_total": _result_total(legacy_result),
+        }
+    if result["hit"]:
+        if should_backfill:
+            _safe_schedule_backfill(
+                _schedule_brand_category_backfill_job,
+                db,
+                context="brand_category_hit_background_refresh",
+                query=query,
+                mode=effective_mode,
+                industry=req.industry,
+                date_range=date_range,
+                request_payload={**req.model_dump(), "mode": effective_mode, "date_range": date_range},
+                wait_ms_if_locked=0,
+            )
+        payload = _add_result_meta(
+            {
+                "mode": "cache",
+                "status": "ready",
+                "search_type": "brand_category",
+                "query": query,
+                "mode_type": effective_mode,
+                **result,
+            },
+            health=health,
+            pending=False,
+        )
         _write_result_cache(
             result_cache_key,
             payload,
@@ -822,114 +1400,48 @@ def search_brand_or_category(req: BrandCategorySearchRequest, db: Session = Depe
         )
         return APIResponse(data=payload)
 
-    cache_key = _coalesce_cache_key(
-        search_type="brand_category",
+    job = _safe_schedule_backfill(
+        _schedule_brand_category_backfill_job,
+        db,
+        context="brand_category_pending_backfill",
         query=query,
-        mode=req.mode,
+        mode=effective_mode,
         industry=req.industry,
         date_range=date_range,
+        request_payload={**req.model_dump(), "mode": effective_mode, "date_range": date_range},
+        wait_ms_if_locked=settings.search_coalesce_wait_ms,
     )
-    lock_key = f"{cache_key}:lock"
-    redis_client = _get_redis_client()
-
-    reused_job = _try_reuse_coalesced_job(db, cache_key=cache_key, wait_ms=0)
-    if reused_job:
-        return APIResponse(
-            data={
-                "mode": "async",
-                "status": "pending",
+    if not job:
+        failed_payload = _add_result_meta(
+            {
+                "mode": "cache",
+                "status": "failed",
                 "search_type": "brand_category",
                 "query": query,
-                "mode_type": req.mode,
-                "job_id": reused_job["job_id"],
-                "task_id": reused_job.get("task_id"),
-                "health": health,
+                "mode_type": effective_mode,
                 **result,
-            }
-        )
-
-    lock_token = uuid.uuid4().hex
-    lock_acquired = True
-    if redis_client:
-        try:
-            lock_acquired = bool(
-                redis_client.set(lock_key, lock_token, nx=True, ex=settings.search_coalesce_lock_ttl_seconds)
-            )
-        except RedisError:
-            lock_acquired = True
-
-    if not lock_acquired:
-        reused_job = _try_reuse_coalesced_job(db, cache_key=cache_key, wait_ms=settings.search_coalesce_wait_ms)
-        if reused_job:
-            return APIResponse(
-                data={
-                    "mode": "async",
-                    "status": "pending",
-                    "search_type": "brand_category",
-                    "query": query,
-                    "mode_type": req.mode,
-                    "job_id": reused_job["job_id"],
-                    "task_id": reused_job.get("task_id"),
-                    "health": health,
-                    **result,
-                }
-            )
-
-    try:
-        job_id = create_search_job(
-            db,
-            search_type="brand_category",
-            query=query,
-            mode=req.mode,
-            industry=req.industry,
-            request_payload={**req.model_dump(), "date_range": date_range},
-        )
-        batch_id = uuid.uuid4().hex[:16]
-        trigger_task = run_search_notes.apply_async(
-            kwargs={
-                "batch_id": batch_id,
-                "keyword": query,
-                "sort": 1,
-                "max_items": 260,
-                "auto_enrich": True,
-                "trigger_comments": False,
             },
-            queue=settings.task_priority_queue,
+            health=health,
+            pending=False,
         )
-        mark_search_job_running(
-            db,
-            job_id=job_id,
-            crawl_batch_id=batch_id,
-            task_id=trigger_task.id,
-        )
-        if redis_client:
-            try:
-                redis_client.set(cache_key, job_id, ex=settings.search_coalesce_job_ttl_seconds)
-            except RedisError:
-                pass
-    finally:
-        if redis_client and lock_acquired:
-            try:
-                current = redis_client.get(lock_key)
-                if current == lock_token:
-                    redis_client.delete(lock_key)
-            except RedisError:
-                pass
+        return APIResponse(data=failed_payload)
 
-    return APIResponse(
-        data={
+    pending_payload = _add_result_meta(
+        {
             "mode": "async",
             "status": "pending",
             "search_type": "brand_category",
             "query": query,
-            "mode_type": req.mode,
-            "job_id": job_id,
-            "task_id": trigger_task.id,
-            "health": health,
-            "poll_job_url": f"/api/v1/search/jobs/{job_id}",
+            "mode_type": effective_mode,
+            "job_id": job["job_id"],
+            "task_id": job.get("task_id"),
+            "poll_job_url": f"/api/v1/search/jobs/{job['job_id']}",
             **result,
-        }
+        },
+        health=health,
+        pending=True,
     )
+    return APIResponse(data=pending_payload)
 
 
 @router.get("/jobs/{job_id}", response_model=APIResponse)
@@ -949,46 +1461,170 @@ def get_unified_search_job(
     query = str(job.get("query") or "")
 
     if status == "ready":
+        response_payload = _safe_payload(job.get("response_payload"))
+        response_row_count = int(response_payload.get("row_count") or 0)
+        if response_row_count <= 0:
+            mark_search_job_failed(db, job_id=job_id, error_msg="no_results_after_fetch")
+            return APIResponse(
+                data=_add_result_meta(
+                    {
+                        "job_id": job_id,
+                        "status": "failed",
+                        "search_type": search_type,
+                        "query": query,
+                    },
+                    health={"reasons": ["no_results_after_fetch"], "healthy": False, "total": 0, "freshness": None},
+                    pending=False,
+                    pending_reason="no_results_after_fetch",
+                )
+            )
         if search_type == "influencer":
-            result = query_influencers_db_first(
-                db,
-                query=query,
-                industry=payload.get("industry"),
-                follower_range=payload.get("follower_range"),
-                interaction_range=payload.get("interaction_range"),
-                date_range=int(payload.get("date_range") or 30),
-                page=page,
-                size=size,
-                freshness_hours=int(payload.get("freshness_hours") or 24),
-                sort=str(payload.get("sort") or "followers"),  # type: ignore[arg-type]
-                order=str(payload.get("order") or "desc"),  # type: ignore[arg-type]
-            )
+            if settings.search_v2_enabled:
+                try:
+                    result = query_influencers_db_first_v2(
+                        db,
+                        query=query,
+                        industry=payload.get("industry"),
+                        follower_range=payload.get("follower_range"),
+                        interaction_range=payload.get("interaction_range"),
+                        date_range=int(payload.get("date_range") or 30),
+                        page=page,
+                        size=size,
+                        freshness_hours=int(payload.get("freshness_hours") or 24),
+                        sort=str(payload.get("sort") or "relevance"),  # type: ignore[arg-type]
+                        order=str(payload.get("order") or "desc"),  # type: ignore[arg-type]
+                        include_notes=bool(payload.get("include_notes") or False),
+                    )
+                except Exception:
+                    db.rollback()
+                    if not settings.search_v2_fallback_on_error:
+                        raise HTTPException(status_code=503, detail="search_v2_unavailable")
+                    result = query_influencers_db_first(
+                        db,
+                        query=query,
+                        industry=payload.get("industry"),
+                        follower_range=payload.get("follower_range"),
+                        interaction_range=payload.get("interaction_range"),
+                        date_range=int(payload.get("date_range") or 30),
+                        page=page,
+                        size=size,
+                        freshness_hours=int(payload.get("freshness_hours") or 24),
+                        sort=str(payload.get("sort") or "relevance"),  # type: ignore[arg-type]
+                        order=str(payload.get("order") or "desc"),  # type: ignore[arg-type]
+                        include_notes=bool(payload.get("include_notes") or False),
+                    )
+            else:
+                result = query_influencers_db_first(
+                    db,
+                    query=query,
+                    industry=payload.get("industry"),
+                    follower_range=payload.get("follower_range"),
+                    interaction_range=payload.get("interaction_range"),
+                    date_range=int(payload.get("date_range") or 30),
+                    page=page,
+                    size=size,
+                    freshness_hours=int(payload.get("freshness_hours") or 24),
+                    sort=str(payload.get("sort") or "relevance"),  # type: ignore[arg-type]
+                    order=str(payload.get("order") or "desc"),  # type: ignore[arg-type]
+                    include_notes=bool(payload.get("include_notes") or False),
+                )
         else:
-            result = query_brand_category_db_first(
-                db,
-                query=query,
-                mode=str(payload.get("mode") or "brand"),
-                industry=payload.get("industry"),
-                min_like=int(payload.get("min_like") or 0),
-                date_range=int(payload.get("date_range") or 30),
-                page=page,
-                size=size,
-                freshness_hours=int(payload.get("freshness_hours") or 24),
-                sort=str(payload.get("sort") or "stat"),  # type: ignore[arg-type]
-                order=str(payload.get("order") or "desc"),  # type: ignore[arg-type]
+            mode = str(payload.get("mode") or "brand")
+            industry = payload.get("industry")
+            min_like = int(payload.get("min_like") or 0)
+            date_range = int(payload.get("date_range") or 30)
+            freshness_hours = int(payload.get("freshness_hours") or 24)
+            sort = str(payload.get("sort") or "stat")
+            order = str(payload.get("order") or "desc")
+
+            def run_legacy_brand_category() -> dict:
+                return query_brand_category_db_first(
+                    db,
+                    query=query,
+                    mode=mode,  # type: ignore[arg-type]
+                    industry=industry,
+                    min_like=min_like,
+                    date_range=date_range,
+                    page=page,
+                    size=size,
+                    freshness_hours=freshness_hours,
+                    sort=sort,  # type: ignore[arg-type]
+                    order=order,  # type: ignore[arg-type]
+                    fast_pagination=page > 1,
+                )
+
+            if settings.search_v2_enabled:
+                v2_result: dict | None = None
+                try:
+                    v2_result = query_brand_category_db_first_v2(
+                        db,
+                        query=query,
+                        mode=mode,  # type: ignore[arg-type]
+                        industry=industry,
+                        min_like=min_like,
+                        date_range=date_range,
+                        page=page,
+                        size=size,
+                        freshness_hours=freshness_hours,
+                        sort=sort,  # type: ignore[arg-type]
+                        order=order,  # type: ignore[arg-type]
+                    )
+                except Exception:
+                    db.rollback()
+                    if not settings.search_v2_fallback_on_error:
+                        raise HTTPException(status_code=503, detail="search_v2_unavailable")
+                    result = run_legacy_brand_category()
+                else:
+                    result = v2_result
+                    if _should_run_v2_recall_guard(
+                        query=query,
+                        v2_result=v2_result,
+                        page_size=size,
+                        page=page,
+                    ):
+                        try:
+                            legacy_result = run_legacy_brand_category()
+                        except Exception:
+                            db.rollback()
+                            legacy_result = None
+                        if _should_prefer_legacy_for_recall_guard(v2_result=v2_result, legacy_result=legacy_result):
+                            result = legacy_result  # type: ignore[assignment]
+            else:
+                result = run_legacy_brand_category()
+        health = _needs_backfill(result, force_refresh=False)[1]
+        if _should_keep_pending_until_first_page_full(result, page_size=size):
+            return APIResponse(
+                data=_add_result_meta(
+                    {
+                        "job_id": job_id,
+                        "status": "pending",
+                        "search_type": search_type,
+                        "query": query,
+                    },
+                    health=health,
+                    pending=True,
+                    pending_reason="waiting_for_first_page",
+                )
             )
-        return APIResponse(
-            data={
+        ready_payload = _add_result_meta(
+            {
                 "job_id": job_id,
                 "status": "ready",
                 "search_type": search_type,
                 "query": query,
                 **result,
-            }
+            },
+            health=health,
+            pending=False,
+        )
+        return APIResponse(
+            data=ready_payload
         )
 
+    pending_reason = str(job.get("error_msg") or "") if status == "failed" else "job_running"
     return APIResponse(
-        data={
+        data=_add_result_meta(
+            {
             "job_id": job_id,
             "status": status,
             "search_type": search_type,
@@ -999,5 +1635,9 @@ def get_unified_search_job(
             "created_at": job.get("created_at"),
             "updated_at": job.get("updated_at"),
             "completed_at": job.get("completed_at"),
-        }
+            },
+            health={"reasons": [status], "healthy": status == "ready", "total": 0, "freshness": None},
+            pending=status in {"pending", "running"},
+            pending_reason=pending_reason or status,
+        ),
     )

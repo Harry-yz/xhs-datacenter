@@ -4,9 +4,10 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { flushSync } from "react-dom";
 
 import { type Locale } from "@/config/i18n";
-import { SearchBar, type SearchTab } from "@/components/datacenter/search-bar";
+import { SearchBar, type SearchTypeOption } from "@/components/datacenter/search-bar";
 import { useAuthModal } from "@/components/providers/auth-modal-provider";
 
 export function XhsSearchEntry({
@@ -26,7 +27,8 @@ export function XhsSearchEntry({
   const router = useRouter();
   const auth = useAuthModal();
   const [query, setQuery] = useState(defaultQuery);
-  const [searchType, setSearchType] = useState<SearchTab>("category");
+  const [searchType, setSearchType] = useState<SearchTypeOption>("category");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const texts = useMemo(
     () => ({
@@ -41,7 +43,7 @@ export function XhsSearchEntry({
     [isZh]
   );
 
-  function buildTarget(nextType: SearchTab, nextQuery: string) {
+  function buildTarget(nextType: SearchTypeOption, nextQuery: string) {
     const params = new URLSearchParams();
     params.set("type", nextType);
     params.set("q", nextQuery.trim());
@@ -56,12 +58,14 @@ export function XhsSearchEntry({
     }
 
     const target = buildTarget(searchType, trimmed);
-
+    // Auth gate must remain for the search entry.
     if (authenticated || auth.authenticated) {
+      flushSync(() => {
+        setIsSubmitting(true);
+      });
       router.push(target);
       return;
     }
-
     auth.openAuthModal({ next: target });
   }
 
@@ -86,12 +90,19 @@ export function XhsSearchEntry({
             categoryLabel={isZh ? "品类/品牌" : "Categories/Brands"}
             className="mt-4"
             creatorLabel={texts.creator}
-            currentTab={searchType}
+            currentType={searchType}
+            disabled={isSubmitting}
+            loading={isSubmitting}
             onSearch={(value) => {
               setQuery(value);
               submitSearch(value);
             }}
-            onTabChange={(nextTab) => setSearchType(nextTab)}
+            onTypeChange={(nextType) => {
+              if (isSubmitting) {
+                return;
+              }
+              setSearchType(nextType);
+            }}
             placeholder={texts.placeholder}
             searchButtonLabel={texts.submit}
             searchQuery={query}

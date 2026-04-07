@@ -16,6 +16,7 @@ import {
 
 import { env } from "@/config/env";
 import { type Locale } from "@/config/i18n";
+import { buildSearchResultsSlice, createDefaultSearchPayload } from "@/lib/search-workbench";
 import {
   type CreatorOpportunityVM,
   type NoteAnalysisCardVM,
@@ -177,10 +178,22 @@ type LiveTotalsApiData = {
   generated_at?: string;
 };
 
+type LiveIndustriesApiData = {
+  items?: Array<{
+    industry_key?: string;
+    industry_name?: string;
+    note_count?: number;
+  }>;
+  generated_at?: string;
+};
+
 type SearchPending = {
-  status: "pending";
+  status: "pending" | "failed";
   type: "category" | "creator";
   jobId?: string;
+  pendingReason?: string;
+  nextPollAfterMs?: number;
+  dataFreshnessSeconds?: number;
 };
 
 const PLATFORM_SPLIT_ORDER = ["Xiaohongshu", "Douyin", "TikTok", "Instagram", "Facebook", "Twitter"] as const;
@@ -281,29 +294,156 @@ type FetchApiInit = RequestInit & {
     revalidate?: number;
     tags?: string[];
   };
+  timeoutMs?: number;
 };
 
-async function fetchApi<T>(path: string, init?: FetchApiInit): Promise<T> {
-  const response = await fetch(`${env.apiBaseUrl}${path}`, {
-    ...init,
-    cache: init?.cache ?? "no-store",
-    next: init?.next,
-    headers: {
-      "Content-Type": "application/json",
-      ...(init?.headers ?? {})
-    }
-  });
+class ApiRequestError extends Error {
+  readonly status: number;
+  readonly errorType: "upstream_timeout" | "upstream_redirect" | "upstream_status";
+  readonly path: string;
 
-  if (!response.ok) {
-    throw new Error(`API ${path} failed with status ${response.status}`);
+  constructor(params: {
+    path: string;
+    status: number;
+    errorType: "upstream_timeout" | "upstream_redirect" | "upstream_status";
+    message: string;
+  }) {
+    super(params.message);
+    this.name = "ApiRequestError";
+    this.path = params.path;
+    this.status = params.status;
+    this.errorType = params.errorType;
   }
+}
 
-  const payload = (await response.json()) as ApiEnvelope<T>;
-  return payload.data;
+async function fetchApi<T>(path: string, init?: FetchApiInit): Promise<T> {
+  const hasRevalidate = typeof init?.next?.revalidate === "number";
+  const timeoutMs = Math.max(1000, Number(init?.timeoutMs ?? 4500));
+  const apiUrl = `${env.internalApiBaseUrl}${path}`;
+  try {
+    const response = await fetch(apiUrl, {
+      ...init,
+      signal: init?.signal ?? AbortSignal.timeout(timeoutMs),
+      cache: hasRevalidate ? undefined : (init?.cache ?? "no-store"),
+      next: init?.next,
+      redirect: "manual",
+      headers: {
+        "Content-Type": "application/json",
+        ...(init?.headers ?? {})
+      }
+    });
+
+    const redirectedMisconfigured =
+      response.redirected ||
+      response.type === "opaqueredirect" ||
+      Boolean(response.headers.get("location")) ||
+      (response.status >= 300 && response.status < 400);
+    if (redirectedMisconfigured) {
+      throw new ApiRequestError({
+        path,
+        status: response.status,
+        errorType: "upstream_redirect",
+        message: `API ${path} redirected unexpectedly`
+      });
+    }
+
+    if (!response.ok) {
+      throw new ApiRequestError({
+        path,
+        status: response.status,
+        errorType: "upstream_status",
+        message: `API ${path} failed with status ${response.status}`
+      });
+    }
+
+    const payload = (await response.json()) as ApiEnvelope<T>;
+    return payload.data;
+  } catch (error) {
+    const name = error && typeof error === "object" && "name" in error ? String((error as { name?: unknown }).name ?? "") : "";
+    const message = error instanceof Error ? error.message : String(error ?? "");
+    const timeout = name === "AbortError" || name === "TimeoutError" || /timeout|timed out|abort/i.test(message);
+    if (timeout) {
+      throw new ApiRequestError({
+        path,
+        status: 504,
+        errorType: "upstream_timeout",
+        message: `API ${path} timeout`
+      });
+    }
+    throw error;
+  }
+}
+
+async function withRetry<T>(
+  request: () => Promise<T>,
+  options?: {
+    attempts?: number;
+    retryDelayMs?: number;
+  }
+): Promise<{ ok: true; value: T } | { ok: false; error: unknown }> {
+  const attempts = Math.max(1, options?.attempts ?? 2);
+  const retryDelayMs = Math.max(0, options?.retryDelayMs ?? 250);
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      const value = await request();
+      return { ok: true, value };
+    } catch (error) {
+      if (attempt >= attempts) {
+        return { ok: false, error };
+      }
+      await wait(retryDelayMs * attempt);
+    }
+  }
+  return { ok: false, error: new Error("request failed") };
+}
+
+function getErrorName(error: unknown) {
+  if (error && typeof error === "object" && "name" in error) {
+    return String((error as { name?: unknown }).name ?? "");
+  }
+  return "";
+}
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error ?? "");
+}
+
+function isTimeoutOrAbortError(error: unknown) {
+  if (error instanceof ApiRequestError) {
+    return error.errorType === "upstream_timeout";
+  }
+  const name = getErrorName(error);
+  if (name === "AbortError" || name === "TimeoutError") {
+    return true;
+  }
+  const message = getErrorMessage(error).toLowerCase();
+  return (
+    message.includes("timeout") ||
+    message.includes("timed out") ||
+    message.includes("abort")
+  );
+}
+
+function isUpstreamMisconfiguredError(error: unknown) {
+  if (!(error instanceof ApiRequestError)) {
+    return false;
+  }
+  return error.errorType === "upstream_redirect" || error.status === 405;
 }
 
 function toLocaleCount(locale: Locale, value: number) {
   return Math.max(0, Math.round(value)).toLocaleString(locale === "zh" ? "zh-CN" : "en-US");
+}
+
+function parseMetricValue(raw: string | undefined) {
+  if (!raw) {
+    return 0;
+  }
+  const parsed = Number(raw.replace(/[^\d.-]/g, ""));
+  return Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
 }
 
 function toMonthDayLabel(dateText: string) {
@@ -400,21 +540,28 @@ function mapNoteRows(locale: Locale, rows: Array<Record<string, unknown>>): Note
 }
 
 function mapCreatorRows(locale: Locale, rows: Array<Record<string, unknown>>): CreatorOpportunityVM[] {
-  return rows.map((item) => {
-    const name = String(item.author_nickname ?? item.name ?? item.author_id ?? "");
+  return rows.map((item, index) => {
+    const authorId = String(item.author_id ?? item.authorId ?? "").trim();
+    const name = String(item.author_nickname ?? item.name ?? authorId ?? "");
     const followers = Number(item.followers ?? item.fans_count ?? 0);
     const notesCount = Number(item.note_count ?? item.notes ?? 0);
     const totalInteractions = Number(item.interaction_total ?? item.sumStat ?? 0);
     const tags = Array.isArray(item.tags) ? item.tags.map(String).filter(Boolean) : [];
     const direction = tags.length ? tags.slice(0, 2).join(" / ") : choose(locale, "内容达人", "Content Creator");
+    const rawProfileUrl = String(item.creator_home_url ?? item.anchor_link ?? item.profile_url ?? "").trim();
+    const profileUrl =
+      rawProfileUrl ||
+      (authorId ? `https://www.xiaohongshu.com/user/profile/${authorId}` : "");
 
     return {
+      authorId: authorId || `creator-${index + 1}`,
       name: name || choose(locale, "未知达人", "Unknown Creator"),
       followers: toCompactFollowers(locale, followers),
       direction,
       cpe: "-",
       notesCount,
-      totalInteractions
+      totalInteractions,
+      profileUrl
     };
   });
 }
@@ -537,20 +684,42 @@ function buildTrendExplorer(locale: Locale): TrendExplorerVM {
 
 export async function getPlatformCards(locale: Locale) {
   try {
-    const overview = await fetchApi<OverviewApiData>("/dashboard/xhs/overview?days=90", {
-      cache: "force-cache",
-      next: { revalidate: 30 }
-    });
-    const summary = overview.summary ?? {};
-    const totalNotes = Number(summary.notes_total ?? 0);
-    const totalCreators = Number(summary.creators_total ?? 0);
+    const [liveTotalsResp, overviewResp] = await Promise.all([
+      withRetry(
+        () =>
+          fetchApi<LiveTotalsApiData>("/dashboard/xhs/live-totals", {
+            next: { revalidate: 30 },
+            timeoutMs: 1200
+          }),
+        { attempts: 1 }
+      ),
+      withRetry(
+        () =>
+          fetchApi<OverviewApiData>("/dashboard/xhs/overview?days=90", {
+            next: { revalidate: 30 },
+            timeoutMs: 1200
+          }),
+        { attempts: 1 }
+      )
+    ]);
+    const liveTotals = liveTotalsResp.ok ? liveTotalsResp.value : null;
+    const overview = overviewResp.ok ? overviewResp.value : null;
+    const summary = overview?.summary ?? {};
+    const totalNotes = Number(liveTotals?.notes_total ?? summary.notes_total ?? 0);
+    const totalCreators = Number(liveTotals?.creators_total ?? summary.creators_total ?? 0);
     const noteSplit = allocateByRatio(totalNotes);
     const creatorSplit = allocateByRatio(totalCreators);
 
     return platformCards.map((item) => {
       const key = item.platform as (typeof PLATFORM_SPLIT_ORDER)[number];
-      const notes = toLocaleCount(locale, noteSplit[key] ?? 0);
-      const creators = toLocaleCount(locale, creatorSplit[key] ?? 0);
+      const notes =
+        key === "Xiaohongshu"
+          ? toLocaleCount(locale, totalNotes)
+          : toLocaleCount(locale, noteSplit[key] ?? 0);
+      const creators =
+        key === "Xiaohongshu"
+          ? toLocaleCount(locale, totalCreators)
+          : toLocaleCount(locale, creatorSplit[key] ?? 0);
 
       return {
         ...item,
@@ -572,17 +741,108 @@ export async function getPlatformCards(locale: Locale) {
 }
 
 export async function getXhsOverview(locale: Locale) {
+  const fallbackTrendExplorer = buildTrendExplorer(locale);
+  const fallbackIndustries = xhsIndustries.map((item) => ({
+    ...item,
+    name:
+      locale === "zh"
+        ? {
+            Beauty: "美妆",
+            "Mother & Baby": "母婴",
+            Fashion: "时尚",
+            Food: "美食",
+            Travel: "旅行",
+            Home: "家居",
+            Digital: "数码",
+            Fitness: "运动",
+            Pets: "宠物",
+            Education: "教育",
+            Automotive: "汽车",
+            Luxury: "奢品"
+          }[item.name] ?? item.name
+        : item.name,
+    description:
+      locale === "zh"
+        ? {
+            Beauty: "内容、达人与品牌信号",
+            "Mother & Baby": "产品信任与推荐循环",
+            Fashion: "穿搭参考与品牌提及",
+            Food: "口味、做法与场景内容",
+            Travel: "目的地计划与攻略需求",
+            Home: "家装灵感与实用内容",
+            Digital: "设备评测与生活效率",
+            Fitness: "日常训练与体态管理",
+            Pets: "养护、用品与情绪连接",
+            Education: "学习效率与成长动机",
+            Automotive: "生活方式与升级需求",
+            Luxury: "高端欲望与购买信心"
+          }[item.name] ?? item.description
+        : item.description,
+    value: localizeNoteValue(locale, item.value)
+  }));
+  const fallbackAiCards = [
+    locale === "zh"
+      ? {
+          title: "热点总结",
+          points: ["美妆仍然是最高密度内容池", "防晒、底妆、精华是当前最有价值的观测带"]
+        }
+      : {
+          title: "Heat Summary",
+          points: ["Beauty remains the highest-density content pool.", "Sunscreen, base makeup, and serums are the most valuable lanes right now."]
+        },
+    locale === "zh"
+      ? {
+          title: "品牌机会",
+          points: ["头部品牌心智稳定，但平替和质地比较仍有突破空间", "收藏高的内容更偏教程和场景化表达"]
+        }
+      : {
+          title: "Brand Opportunity",
+          points: ["Top brands stay strong, but dupes and texture comparisons still open room.", "Save-heavy posts lean toward tutorial and scenario framing."]
+        }
+  ];
+
   try {
-    const overview = await fetchApi<OverviewApiData>("/dashboard/xhs/overview?days=90", {
-      cache: "force-cache",
-      next: { revalidate: 15 }
-    });
-    const summary = overview.summary ?? {};
-    const trend = overview.trend ?? {};
+    // 首屏优先轻接口：先拿 totals + industries，重 overview 超时快速降级。
+    const [totalsResp, industriesResp, overviewResp] = await Promise.all([
+      withRetry(
+        () =>
+          fetchApi<LiveTotalsApiData>("/dashboard/xhs/live-totals", {
+            next: { revalidate: 30 },
+            timeoutMs: 1200
+          }),
+        { attempts: 1 }
+      ),
+      withRetry(
+        () =>
+          fetchApi<LiveIndustriesApiData>("/dashboard/xhs/live-industries", {
+            next: { revalidate: 60 },
+            timeoutMs: 1200
+          }),
+        { attempts: 1 }
+      ),
+      withRetry(
+        () =>
+          fetchApi<OverviewApiData>("/dashboard/xhs/overview?days=90", {
+            next: { revalidate: 60 },
+            timeoutMs: 1200
+          }),
+        { attempts: 1 }
+      )
+    ]);
+
+    const overview = overviewResp.ok ? overviewResp.value : null;
+    const lightTotals = totalsResp.ok ? totalsResp.value : null;
+    const summary = {
+      notes_total: Number(lightTotals?.notes_total ?? overview?.summary?.notes_total ?? parseMetricValue(xhsOverviewKpis[0]?.value)),
+      creators_total: Number(lightTotals?.creators_total ?? overview?.summary?.creators_total ?? parseMetricValue(xhsOverviewKpis[1]?.value)),
+      comments_total: Number(lightTotals?.comments_total ?? overview?.summary?.comments_total ?? parseMetricValue(xhsOverviewKpis[2]?.value)),
+      notes_like_ge_100: Number(overview?.summary?.notes_like_ge_100 ?? parseMetricValue(xhsOverviewKpis[3]?.value))
+    };
+
+    const trend = overview?.trend ?? {};
     const trend7 = mapOverviewTrendWindow(trend["7"] ?? []);
     const trend30 = mapOverviewTrendWindow(trend["30"] ?? []);
     const trend90 = mapOverviewTrendWindow(trend["90"] ?? []);
-
     const trendExplorer: TrendExplorerVM =
       trend7.length > 0 && trend30.length > 0 && trend90.length > 0
         ? {
@@ -595,15 +855,33 @@ export async function getXhsOverview(locale: Locale) {
               90: trend90
             }
           }
-        : buildTrendExplorer(locale);
+        : fallbackTrendExplorer;
 
     const trends = (trend["7"] ?? []).map((item) => ({
       label: toMonthDayLabel(String(item.stat_date ?? item.date ?? "")),
       value: Number(item.new_count ?? 0)
     }));
 
-    const industries =
-      (overview.industries ?? []).map((item) => {
+    const liveIndustryRows = industriesResp.ok ? industriesResp.value.items ?? [] : [];
+    const overviewIndustryRows = overview?.industries ?? [];
+    const industriesFromLive = liveIndustryRows.map((item) => {
+      const industryKey = String(item.industry_key ?? "");
+      const industryName = String(item.industry_name ?? "");
+      const meta = INDUSTRY_META[industryKey] ?? {
+        zh: industryName,
+        en: industryName,
+        zhDesc: "行业数据观测",
+        enDesc: "Industry data tracking"
+      };
+      return {
+        industryKey,
+        name: locale === "zh" ? meta.zh : meta.en,
+        description: locale === "zh" ? meta.zhDesc : meta.enDesc,
+        value: `${toLocaleCount(locale, Number(item.note_count ?? 0))} ${locale === "zh" ? "笔记" : "Notes"}`
+      };
+    });
+    const industriesFromOverview = overviewIndustryRows
+      .map((item) => {
         const meta = INDUSTRY_META[item.industry_key] ?? {
           zh: item.industry_name,
           en: item.industry_name,
@@ -614,13 +892,15 @@ export async function getXhsOverview(locale: Locale) {
           industryKey: item.industry_key,
           name: locale === "zh" ? meta.zh : meta.en,
           description: locale === "zh" ? meta.zhDesc : meta.enDesc,
-          value: `${toLocaleCount(locale, Number(item.note_count ?? 0))} ${locale === "zh" ? "笔记" : "Notes"}`,
-          sortNo: Number(item.sort_no ?? 0)
+          value: `${toLocaleCount(locale, Number(item.note_count ?? 0))} ${locale === "zh" ? "笔记" : "Notes"}`
         };
-      }) ?? [];
+      })
+      .slice(0, 12);
+    const industries =
+      (industriesFromLive.length ? industriesFromLive : industriesFromOverview.length ? industriesFromOverview : fallbackIndustries).slice(0, 12);
 
     const creators: CreatorOpportunityVM[] =
-      (overview.top_creators ?? []).slice(0, 20).map((item) => ({
+      (overview?.top_creators ?? []).slice(0, 20).map((item) => ({
         name: String(item.name ?? ""),
         followers: toCompactFollowers(locale, Number(item.followers ?? 0)),
         direction: choose(locale, "高互动达人", "High Engagement Creator"),
@@ -636,10 +916,7 @@ export async function getXhsOverview(locale: Locale) {
       ],
       trends: trends.length ? trends : xhsTrend,
       trendExplorer,
-      industries: (industries.length ? industries : xhsIndustries).sort((a, b) => ("sortNo" in a ? Number((a as { sortNo: number }).sortNo) : 0) - ("sortNo" in b ? Number((b as { sortNo: number }).sortNo) : 0)).map((item) => {
-        const { sortNo: _sortNo, ...rest } = item as typeof item & { sortNo?: number };
-        return rest;
-      }),
+      industries,
       hotCategories: hotCategories.map((item) => ({
         ...item,
         name: translateLabel(locale, item.name),
@@ -659,26 +936,7 @@ export async function getXhsOverview(locale: Locale) {
       brands: brandRanking,
       topNotes: noteCards,
       creators: creators.length ? creators : creatorOpportunities,
-      aiCards: [
-        locale === "zh"
-          ? {
-              title: "热点总结",
-              points: ["美妆仍然是最高密度内容池", "防晒、底妆、精华是当前最有价值的观测带"]
-            }
-          : {
-              title: "Heat Summary",
-              points: ["Beauty remains the highest-density content pool.", "Sunscreen, base makeup, and serums are the most valuable lanes right now."]
-            },
-        locale === "zh"
-          ? {
-              title: "品牌机会",
-              points: ["头部品牌心智稳定，但平替和质地比较仍有突破空间", "收藏高的内容更偏教程和场景化表达"]
-            }
-          : {
-              title: "Brand Opportunity",
-              points: ["Top brands stay strong, but dupes and texture comparisons still open room.", "Save-heavy posts lean toward tutorial and scenario framing."]
-            }
-      ]
+      aiCards: fallbackAiCards
     };
   } catch {
     await wait();
@@ -697,45 +955,8 @@ export async function getXhsOverview(locale: Locale) {
             : item.label
       })),
       trends: xhsTrend,
-      trendExplorer: buildTrendExplorer(locale),
-      industries: xhsIndustries.map((item) => ({
-        ...item,
-        name:
-          locale === "zh"
-            ? {
-                Beauty: "美妆",
-                "Mother & Baby": "母婴",
-                Fashion: "时尚",
-                Food: "美食",
-                Travel: "旅行",
-                Home: "家居",
-                Digital: "数码",
-                Fitness: "运动",
-                Pets: "宠物",
-                Education: "教育",
-                Automotive: "汽车",
-                Luxury: "奢品"
-              }[item.name] ?? item.name
-            : item.name,
-        description:
-          locale === "zh"
-            ? {
-                Beauty: "内容、达人与品牌信号",
-                "Mother & Baby": "产品信任与推荐循环",
-                Fashion: "穿搭参考与品牌提及",
-                Food: "口味、做法与场景内容",
-                Travel: "目的地计划与攻略需求",
-                Home: "家装灵感与实用内容",
-                Digital: "设备评测与生活效率",
-                Fitness: "日常训练与体态管理",
-                Pets: "养护、用品与情绪连接",
-                Education: "学习效率与成长动机",
-                Automotive: "生活方式与升级需求",
-                Luxury: "高端欲望与购买信心"
-              }[item.name] ?? item.description
-            : item.description,
-        value: localizeNoteValue(locale, item.value)
-      })),
+      trendExplorer: fallbackTrendExplorer,
+      industries: fallbackIndustries,
       hotCategories: hotCategories.map((item) => ({
         ...item,
         name: translateLabel(locale, item.name),
@@ -755,26 +976,7 @@ export async function getXhsOverview(locale: Locale) {
       brands: brandRanking,
       topNotes: noteCards,
       creators: creatorOpportunities,
-      aiCards: [
-        locale === "zh"
-          ? {
-              title: "热点总结",
-              points: ["美妆仍然是最高密度内容池", "防晒、底妆、精华是当前最有价值的观测带"]
-            }
-          : {
-              title: "Heat Summary",
-              points: ["Beauty remains the highest-density content pool.", "Sunscreen, base makeup, and serums are the most valuable lanes right now."]
-            },
-        locale === "zh"
-          ? {
-              title: "品牌机会",
-              points: ["头部品牌心智稳定，但平替和质地比较仍有突破空间", "收藏高的内容更偏教程和场景化表达"]
-            }
-          : {
-              title: "Brand Opportunity",
-              points: ["Top brands stay strong, but dupes and texture comparisons still open room.", "Save-heavy posts lean toward tutorial and scenario framing."]
-            }
-      ]
+      aiCards: fallbackAiCards
     };
   }
 }
@@ -791,7 +993,6 @@ export async function getXhsLiveMetrics(): Promise<XhsLiveMetrics | null> {
 export async function getXhsLiveTotals(): Promise<XhsLiveTotals | null> {
   try {
     const payload = await fetchApi<LiveTotalsApiData>("/dashboard/xhs/live-totals", {
-      cache: "force-cache",
       next: { revalidate: 60 }
     });
     return mapLiveTotals(payload);
@@ -868,23 +1069,28 @@ export async function getSearchWorkbench(locale: Locale, query?: Record<string, 
     typeof query?.sort === "string" && query.sort.trim()
       ? query.sort.trim()
       : activeType === "creator"
-        ? "followers"
+        ? "relevance"
         : "stat";
   const sort =
     activeType === "creator"
-      ? (["followers", "notes", "sumStat"].includes(sortRaw) ? sortRaw : "followers")
+      ? (["relevance", "followers", "notes", "sumStat"].includes(sortRaw) ? sortRaw : "relevance")
       : (["stat", "like", "read", "comments"].includes(sortRaw) ? sortRaw : "stat");
   const order = query?.order === "asc" ? "asc" : "desc";
+  const inferredCategoryMode: "brand" | "category" =
+    !industry && (/[A-Z0-9]/.test(keyword) || /[-_]/.test(keyword)) ? "brand" : "category";
 
   try {
     const size = 30;
+    const requestTimeoutMs = 15000;
+    const defaultPayload = createDefaultSearchPayload(page, size);
 
     const categoryRequest = () =>
       fetchApi<Record<string, unknown>>("/search/brand-category", {
         method: "POST",
+        timeoutMs: requestTimeoutMs,
         body: JSON.stringify({
           query: keyword,
-          mode: "category",
+          mode: inferredCategoryMode,
           industry,
           sort: activeType === "category" ? sort : "stat",
           order: activeType === "category" ? order : "desc",
@@ -899,62 +1105,94 @@ export async function getSearchWorkbench(locale: Locale, query?: Record<string, 
     const creatorRequest = () =>
       fetchApi<Record<string, unknown>>("/search/influencer", {
         method: "POST",
+        timeoutMs: requestTimeoutMs,
         body: JSON.stringify({
           query: keyword,
           industry,
-          sort: activeType === "creator" ? sort : "followers",
+          sort: activeType === "creator" ? sort : "relevance",
           order: activeType === "creator" ? order : "desc",
           page,
           size,
+          include_notes: false,
           date_range: 30,
           freshness_hours: 24,
           force_refresh: false
         })
       });
 
-    const [categoryRawResult, creatorRawResult] =
-      activeType === "creator"
-        ? await Promise.allSettled([
-            Promise.resolve<Record<string, unknown>>({
-              status: "ready",
-              items: [],
-              notes: [],
-              pagination: { total: 0, page, size, has_more: false }
-            }),
-            creatorRequest()
-          ])
-        : await Promise.allSettled([
-            categoryRequest(),
-            Promise.resolve<Record<string, unknown>>({
-              status: "ready",
-              items: [],
-              notes: [],
-              pagination: { total: 0, page, size, has_more: false }
-            })
-          ]);
-
-    const categoryRaw =
-      categoryRawResult.status === "fulfilled"
-        ? categoryRawResult.value
-        : {
-            status: "failed",
-            items: [],
-            notes: [],
-            pagination: { total: 0, page, size, has_more: false }
-          };
-    const creatorRaw =
-      creatorRawResult.status === "fulfilled"
-        ? creatorRawResult.value
-        : {
-            status: "failed",
-            items: [],
-            notes: [],
-            pagination: { total: 0, page, size, has_more: false }
-          };
-
     let pending: SearchPending | undefined;
+    let categoryRaw: Record<string, unknown> = defaultPayload;
+    let creatorRaw: Record<string, unknown> = defaultPayload;
 
-    const resolveReadyPayload = async (
+    if (activeType === "creator") {
+      const creatorResult = await withRetry(creatorRequest, { attempts: 1, retryDelayMs: 300 });
+      if (creatorResult.ok) {
+        creatorRaw = creatorResult.value;
+      } else {
+        const pendingByTimeout = isTimeoutOrAbortError(creatorResult.error);
+        const upstreamMisconfigured = isUpstreamMisconfiguredError(creatorResult.error);
+        creatorRaw = { ...defaultPayload, status: pendingByTimeout ? "pending" : "failed" };
+        pending = { status: pendingByTimeout ? "pending" : "failed", type: "creator" };
+        if (pendingByTimeout) {
+          console.warn("[xhs-search] creator request timeout/abort after retry", {
+            q: keyword,
+            type: "creator",
+            page,
+            sort,
+            order,
+            errorName: getErrorName(creatorResult.error),
+            errorMessage: getErrorMessage(creatorResult.error)
+          });
+        } else {
+          console.error("[xhs-search] creator request failed after retry", {
+            q: keyword,
+            type: "creator",
+            page,
+            sort,
+            order,
+            errorType: upstreamMisconfigured ? "upstream_misconfigured" : "upstream_error",
+            errorName: getErrorName(creatorResult.error),
+            errorMessage: getErrorMessage(creatorResult.error)
+          });
+        }
+      }
+    } else {
+      const categoryResult = await withRetry(categoryRequest, { attempts: 1, retryDelayMs: 300 });
+      if (categoryResult.ok) {
+        categoryRaw = categoryResult.value;
+      } else {
+        const pendingByTimeout = isTimeoutOrAbortError(categoryResult.error);
+        const upstreamMisconfigured = isUpstreamMisconfiguredError(categoryResult.error);
+        categoryRaw = { ...defaultPayload, status: pendingByTimeout ? "pending" : "failed" };
+        pending = { status: pendingByTimeout ? "pending" : "failed", type: "category" };
+        if (pendingByTimeout) {
+          console.warn("[xhs-search] category request timeout/abort after retry", {
+            q: keyword,
+            type: "category",
+            page,
+            sort,
+            order,
+            industry,
+            errorName: getErrorName(categoryResult.error),
+            errorMessage: getErrorMessage(categoryResult.error)
+          });
+        } else {
+          console.error("[xhs-search] category request failed after retry", {
+            q: keyword,
+            type: "category",
+            page,
+            sort,
+            order,
+            industry,
+            errorType: upstreamMisconfigured ? "upstream_misconfigured" : "upstream_error",
+            errorName: getErrorName(categoryResult.error),
+            errorMessage: getErrorMessage(categoryResult.error)
+          });
+        }
+      }
+    }
+
+    const resolveReadyPayload = (
       payload: Record<string, unknown>,
       type: "category" | "creator"
     ) => {
@@ -963,50 +1201,65 @@ export async function getSearchWorkbench(locale: Locale, query?: Record<string, 
         return payload;
       }
 
-      if (status === "pending") {
+      if (status === "pending" || status === "running") {
         const jobId = String(payload.job_id ?? "");
-        if (jobId) {
+        const pendingReasonRaw = payload.pending_reason;
+        const pendingReason =
+          typeof pendingReasonRaw === "string" && pendingReasonRaw.trim() ? pendingReasonRaw.trim() : undefined;
+        const nextPollRaw = Number(payload.next_poll_after_ms ?? Number.NaN);
+        const nextPollAfterMs = Number.isFinite(nextPollRaw) && nextPollRaw > 0 ? Math.round(nextPollRaw) : undefined;
+        const freshnessRaw = Number(payload.data_freshness_seconds ?? Number.NaN);
+        const dataFreshnessSeconds =
+          Number.isFinite(freshnessRaw) && freshnessRaw >= 0 ? Math.round(freshnessRaw) : undefined;
+        if (jobId && (!pending || pending.status !== "failed")) {
           pending = {
             status: "pending",
             type,
-            jobId
+            jobId,
+            pendingReason,
+            nextPollAfterMs,
+            dataFreshnessSeconds,
           };
         }
+      }
+
+      if (status === "failed" && !pending) {
+        const pendingReasonRaw = payload.pending_reason;
+        const pendingReason =
+          typeof pendingReasonRaw === "string" && pendingReasonRaw.trim() ? pendingReasonRaw.trim() : undefined;
+        pending = {
+          status: "failed",
+          type,
+          pendingReason,
+        };
       }
 
       return payload;
     };
 
-    const categoryReady = await resolveReadyPayload(categoryRaw, "category");
-    const creatorReady = await resolveReadyPayload(creatorRaw, "creator");
-
-    const categoryItemsRaw = Array.isArray(categoryReady.items) ? (categoryReady.items as Array<Record<string, unknown>>) : [];
-    const creatorItemsRaw = Array.isArray(creatorReady.items) ? (creatorReady.items as Array<Record<string, unknown>>) : [];
-    const creatorNotesRaw = Array.isArray(creatorReady.notes) ? (creatorReady.notes as Array<Record<string, unknown>>) : [];
-    const categoryTotal = Number((categoryReady.pagination as Record<string, unknown> | undefined)?.total ?? categoryItemsRaw.length);
-    const creatorTotal = Number((creatorReady.pagination as Record<string, unknown> | undefined)?.total ?? creatorItemsRaw.length);
-
-    const notes = mapNoteRows(locale, categoryItemsRaw.length ? categoryItemsRaw : creatorNotesRaw);
-    const creators = mapCreatorRows(locale, creatorItemsRaw);
-
-    const totalComments = notes.reduce((sum, item) => sum + Number(item.commentCount.replace(/,/g, "")), 0);
-    const summaryResults = activeType === "creator" ? Math.max(0, creatorTotal) : Math.max(0, categoryTotal);
+    const activePayload = resolveReadyPayload(activeType === "creator" ? creatorRaw : categoryRaw, activeType);
+    const searchSlice = buildSearchResultsSlice({
+      locale,
+      activeType,
+      payload: activePayload,
+      page,
+      size
+    });
+    const categoryTotal = searchSlice.resultTotals.category;
+    const creatorTotal = searchSlice.resultTotals.creator;
+    const summaryResults = activeType === "creator" ? creatorTotal : categoryTotal;
 
     return {
       ...fallback,
-      notes,
-      creators,
-      pending,
-      resultTotals: {
-        category: Math.max(0, categoryTotal),
-        creator: Math.max(0, creatorTotal),
-        page,
-        size
-      },
+      notes: searchSlice.notes,
+      creators: searchSlice.creators,
+      pending: searchSlice.pending ?? pending,
+      resultTotals: searchSlice.resultTotals,
+      searchSummary: searchSlice.searchSummary,
       summary: [
         { label: locale === "zh" ? "结果" : "Results", value: toLocaleCount(locale, summaryResults) },
-        { label: locale === "zh" ? "达人" : "Creators", value: toLocaleCount(locale, creatorTotal) },
-        { label: locale === "zh" ? "评论" : "Comments", value: toLocaleCount(locale, totalComments) },
+        { label: locale === "zh" ? "达人" : "Creators", value: toLocaleCount(locale, searchSlice.searchSummary.creatorTotal) },
+        { label: locale === "zh" ? "评论" : "Comments", value: toLocaleCount(locale, searchSlice.searchSummary.totalComments) },
         { label: locale === "zh" ? "品牌" : "Brands", value: "-" }
       ],
       filters: [
@@ -1015,9 +1268,34 @@ export async function getSearchWorkbench(locale: Locale, query?: Record<string, 
         { label: locale === "zh" ? "时间窗" : "Window", value: locale === "zh" ? "近 30 天" : "Last 30 Days" }
       ]
     };
-  } catch {
+  } catch (error) {
     await wait();
-    return fallback;
+    const timeoutOrAbort = isTimeoutOrAbortError(error);
+    if (!timeoutOrAbort) {
+      console.error("[xhs-search] unexpected search workbench failure", {
+        q: keyword,
+        type: activeType,
+        page,
+        sort,
+        order,
+        industry,
+        errorName: getErrorName(error),
+        errorMessage: getErrorMessage(error)
+      });
+    }
+    return {
+      ...fallback,
+      searchSummary: {
+        noteTotal: 0,
+        creatorTotal: 0,
+        totalComments: 0
+      },
+      pending: {
+        status: timeoutOrAbort ? "pending" : "failed",
+        type: activeType,
+        pendingReason: timeoutOrAbort ? "timeout" : "upstream_failed",
+      }
+    };
   }
 }
 

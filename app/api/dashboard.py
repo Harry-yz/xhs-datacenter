@@ -21,6 +21,7 @@ settings = get_settings()
 _dashboard_redis_client: Redis | None = None
 _dashboard_memory_cache: dict[str, tuple[float, dict[str, Any]]] = {}
 _DASHBOARD_CACHE_TTL_SECONDS = 60
+_DASHBOARD_HEAVY_CACHE_TTL_SECONDS = 120
 
 
 def _jsonable(v):
@@ -69,7 +70,14 @@ def _cache_get(key: str) -> dict[str, Any] | None:
         payload = json.loads(raw)
     except json.JSONDecodeError:
         return None
-    _dashboard_memory_cache[key] = (now_ts + _DASHBOARD_CACHE_TTL_SECONDS, payload)
+    ttl_seconds = _DASHBOARD_CACHE_TTL_SECONDS
+    try:
+        ttl_raw = redis_client.ttl(key)
+        if isinstance(ttl_raw, int) and ttl_raw > 0:
+            ttl_seconds = ttl_raw
+    except RedisError:
+        ttl_seconds = _DASHBOARD_CACHE_TTL_SECONDS
+    _dashboard_memory_cache[key] = (now_ts + max(1, ttl_seconds), payload)
     return payload
 
 
@@ -83,6 +91,41 @@ def _cache_set(key: str, payload: dict[str, Any], *, ttl_seconds: int = _DASHBOA
         redis_client.set(key, json.dumps(payload, ensure_ascii=False, default=_jsonable), ex=max(1, ttl_seconds))
     except RedisError:
         return
+
+
+def _get_xhs_summary_totals(
+    db: Session,
+    *,
+    ttl_seconds: int = _DASHBOARD_HEAVY_CACHE_TTL_SECONDS,
+    cache_bucket: str = "default",
+) -> dict[str, Any]:
+    cache_key = f"xhs:dashboard:summary-totals:{cache_bucket}"
+    cached = _cache_get(cache_key)
+    if cached:
+        return cached
+
+    totals_row = db.execute(
+        text(
+            """
+            SELECT
+                COUNT(*)::bigint AS notes_total,
+                COUNT(*) FILTER (WHERE COALESCE(like_count, 0) >= 100)::bigint AS notes_like_ge_100,
+                COUNT(DISTINCT NULLIF(author_id, ''))::bigint AS creators_total,
+                COALESCE(SUM(COALESCE(comment_count, 0)), 0)::bigint AS comments_total
+            FROM xhs_note_fact
+            """
+        )
+    ).mappings().first()
+
+    payload = {
+        "notes_total": int((totals_row or {}).get("notes_total") or 0),
+        "notes_like_ge_100": int((totals_row or {}).get("notes_like_ge_100") or 0),
+        "creators_total": int((totals_row or {}).get("creators_total") or 0),
+        "comments_total": int((totals_row or {}).get("comments_total") or 0),
+        "generated_at": datetime.utcnow().isoformat(),
+    }
+    _cache_set(cache_key, payload, ttl_seconds=ttl_seconds)
+    return payload
 
 
 def _load_trend_window_base(db: Session, days: int) -> list[dict[str, Any]]:
@@ -280,20 +323,13 @@ def xhs_overview(
     if cached:
         return APIResponse(data=cached)
 
-    summary_row = db.execute(
-        text(
-            """
-            SELECT
-                COUNT(*)::bigint AS notes_total,
-                COUNT(*) FILTER (WHERE COALESCE(like_count, 0) >= 100)::bigint AS notes_like_ge_100,
-                COUNT(DISTINCT NULLIF(author_id, ''))::bigint AS creators_total,
-                (SELECT COUNT(*)::bigint FROM xhs_comment_fact) AS comments_total
-            FROM xhs_note_fact
-            """
-        )
-    ).mappings().first()
-
-    summary = dict(summary_row or {})
+    totals = _get_xhs_summary_totals(db, cache_bucket="overview")
+    summary = {
+        "notes_total": int(totals.get("notes_total") or 0),
+        "notes_like_ge_100": int(totals.get("notes_like_ge_100") or 0),
+        "creators_total": int(totals.get("creators_total") or 0),
+        "comments_total": int(totals.get("comments_total") or 0),
+    }
 
     trend_base = _load_trend_window_base(db, window_max)
     trend = {
@@ -328,7 +364,7 @@ def xhs_overview(
         "industries": _rows_to_items(industries),
         "generated_at": datetime.utcnow().isoformat(),
     }
-    _cache_set(cache_key, payload)
+    _cache_set(cache_key, payload, ttl_seconds=_DASHBOARD_HEAVY_CACHE_TTL_SECONDS)
 
     return APIResponse(data=payload)
 
@@ -383,21 +419,14 @@ def xhs_live(db: Session = Depends(get_db)) -> APIResponse:
 
 @router.get("/xhs/live-totals", response_model=APIResponse)
 def xhs_live_totals(db: Session = Depends(get_db)) -> APIResponse:
-    totals_row = db.execute(
-        text(
-            """
-            SELECT
-                COUNT(*)::bigint AS notes_total,
-                COUNT(DISTINCT NULLIF(author_id, ''))::bigint AS creators_total,
-                (SELECT COUNT(*)::bigint FROM xhs_comment_fact) AS comments_total
-            FROM xhs_note_fact
-            """
-        )
-    ).mappings().first()
-
-    totals = dict(totals_row or {})
-    totals["generated_at"] = datetime.utcnow().isoformat()
-    return APIResponse(data=_jsonable(totals))
+    totals = _get_xhs_summary_totals(db, ttl_seconds=5, cache_bucket="live")
+    payload = {
+        "notes_total": int(totals.get("notes_total") or 0),
+        "creators_total": int(totals.get("creators_total") or 0),
+        "comments_total": int(totals.get("comments_total") or 0),
+        "generated_at": totals.get("generated_at") or datetime.utcnow().isoformat(),
+    }
+    return APIResponse(data=_jsonable(payload))
 
 
 @router.get("/xhs/live-industries", response_model=APIResponse)
@@ -430,7 +459,7 @@ def xhs_live_industries(db: Session = Depends(get_db)) -> APIResponse:
         "items": _rows_to_items(rows),
         "generated_at": datetime.utcnow().isoformat(),
     }
-    _cache_set(cache_key, payload)
+    _cache_set(cache_key, payload, ttl_seconds=_DASHBOARD_HEAVY_CACHE_TTL_SECONDS)
     return APIResponse(data=payload)
 
 

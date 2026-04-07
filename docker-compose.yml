@@ -29,7 +29,39 @@ services:
       - "8000:8000"
     volumes:
       - .:/app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 3
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8000/health >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-https://api.datacenter.photog.art/api/v1}
+        INTERNAL_API_BASE_URL: ${INTERNAL_API_BASE_URL:-http://fastapi:8000/api/v1}
+    image: xhs_web:current
+    container_name: xhs_web
+    restart: always
+    depends_on:
+      fastapi:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: 3210
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-https://api.datacenter.photog.art/api/v1}
+      INTERNAL_API_BASE_URL: ${INTERNAL_API_BASE_URL:-http://fastapi:8000/api/v1}
+    ports:
+      - "3210:3210"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:3210/zh/datacenter || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
 
   worker:
     build:
@@ -41,7 +73,7 @@ services:
       redis:
         condition: service_healthy
       fastapi:
-        condition: service_started
+        condition: service_healthy
     env_file:
       - .env
     environment:
@@ -60,7 +92,7 @@ services:
       redis:
         condition: service_healthy
       fastapi:
-        condition: service_started
+        condition: service_healthy
       worker:
         condition: service_started
     env_file:

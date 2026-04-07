@@ -1,0 +1,54 @@
+services:
+  fastapi-preview:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: xhs_fastapi_preview
+    restart: unless-stopped
+    env_file:
+      - .env
+      - .env.preview
+    environment:
+      PYTHONPATH: /app
+    ports:
+      - "127.0.0.1:8100:8000"
+    volumes:
+      - .:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 3
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8000/health >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+
+  web-preview:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://127.0.0.1:8100/api/v1}
+        INTERNAL_API_BASE_URL: ${INTERNAL_API_BASE_URL:-http://fastapi-preview:8000/api/v1}
+    image: xhs_web:preview
+    container_name: xhs_web_preview
+    restart: unless-stopped
+    depends_on:
+      fastapi-preview:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: 3210
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://127.0.0.1:8100/api/v1}
+      INTERNAL_API_BASE_URL: ${INTERNAL_API_BASE_URL:-http://fastapi-preview:8000/api/v1}
+    ports:
+      - "127.0.0.1:3100:3210"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:3210/zh/datacenter || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+
+networks:
+  default:
+    name: xhs_data_center_default
+    external: true

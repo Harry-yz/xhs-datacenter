@@ -10,6 +10,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.services.anchor_links import resolve_author_id
+from app.services.search_center import enqueue_note_change_events
 
 
 def _normalize_timestamp_seconds(ts: float) -> float:
@@ -435,6 +436,7 @@ def save_search_results(
     task_id: str | None,
 ) -> int:
     rows = 0
+    changed_note_ids: set[str] = set()
     sort_type = _sort_label(sort)
     _industry_matcher = None
     try:
@@ -627,7 +629,15 @@ def save_search_results(
                 tags=tags,
                 brand_aliases=raw_brand_aliases,
             )
+        changed_note_ids.add(note_id)
         rows += 1
+
+    if changed_note_ids:
+        enqueue_note_change_events(
+            db,
+            note_ids=list(changed_note_ids),
+            source="search_notes",
+        )
 
     return rows
 
@@ -789,6 +799,7 @@ def upsert_note_detail(
     except Exception:
         pass
 
+    enqueue_note_change_events(db, note_ids=[note_id], source="note_detail")
     return note_id
 
 
@@ -898,8 +909,122 @@ def insert_comments(db: Session, payload: dict) -> int:
             ),
             {"note_ids": list(touched_note_ids)},
         )
+        enqueue_note_change_events(
+            db,
+            note_ids=list(touched_note_ids),
+            source="note_comment",
+        )
 
     return rows
+
+
+def save_anchor_search_results(
+    db: Session,
+    *,
+    keyword: str,
+    results: list[dict],
+    batch_id: str,
+    task_id: str | None,
+) -> dict[str, Any]:
+    anchors = 0
+    updated_notes = 0
+    author_ids: list[str] = []
+
+    for item in results:
+        author_id = str(_first_non_empty(item, "anchorId", "authorId", "userId", "id", "redId") or "").strip()
+        if not author_id:
+            continue
+
+        nickname = _first_non_empty(item, "nick", "nickname", "name")
+        anchor_link = _first_non_empty(item, "anchorLink", "url", "homeUrl")
+        red_id = _first_non_empty(item, "redId", "readId")
+        fans_count = _to_optional_int(_first_non_empty(item, "fans", "fansCount", "followerCount"))
+        total_note_count = _to_optional_int(_first_non_empty(item, "note", "noteCount", "totalNoteCount"))
+        tag_list = _normalize_text_list(_first_non_empty(item, "tagList", "tags", "labelList"))
+        verified_type = _first_non_empty(item, "verified", "verifyDesc", "auth", "type")
+        user_text = _first_non_empty(item, "userText", "desc", "description")
+
+        db.execute(
+            text(
+                """
+                INSERT INTO xhs_anchor_dim(
+                    author_id, anchor_link, red_id, nickname, verified_type, user_text,
+                    fans_count, total_note_count, tag_list
+                )
+                VALUES(
+                    :author_id, :anchor_link, :red_id, :nickname, :verified_type, :user_text,
+                    :fans_count, :total_note_count, :tag_list
+                )
+                ON CONFLICT (author_id) DO UPDATE SET
+                    anchor_link = COALESCE(EXCLUDED.anchor_link, xhs_anchor_dim.anchor_link),
+                    red_id = COALESCE(EXCLUDED.red_id, xhs_anchor_dim.red_id),
+                    nickname = COALESCE(EXCLUDED.nickname, xhs_anchor_dim.nickname),
+                    verified_type = COALESCE(EXCLUDED.verified_type, xhs_anchor_dim.verified_type),
+                    user_text = COALESCE(EXCLUDED.user_text, xhs_anchor_dim.user_text),
+                    fans_count = COALESCE(EXCLUDED.fans_count, xhs_anchor_dim.fans_count),
+                    total_note_count = COALESCE(EXCLUDED.total_note_count, xhs_anchor_dim.total_note_count),
+                    tag_list = CASE
+                        WHEN array_length(EXCLUDED.tag_list, 1) > 0 THEN EXCLUDED.tag_list
+                        ELSE xhs_anchor_dim.tag_list
+                    END,
+                    updated_at = now()
+                """
+            ),
+            {
+                "author_id": author_id,
+                "anchor_link": str(anchor_link).strip() if anchor_link not in (None, "") else None,
+                "red_id": str(red_id).strip() if red_id not in (None, "") else None,
+                "nickname": str(nickname).strip() if nickname not in (None, "") else None,
+                "verified_type": str(verified_type).strip() if verified_type not in (None, "") else None,
+                "user_text": str(user_text).strip() if user_text not in (None, "") else None,
+                "fans_count": fans_count,
+                "total_note_count": total_note_count,
+                "tag_list": tag_list,
+            },
+        )
+
+        if nickname not in (None, ""):
+            updated_rows = db.execute(
+                text(
+                    """
+                    UPDATE xhs_note_fact
+                    SET author_id = COALESCE(NULLIF(author_id, ''), :author_id),
+                        author_fans_count = COALESCE(author_fans_count, :fans_count),
+                        updated_at = now()
+                    WHERE COALESCE(author_nickname, '') = :nickname
+                      AND (
+                          COALESCE(author_id, '') = ''
+                          OR COALESCE(author_id, '') = :author_id
+                      )
+                    RETURNING note_id
+                    """
+                ),
+                {
+                    "author_id": author_id,
+                    "fans_count": fans_count,
+                    "nickname": str(nickname).strip(),
+                },
+            ).scalars().all()
+            updated_note_ids = [str(note_id).strip() for note_id in updated_rows if str(note_id).strip()]
+            updated_notes += len(updated_note_ids)
+            if updated_note_ids:
+                enqueue_note_change_events(
+                    db,
+                    note_ids=updated_note_ids,
+                    source="anchor_search",
+                )
+
+        anchors += 1
+        author_ids.append(author_id)
+
+    return {
+        "keyword": keyword,
+        "batch_id": batch_id,
+        "task_id": task_id,
+        "anchor_rows": anchors,
+        "updated_notes": updated_notes,
+        "author_ids": author_ids,
+    }
 
 
 def upsert_anchor_detail(

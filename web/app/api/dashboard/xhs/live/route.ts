@@ -18,7 +18,7 @@ type LiveApiData = {
 
 export async function GET() {
   try {
-    const response = await fetch(`${env.apiBaseUrl}/dashboard/xhs/live`, {
+    const response = await fetch(`${env.internalApiBaseUrl}/dashboard/xhs/live`, {
       cache: "no-store"
     });
 

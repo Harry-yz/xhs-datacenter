@@ -13,7 +13,7 @@ import { buildMetadata } from "@/config/metadata";
 import { SESSION_COOKIE } from "@/config/i18n";
 import { isAuthenticatedSession } from "@/config/auth";
 import { PageShell } from "@/layouts/page-shell";
-import { getXhsLiveTotals, getXhsOverview } from "@/services/datacenter";
+import { getXhsOverview } from "@/services/datacenter";
 import { withLocale } from "@/utils/routes";
 
 import type { AppPageProps } from "../../layout";
@@ -26,10 +26,9 @@ export async function generateMetadata({ params }: AppPageProps): Promise<Metada
 
 export default async function XhsOverviewPage({ params }: AppPageProps) {
   const isZh = params.lang === "zh";
-  const [dictionary, overview, live] = await Promise.all([
+  const [dictionary, overview] = await Promise.all([
     getDictionary(params.lang),
-    getXhsOverview(params.lang),
-    getXhsLiveTotals()
+    getXhsOverview(params.lang)
   ]);
   const authenticated = isAuthenticatedSession(cookies().get(SESSION_COOKIE)?.value);
   const fallbackKpis = overview.kpis.slice(0, 3);
@@ -57,7 +56,7 @@ export default async function XhsOverviewPage({ params }: AppPageProps) {
           description={isZh ? "聚焦小红书核心盘面，先看总量再看趋势。" : "Focus on core Xiaohongshu metrics before diving into trends."}
           eyebrow={dictionary.navigation.xhsLabel}
           rightSlot={
-            <LiveKpiPanel fallbackKpis={fallbackKpis} initialTotals={live} locale={params.lang} />
+            <LiveKpiPanel fallbackKpis={fallbackKpis} initialTotals={null} locale={params.lang} />
           }
           title={dictionary.common.dataCenter}
         />

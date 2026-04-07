@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter
+from requests import RequestException
 from app.schemas import (
     APIResponse,
     AnchorTriggerRequest,
@@ -90,5 +91,10 @@ def enqueue_brand_accounts(req: BrandAccountsRequest) -> APIResponse:
 
 @router.get("/quota", response_model=APIResponse)
 def get_quota() -> APIResponse:
-    resp = client.get_quota()
-    return APIResponse(data=resp)
+    try:
+        resp = client.get_quota()
+        return APIResponse(data=resp)
+    except RequestException as exc:
+        return APIResponse(code=502, message="huitun_quota_unavailable", data={"error": str(exc)})
+    except Exception as exc:
+        return APIResponse(code=500, message="quota_failed", data={"error": str(exc)})

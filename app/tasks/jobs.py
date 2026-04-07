@@ -13,6 +13,7 @@ from app.services.anchor_links import resolve_anchor_link
 from app.services.huitun_client import HuitunClient
 from app.services.ingest import (
     create_crawl_log,
+    save_anchor_search_results,
     save_search_results,
     upsert_brand_accounts,
     upsert_brand_dim_and_accounts,
@@ -71,11 +72,14 @@ def _is_task_limit_error(exc: Exception) -> bool:
 
 def _retry_later(task, exc: Exception):
     base_delay = settings.huitun_task_retry_delay_seconds
+    max_retries = 3
     if _is_task_limit_error(exc):
         # Task-pool saturation needs a longer cooldown; short retries only amplify failures.
         base_delay = max(base_delay, 1800)
+        # Provider saturation should not create long retry storms.
+        max_retries = 1
     countdown = base_delay * (task.request.retries + 1)
-    raise task.retry(exc=exc, countdown=countdown, max_retries=3)
+    raise task.retry(exc=exc, countdown=countdown, max_retries=max_retries)
 
 
 def _resolve_anchor_target(db: Session, anchor_ref: str | None) -> tuple[str | None, str | None]:
@@ -105,6 +109,84 @@ def _resolve_anchor_target(db: Session, anchor_ref: str | None) -> tuple[str | N
     stored_anchor_link = row.get("anchor_link") if row else None
     anchor_link = resolve_anchor_link(anchor_ref=anchor_ref, stored_anchor_link=stored_anchor_link)
     return author_id, anchor_link
+
+
+def _recent_note_comment_limit_errors(db: Session, window_minutes: int = 20) -> int:
+    value = db.execute(
+        text(
+            """
+            SELECT COUNT(*)
+            FROM xhs_crawl_log
+            WHERE task_type = 'note_comment'
+              AND status = 'failed'
+              AND created_at >= now() - (:window_minutes || ' minute')::interval
+              AND (
+                    COALESCE(error_msg, '') ILIKE '%当前任务已达上限%'
+                 OR COALESCE(error_msg, '') ILIKE '%任务已达上限%'
+                 OR COALESCE(error_msg, '') ILIKE '%task limit%'
+                 OR COALESCE(error_msg, '') ILIKE '%reached the limit%'
+                 OR COALESCE(response_payload::text, '') ILIKE '%当前任务已达上限%'
+                 OR COALESCE(response_payload::text, '') ILIKE '%任务已达上限%'
+                 OR COALESCE(response_payload::text, '') ILIKE '%task limit%'
+                 OR COALESCE(response_payload::text, '') ILIKE '%reached the limit%'
+              )
+            """
+        ),
+        {"window_minutes": max(5, window_minutes)},
+    ).scalar()
+    return int(value or 0)
+
+
+def _safe_log_failure(
+    db: Session,
+    *,
+    batch_id: str,
+    task_type: str,
+    biz_type: str,
+    task_id: str | None,
+    response_payload: dict[str, object],
+    **kwargs: object,
+) -> None:
+    try:
+        create_crawl_log(
+            db,
+            batch_id=batch_id,
+            task_type=task_type,
+            biz_type=biz_type,
+            status="failed",
+            task_id=task_id,
+            response_payload=response_payload,
+            **kwargs,
+        )
+        db.commit()
+    except Exception:
+        db.rollback()
+
+
+def _safe_log_skipped_success(
+    db: Session,
+    *,
+    batch_id: str,
+    task_type: str,
+    biz_type: str,
+    task_id: str | None,
+    response_payload: dict[str, object],
+    **kwargs: object,
+) -> None:
+    try:
+        create_crawl_log(
+            db,
+            batch_id=batch_id,
+            task_type=task_type,
+            biz_type=biz_type,
+            status="success",
+            task_id=task_id,
+            response_payload=response_payload,
+            **kwargs,
+        )
+        db.commit()
+    except Exception:
+        db.rollback()
 
 
 @celery_app.task(bind=True, autoretry_for=(Exception,), retry_backoff=True, retry_jitter=True, retry_kwargs={"max_retries": 3})
@@ -173,18 +255,16 @@ def run_search_notes(
         db.commit()
     except Exception as exc:
         db.rollback()
-        create_crawl_log(
+        _safe_log_failure(
             db,
             batch_id=batch_id,
             task_type="note_search",
             biz_type="query",
-            status="failed",
             keyword=keyword,
             task_id=self.request.id,
             request_payload={"keyword": keyword, "sort": sort},
             response_payload={"error": str(exc)},
         )
-        db.commit()
         raise
     finally:
         db.close()
@@ -201,6 +281,114 @@ def run_search_notes(
                 trigger_note_comments.apply_async(args=[note_id], countdown=comment_countdown)
 
     return {"batch_id": batch_id, "count": len(items)}
+
+
+@celery_app.task(bind=True, max_retries=3)
+def run_search_anchors(
+    self,
+    keyword: str,
+    max_items: int = 120,
+    auto_enrich: bool = True,
+) -> dict:
+    batch_id = uuid.uuid4().hex[:16]
+    db = _db()
+    summary: dict[str, object] = {"anchor_rows": 0, "updated_notes": 0, "author_ids": []}
+    try:
+        create_crawl_log(
+            db,
+            batch_id=batch_id,
+            task_type="anchor_search",
+            biz_type="query",
+            status="running",
+            keyword=keyword,
+            task_id=self.request.id,
+            request_payload={
+                "keyword": keyword,
+                "max_items": max_items,
+                "auto_enrich": auto_enrich,
+            },
+            response_payload={"message": "anchor search started"},
+        )
+        db.commit()
+
+        response = client.search_anchors(keyword=keyword)
+        items = (response.get("data") or [])[: max(1, min(max_items, 300))]
+        if not isinstance(items, list):
+            items = []
+
+        summary = save_anchor_search_results(
+            db,
+            keyword=keyword,
+            results=items,
+            batch_id=batch_id,
+            task_id=self.request.id,
+        )
+
+        db.execute(
+            text(
+                """
+                UPDATE xhs_crawl_log
+                SET status = 'success',
+                    task_id = :task_id,
+                    row_count = :row_count,
+                    response_payload = CAST(:response_payload AS jsonb),
+                    completed_at = now(),
+                    updated_at = now()
+                WHERE batch_id = :batch_id
+                """
+            ),
+            {
+                "batch_id": batch_id,
+                "task_id": self.request.id,
+                "row_count": int(summary.get("anchor_rows") or 0),
+                "response_payload": json.dumps(
+                    {
+                        "response": response,
+                        "summary": {
+                            "anchor_rows": summary.get("anchor_rows"),
+                            "updated_notes": summary.get("updated_notes"),
+                        },
+                    },
+                    ensure_ascii=False,
+                ),
+            },
+        )
+        db.commit()
+    except Exception as exc:
+        db.rollback()
+        _safe_log_failure(
+            db,
+            batch_id=batch_id,
+            task_type="anchor_search",
+            biz_type="query",
+            keyword=keyword,
+            task_id=self.request.id,
+            request_payload={"keyword": keyword, "max_items": max_items},
+            response_payload={"error": str(exc)},
+        )
+        if _is_retryable_error(exc) and self.request.retries < self.max_retries:
+            _retry_later(self, exc)
+        raise
+    finally:
+        db.close()
+
+    if auto_enrich:
+        author_ids = list(dict.fromkeys(summary.get("author_ids") or []))
+        for idx, author_id in enumerate(author_ids[: max(1, settings.search_author_backfill_limit)]):
+            if not author_id:
+                continue
+            trigger_anchor_info.apply_async(
+                args=[author_id],
+                queue=settings.task_priority_queue,
+                countdown=idx * 2,
+            )
+
+    return {
+        "batch_id": batch_id,
+        "keyword": keyword,
+        "anchor_count": int(summary.get("anchor_rows") or 0),
+        "updated_notes": int(summary.get("updated_notes") or 0),
+    }
 
 
 @celery_app.task(bind=True, max_retries=3)
@@ -225,18 +413,16 @@ def trigger_note_info(self, note_id: str) -> dict:
         return {"batch_id": batch_id, "response": response}
     except Exception as exc:
         db.rollback()
-        create_crawl_log(
+        _safe_log_failure(
             db,
             batch_id=batch_id,
             task_type="note_info",
             biz_type="collect",
-            status="failed",
             note_id=note_id,
             task_id=self.request.id,
             request_payload={"note_id": note_id, "back_url": back_url},
             response_payload={"error": str(exc)},
         )
-        db.commit()
         if _is_retryable_error(exc) and self.request.retries < self.max_retries:
             _retry_later(self, exc)
         raise
@@ -268,18 +454,16 @@ def trigger_anchor_info(self, anchor_ref: str) -> dict:
         return {"batch_id": batch_id, "response": response}
     except Exception as exc:
         db.rollback()
-        create_crawl_log(
+        _safe_log_failure(
             db,
             batch_id=batch_id,
             task_type="anchor_info",
             biz_type="collect",
-            status="failed",
             author_id=anchor_ref,
             task_id=self.request.id,
             request_payload={"anchor_ref": anchor_ref, "back_url": back_url},
             response_payload={"error": str(exc)},
         )
-        db.commit()
         if _is_retryable_error(exc) and self.request.retries < self.max_retries:
             _retry_later(self, exc)
         raise
@@ -313,18 +497,16 @@ def trigger_fans_portrait(self, anchor_ref: str) -> dict:
         return {"batch_id": batch_id, "response": response}
     except Exception as exc:
         db.rollback()
-        create_crawl_log(
+        _safe_log_failure(
             db,
             batch_id=batch_id,
             task_type="fans_portrait",
             biz_type="collect",
-            status="failed",
             author_id=anchor_ref,
             task_id=self.request.id,
             request_payload={"anchor_ref": anchor_ref, "back_url": back_url},
             response_payload={"error": str(exc)},
         )
-        db.commit()
         if _is_retryable_error(exc) and self.request.retries < self.max_retries:
             _retry_later(self, exc)
         raise
@@ -338,6 +520,26 @@ def trigger_note_comments(self, note_id: str) -> dict:
     back_url = _callback_url("/test/noteComment/back")
     db = _db()
     try:
+        # Stop hammering provider when comment async task pool is saturated.
+        if _recent_note_comment_limit_errors(db) >= 60:
+            create_crawl_log(
+                db,
+                batch_id=batch_id,
+                task_type="note_comment",
+                biz_type="collect",
+                status="success",
+                note_id=note_id,
+                task_id=self.request.id,
+                request_payload={"note_id": note_id, "back_url": back_url},
+                response_payload={
+                    "skipped": True,
+                    "reason": "provider_comment_task_pool_saturated",
+                    "window_minutes": 20,
+                },
+            )
+            db.commit()
+            return {"batch_id": batch_id, "skipped": True}
+
         response = client.create_note_comments(note_link=note_id, back_url=back_url)
         create_crawl_log(
             db,
@@ -354,18 +556,33 @@ def trigger_note_comments(self, note_id: str) -> dict:
         return {"batch_id": batch_id, "response": response}
     except Exception as exc:
         db.rollback()
-        create_crawl_log(
+        if _is_task_limit_error(exc):
+            _safe_log_skipped_success(
+                db,
+                batch_id=batch_id,
+                task_type="note_comment",
+                biz_type="collect",
+                note_id=note_id,
+                task_id=self.request.id,
+                request_payload={"note_id": note_id, "back_url": back_url},
+                response_payload={
+                    "skipped": True,
+                    "reason": "provider_comment_task_pool_saturated",
+                    "error": str(exc),
+                },
+            )
+            return {"batch_id": batch_id, "skipped": True}
+
+        _safe_log_failure(
             db,
             batch_id=batch_id,
             task_type="note_comment",
             biz_type="collect",
-            status="failed",
             note_id=note_id,
             task_id=self.request.id,
             request_payload={"note_id": note_id, "back_url": back_url},
             response_payload={"error": str(exc)},
         )
-        db.commit()
         if _is_retryable_error(exc) and self.request.retries < self.max_retries:
             _retry_later(self, exc)
         raise
@@ -381,7 +598,7 @@ def trigger_search_backfill(
     sort: int = 1,
     max_items: int = 260,
     auto_enrich: bool = True,
-    trigger_comments: bool = True,
+    trigger_comments: bool = False,
 ) -> dict:
     batch_id = uuid.uuid4().hex[:16]
     db = _db()

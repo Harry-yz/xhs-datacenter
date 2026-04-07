@@ -115,6 +115,7 @@ export function LiveIndustryMatrix({
           key={`${item.industryKey ?? item.name}-${item.name}`}
           href={buildHref(searchBasePath, item)}
           item={item}
+          // Auth gate must remain for industry card navigation.
           onClick={(event) => {
             if (authenticated || auth.authenticated) {
               return;
