@@ -35,7 +35,7 @@ export function XhsSearchEntry({
       back: isZh ? "返回数据中心" : "Back",
       title: isZh ? "小红书" : "XiaoHongShu",
       helper: isZh ? "输入关键词后可按品类或达人检索" : "Search by category or creator",
-      placeholder: isZh ? "搜索品类、品牌或达人" : "Search category, brand, or creator",
+      placeholder: "",
       submit: isZh ? "开始搜索" : "Search",
       category: isZh ? "品类" : "Category",
       creator: isZh ? "达人" : "Creator",

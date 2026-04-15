@@ -145,6 +145,289 @@ def _get_search_result_page(
     }
 
 
+def _partial_ready_threshold(size: int) -> int:
+    return max(20, min(30, int(size or 0)))
+
+
+def _category_partial_order_clause(sort: str, order: str) -> str:
+    direction = "ASC" if order == "asc" else "DESC"
+    mapping = {
+        "stat": "COALESCE(nf.interaction_total, COALESCE(nf.like_count,0)+COALESCE(nf.comment_count,0)+COALESCE(nf.collection_count,0)+COALESCE(nf.share_count,0))",
+        "like": "COALESCE(nf.like_count, 0)",
+        "read": "COALESCE(nf.read_count, 0)",
+        "comments": "COALESCE(nf.comment_count, 0)",
+    }
+    expr = mapping.get(sort, mapping["stat"])
+    return f"{expr} {direction}, nsr.search_rank ASC, nsr.note_id ASC"
+
+
+def _creator_partial_order_clause(sort: str, order: str) -> str:
+    direction = "ASC" if order == "asc" else "DESC"
+    mapping = {
+        "relevance": "matched_note_count",
+        "followers": "followers",
+        "notes": "matched_note_count",
+        "sumStat": "interaction_total",
+    }
+    expr = mapping.get(sort, mapping["relevance"])
+    return f"{expr} {direction}, latest_data_at DESC, author_id ASC"
+
+
+def _build_brand_category_partial_result(
+    db: Session,
+    *,
+    batch_id: str,
+    page: int,
+    size: int,
+    sort: str,
+    order: str,
+) -> dict:
+    offset = max(page - 1, 0) * size
+    total = int(
+        db.execute(
+            text("SELECT COUNT(*)::bigint FROM xhs_note_search_result WHERE batch_id = :batch_id"),
+            {"batch_id": batch_id},
+        ).scalar()
+        or 0
+    )
+    rows = db.execute(
+        text(
+            f"""
+            SELECT
+                nsr.note_id,
+                COALESCE(nf.title, nsr.title) AS title,
+                nf.author_id,
+                COALESCE(nf.author_nickname, nsr.author_nickname) AS author_nickname,
+                COALESCE(nf.search_keyword, '') AS search_keyword,
+                COALESCE(nf.like_count, 0) AS like_count,
+                COALESCE(nf.comment_count, 0) AS comment_count,
+                COALESCE(nf.collection_count, 0) AS collection_count,
+                COALESCE(nf.share_count, 0) AS share_count,
+                COALESCE(nf.read_count, 0) AS read_count,
+                COALESCE(nf.interaction_total, COALESCE(nf.like_count,0)+COALESCE(nf.comment_count,0)+COALESCE(nf.collection_count,0)+COALESCE(nf.share_count,0)) AS interaction_total,
+                COALESCE(nf.publish_time, nsr.publish_time) AS publish_time,
+                COALESCE(nf.updated_at, nf.created_at, nsr.publish_time) AS latest_data_at,
+                nsr.search_rank
+            FROM xhs_note_search_result nsr
+            LEFT JOIN xhs_note_fact nf
+              ON nf.note_id = nsr.note_id
+            WHERE nsr.batch_id = :batch_id
+            ORDER BY {_category_partial_order_clause(sort, order)}
+            LIMIT :limit OFFSET :offset
+            """
+        ),
+        {"batch_id": batch_id, "limit": size, "offset": offset},
+    ).mappings().all()
+
+    items: list[dict] = []
+    creators: set[str] = set()
+    latest_dt = None
+    for row in rows:
+        item = dict(row)
+        creators.add(str(item.get("author_id") or "").strip())
+        publish_time = item.get("publish_time")
+        latest_data_at = item.get("latest_data_at")
+        if publish_time:
+            item["publish_time"] = publish_time.isoformat()
+        if latest_data_at:
+            item["latest_data_at"] = latest_data_at.isoformat()
+            latest_dt = max(latest_dt, latest_data_at) if latest_dt is not None else latest_data_at
+        item["post_url"] = f"https://www.xiaohongshu.com/explore/{item['note_id']}"
+        items.append(item)
+
+    return {
+        "hit": total > 0,
+        "summary": {
+            "note_count": total,
+            "creator_count": len([author_id for author_id in creators if author_id]),
+            "like_total": sum(int(item.get("like_count") or 0) for item in items),
+            "comment_total": sum(int(item.get("comment_count") or 0) for item in items),
+            "collection_total": sum(int(item.get("collection_count") or 0) for item in items),
+        },
+        "items": items,
+        "pagination": {
+            "total": total,
+            "page": page,
+            "size": size,
+            "has_more": total > offset + len(items),
+            "total_is_estimate": True,
+        },
+        "freshness": latest_dt.isoformat() if latest_dt else None,
+    }
+
+
+def _build_influencer_partial_result(
+    db: Session,
+    *,
+    batch_id: str,
+    page: int,
+    size: int,
+    sort: str,
+    order: str,
+) -> dict:
+    offset = max(page - 1, 0) * size
+    rows = db.execute(
+        text(
+            """
+            WITH scoped AS (
+                SELECT
+                    COALESCE(nf.author_id, '') AS author_id,
+                    COALESCE(nf.author_nickname, nsr.author_nickname, '') AS author_nickname,
+                    COALESCE(nf.author_fans_count, 0) AS followers,
+                    COALESCE(nf.interaction_total, COALESCE(nf.like_count,0)+COALESCE(nf.comment_count,0)+COALESCE(nf.collection_count,0)+COALESCE(nf.share_count,0)) AS interaction_total,
+                    COALESCE(nf.updated_at, nf.created_at, nf.publish_time, nsr.publish_time) AS latest_data_at
+                FROM xhs_note_search_result nsr
+                LEFT JOIN xhs_note_fact nf
+                  ON nf.note_id = nsr.note_id
+                WHERE nsr.batch_id = :batch_id
+                  AND COALESCE(nf.author_id, '') <> ''
+            )
+            SELECT
+                author_id,
+                MAX(author_nickname) AS author_nickname,
+                MAX(followers)::bigint AS followers,
+                COUNT(*)::bigint AS matched_note_count,
+                SUM(interaction_total)::bigint AS interaction_total,
+                MAX(latest_data_at) AS latest_data_at
+            FROM scoped
+            GROUP BY author_id
+            """
+        ),
+        {"batch_id": batch_id},
+    ).mappings().all()
+    total = len(rows)
+    sorted_rows = sorted(
+        (dict(row) for row in rows),
+        key=lambda row: (
+            -int(row.get("matched_note_count") or 0)
+            if sort == "relevance"
+            else int(row.get("followers") or 0) if order == "asc" else -int(row.get("followers") or 0),
+            row.get("author_id") or "",
+        ),
+    )
+    if sort in {"notes", "relevance"}:
+        sorted_rows = sorted(
+            sorted_rows,
+            key=lambda row: (
+                int(row.get("matched_note_count") or 0),
+                int(row.get("interaction_total") or 0),
+                row.get("author_id") or "",
+            ),
+            reverse=(order != "asc"),
+        )
+    elif sort == "sumStat":
+        sorted_rows = sorted(
+            sorted_rows,
+            key=lambda row: (
+                int(row.get("interaction_total") or 0),
+                int(row.get("matched_note_count") or 0),
+                row.get("author_id") or "",
+            ),
+            reverse=(order != "asc"),
+        )
+    elif sort == "followers":
+        sorted_rows = sorted(
+            sorted_rows,
+            key=lambda row: (
+                int(row.get("followers") or 0),
+                int(row.get("matched_note_count") or 0),
+                row.get("author_id") or "",
+            ),
+            reverse=(order != "asc"),
+        )
+    page_rows = sorted_rows[offset : offset + size]
+    latest_dt = max((row.get("latest_data_at") for row in page_rows if row.get("latest_data_at")), default=None)
+    items = []
+    for row in page_rows:
+        item = dict(row)
+        if item.get("latest_data_at"):
+            item["latest_data_at"] = item["latest_data_at"].isoformat()
+        items.append(item)
+    return {
+        "hit": total > 0,
+        "summary": {
+            "note_count": sum(int(row.get("matched_note_count") or 0) for row in page_rows),
+            "creator_count": total,
+            "comment_total": 0,
+        },
+        "items": items,
+        "notes": [],
+        "pagination": {
+            "total": total,
+            "page": page,
+            "size": size,
+            "has_more": total > offset + len(page_rows),
+            "total_is_estimate": True,
+        },
+        "freshness": latest_dt.isoformat() if latest_dt else None,
+    }
+
+
+def _build_partial_job_result(
+    db: Session,
+    *,
+    job: dict,
+    page: int,
+    size: int,
+) -> dict | None:
+    batch_id = str(job.get("crawl_batch_id") or "").strip()
+    if not batch_id:
+        return None
+    payload = _safe_payload(job.get("request_payload"))
+    search_type = str(job.get("search_type") or "")
+    if search_type == "brand_category":
+        return _build_brand_category_partial_result(
+            db,
+            batch_id=batch_id,
+            page=page,
+            size=size,
+            sort=str(payload.get("sort") or "stat"),
+            order=str(payload.get("order") or "desc"),
+        )
+    if search_type == "influencer":
+        return _build_influencer_partial_result(
+            db,
+            batch_id=batch_id,
+            page=page,
+            size=size,
+            sort=str(payload.get("sort") or "relevance"),
+            order=str(payload.get("order") or "desc"),
+        )
+    return None
+
+
+def _build_display_payload(
+    *,
+    result: dict,
+    search_type: str,
+    query: str,
+    health: dict,
+    mode_type: str | None = None,
+    pending_job: dict | None = None,
+    pending_reason: str | None = None,
+    status: str = "ready",
+) -> dict:
+    payload = {
+        "mode": "cache",
+        "status": status,
+        "search_type": search_type,
+        "query": query,
+        **result,
+    }
+    if mode_type is not None:
+        payload["mode_type"] = mode_type
+    if pending_job:
+        payload["job_id"] = pending_job.get("job_id")
+        payload["task_id"] = pending_job.get("task_id")
+        payload["poll_job_url"] = f"/api/v1/search/jobs/{pending_job['job_id']}"
+    return _add_result_meta(
+        payload,
+        health=health,
+        pending=pending_job is not None,
+        pending_reason=pending_reason,
+    )
+
+
 def _safe_payload(value):
     if isinstance(value, dict):
         return value
@@ -191,6 +474,82 @@ def _add_result_meta(result: dict, *, health: dict, pending: bool, pending_reaso
     if pending:
         payload["next_poll_after_ms"] = max(1000, int(settings.search_pending_poll_ms))
     return payload
+
+
+def _build_cached_pending_payload(
+    cached: dict,
+    *,
+    pending_job: dict,
+    pending_reason: str | None = None,
+) -> dict:
+    payload = dict(cached)
+    payload["status"] = "pending"
+    payload["job_id"] = pending_job.get("job_id")
+    payload["task_id"] = pending_job.get("task_id")
+    payload["poll_job_url"] = f"/api/v1/search/jobs/{pending_job['job_id']}"
+    health = _safe_payload(payload.get("health"))
+    if "healthy" not in health:
+        health = {"healthy": True, "reasons": []}
+    return _add_result_meta(
+        payload,
+        health=health,
+        pending=True,
+        pending_reason=pending_reason,
+    )
+
+
+def _run_with_statement_timeout(db: Session, timeout_ms: int, fn):
+    effective_timeout_ms = max(1, int(timeout_ms))
+    db.execute(text(f"SET LOCAL statement_timeout = '{effective_timeout_ms}ms'"))
+    return fn()
+
+
+def _is_query_timeout_error(error: Exception) -> bool:
+    message = str(error).lower()
+    return "statement timeout" in message or "query canceled" in message or "canceling statement due to statement timeout" in message
+
+
+def _empty_brand_category_result(*, page: int, size: int) -> dict:
+    return {
+        "hit": False,
+        "summary": {
+            "note_count": 0,
+            "creator_count": 0,
+            "like_total": 0,
+            "comment_total": 0,
+            "collection_total": 0,
+        },
+        "items": [],
+        "pagination": {
+            "total": 0,
+            "page": page,
+            "size": size,
+            "has_more": False,
+            "total_is_estimate": True,
+        },
+        "freshness": None,
+    }
+
+
+def _empty_influencer_result(*, page: int, size: int) -> dict:
+    return {
+        "hit": False,
+        "summary": {
+            "note_count": 0,
+            "creator_count": 0,
+            "comment_total": 0,
+        },
+        "items": [],
+        "notes": [],
+        "pagination": {
+            "total": 0,
+            "page": page,
+            "size": size,
+            "has_more": False,
+            "total_is_estimate": True,
+        },
+        "freshness": None,
+    }
 
 
 def _result_total(result: dict | None) -> int:
@@ -1030,6 +1389,7 @@ def get_search_result(
 @router.post("/influencer", response_model=APIResponse)
 def search_influencer(req: InfluencerSearchRequest, db: Session = Depends(get_db)) -> APIResponse:
     query = req.query.strip()
+    db_first_timeout_ms = int(getattr(settings, "search_db_first_timeout_ms", 5000))
     result_cache_key = _result_cache_key(
         "influencer",
         {
@@ -1047,30 +1407,36 @@ def search_influencer(req: InfluencerSearchRequest, db: Session = Depends(get_db
     if not req.force_refresh:
         cached = _read_result_cache(result_cache_key)
         if cached:
+            if str(cached.get("status") or "") in {"pending", "running"} and str(cached.get("job_id") or "").strip():
+                return APIResponse(data=cached)
+            refresh_job = _safe_schedule_backfill(
+                _schedule_influencer_backfill_job,
+                db,
+                context="influencer_cached_background_refresh",
+                query=query,
+                industry=req.industry,
+                date_range=req.date_range,
+                request_payload=req.model_dump(),
+                wait_ms_if_locked=0,
+            )
+            if refresh_job is not None:
+                return APIResponse(
+                    data=_build_cached_pending_payload(
+                        cached,
+                        pending_job=refresh_job,
+                        pending_reason="refreshing_cached_results",
+                    )
+                )
             return APIResponse(data=cached)
     legacy_result: dict | None = None
     v2_result: dict | None = None
 
     if settings.search_v2_enabled:
         try:
-            v2_result = query_influencers_db_first_v2(
+            v2_result = _run_with_statement_timeout(
                 db,
-                query=query,
-                industry=req.industry,
-                follower_range=req.follower_range,
-                interaction_range=req.interaction_range,
-                date_range=req.date_range,
-                page=req.page,
-                size=req.size,
-                freshness_hours=req.freshness_hours,
-                sort=req.sort,
-                order=req.order,
-                include_notes=req.include_notes,
-            )
-        except Exception:
-            db.rollback()
-            if settings.search_v2_fallback_on_error:
-                legacy_result = query_influencers_db_first(
+                db_first_timeout_ms,
+                lambda: query_influencers_db_first_v2(
                     db,
                     query=query,
                     industry=req.industry,
@@ -1083,6 +1449,31 @@ def search_influencer(req: InfluencerSearchRequest, db: Session = Depends(get_db
                     sort=req.sort,
                     order=req.order,
                     include_notes=req.include_notes,
+                ),
+            )
+        except Exception as exc:
+            db.rollback()
+            if _is_query_timeout_error(exc):
+                legacy_result = _empty_influencer_result(page=req.page, size=req.size)
+                result = legacy_result
+            elif settings.search_v2_fallback_on_error:
+                legacy_result = _run_with_statement_timeout(
+                    db,
+                    db_first_timeout_ms,
+                    lambda: query_influencers_db_first(
+                        db,
+                        query=query,
+                        industry=req.industry,
+                        follower_range=req.follower_range,
+                        interaction_range=req.interaction_range,
+                        date_range=req.date_range,
+                        page=req.page,
+                        size=req.size,
+                        freshness_hours=req.freshness_hours,
+                        sort=req.sort,
+                        order=req.order,
+                        include_notes=req.include_notes,
+                    ),
                 )
             else:
                 raise HTTPException(status_code=503, detail="search_v2_unavailable")
@@ -1157,8 +1548,9 @@ def search_influencer(req: InfluencerSearchRequest, db: Session = Depends(get_db
             "v2_total": int((v2_result.get("pagination") or {}).get("total") or 0),
         }
     if result["hit"]:
-        if should_backfill:
-            _safe_schedule_backfill(
+        refresh_job = None
+        if should_backfill or not req.force_refresh:
+            refresh_job = _safe_schedule_backfill(
                 _schedule_influencer_backfill_job,
                 db,
                 context="influencer_hit_background_refresh",
@@ -1168,23 +1560,30 @@ def search_influencer(req: InfluencerSearchRequest, db: Session = Depends(get_db
                 request_payload=req.model_dump(),
                 wait_ms_if_locked=0,
             )
-        payload = _add_result_meta(
-            {
-                "mode": "cache",
-                "status": "ready",
-                "search_type": "influencer",
-                "query": query,
-                **result,
-            },
+        stable_payload = _build_display_payload(
+            result=result,
+            search_type="influencer",
+            query=query,
             health=health,
-            pending=False,
+            status="ready",
         )
         _write_result_cache(
             result_cache_key,
-            payload,
+            stable_payload,
             ttl_seconds=int(getattr(settings, "search_result_cache_ttl_seconds", 60)),
         )
-        return APIResponse(data=payload)
+        display_payload = stable_payload
+        if refresh_job is not None:
+            display_payload = _build_display_payload(
+                result=result,
+                search_type="influencer",
+                query=query,
+                health=health,
+                pending_job=refresh_job,
+                pending_reason="refreshing_cached_results",
+                status="pending",
+            )
+        return APIResponse(data=display_payload)
 
     job = _safe_schedule_backfill(
         _schedule_influencer_backfill_job,
@@ -1230,6 +1629,7 @@ def search_influencer(req: InfluencerSearchRequest, db: Session = Depends(get_db
 @router.post("/brand-category", response_model=APIResponse)
 def search_brand_or_category(req: BrandCategorySearchRequest, db: Session = Depends(get_db)) -> APIResponse:
     query = req.query.strip()
+    db_first_timeout_ms = int(getattr(settings, "search_db_first_timeout_ms", 5000))
     effective_mode: str = "brand" if _should_use_brand_mode(db, query=query, requested_mode=req.mode, industry=req.industry) else req.mode
     date_range = 90 if req.mode == "category" and req.industry else req.date_range
     result_cache_key = _result_cache_key(
@@ -1249,32 +1649,34 @@ def search_brand_or_category(req: BrandCategorySearchRequest, db: Session = Depe
     if not req.force_refresh:
         cached = _read_result_cache(result_cache_key)
         if cached:
+            if str(cached.get("status") or "") in {"pending", "running"} and str(cached.get("job_id") or "").strip():
+                return APIResponse(data=cached)
+            refresh_job = _safe_schedule_backfill(
+                _schedule_brand_category_backfill_job,
+                db,
+                context="brand_category_cached_background_refresh",
+                query=query,
+                mode=effective_mode,
+                industry=req.industry,
+                date_range=date_range,
+                request_payload={**req.model_dump(), "mode": effective_mode, "date_range": date_range},
+                wait_ms_if_locked=0,
+            )
+            if refresh_job is not None:
+                return APIResponse(
+                    data=_build_cached_pending_payload(
+                        cached,
+                        pending_job=refresh_job,
+                        pending_reason="refreshing_cached_results",
+                    )
+                )
             return APIResponse(data=cached)
 
     def run_legacy_query() -> dict:
-        return query_brand_category_db_first(
+        return _run_with_statement_timeout(
             db,
-            query=query,
-            mode=effective_mode,  # type: ignore[arg-type]
-            industry=req.industry,
-            min_like=req.min_like,
-            date_range=date_range,
-            page=req.page,
-            size=req.size,
-            freshness_hours=req.freshness_hours,
-            sort=req.sort,
-            order=req.order,
-            fast_pagination=req.page > 1,
-        )
-
-    legacy_result: dict | None = None
-    v2_result: dict | None = None
-    result_source = "legacy_only"
-    recall_guard_triggered = False
-    recall_guard_fallback = False
-    if settings.search_v2_enabled:
-        try:
-            v2_result = query_brand_category_db_first_v2(
+            db_first_timeout_ms,
+            lambda: query_brand_category_db_first(
                 db,
                 query=query,
                 mode=effective_mode,  # type: ignore[arg-type]
@@ -1286,10 +1688,39 @@ def search_brand_or_category(req: BrandCategorySearchRequest, db: Session = Depe
                 freshness_hours=req.freshness_hours,
                 sort=req.sort,
                 order=req.order,
+                fast_pagination=req.page > 1,
+            ),
+        )
+
+    legacy_result: dict | None = None
+    v2_result: dict | None = None
+    result_source = "legacy_only"
+    recall_guard_triggered = False
+    recall_guard_fallback = False
+    if settings.search_v2_enabled:
+        try:
+            v2_result = _run_with_statement_timeout(
+                db,
+                db_first_timeout_ms,
+                lambda: query_brand_category_db_first_v2(
+                    db,
+                    query=query,
+                    mode=effective_mode,  # type: ignore[arg-type]
+                    industry=req.industry,
+                    min_like=req.min_like,
+                    date_range=date_range,
+                    page=req.page,
+                    size=req.size,
+                    freshness_hours=req.freshness_hours,
+                    sort=req.sort,
+                    order=req.order,
+                ),
             )
-        except Exception:
+        except Exception as exc:
             db.rollback()
-            if settings.search_v2_fallback_on_error:
+            if _is_query_timeout_error(exc):
+                legacy_result = _empty_brand_category_result(page=req.page, size=req.size)
+            elif settings.search_v2_fallback_on_error:
                 legacy_result = run_legacy_query()
             else:
                 raise HTTPException(status_code=503, detail="search_v2_unavailable")
@@ -1369,8 +1800,9 @@ def search_brand_or_category(req: BrandCategorySearchRequest, db: Session = Depe
             "legacy_total": _result_total(legacy_result),
         }
     if result["hit"]:
-        if should_backfill:
-            _safe_schedule_backfill(
+        refresh_job = None
+        if should_backfill or not req.force_refresh:
+            refresh_job = _safe_schedule_backfill(
                 _schedule_brand_category_backfill_job,
                 db,
                 context="brand_category_hit_background_refresh",
@@ -1381,24 +1813,32 @@ def search_brand_or_category(req: BrandCategorySearchRequest, db: Session = Depe
                 request_payload={**req.model_dump(), "mode": effective_mode, "date_range": date_range},
                 wait_ms_if_locked=0,
             )
-        payload = _add_result_meta(
-            {
-                "mode": "cache",
-                "status": "ready",
-                "search_type": "brand_category",
-                "query": query,
-                "mode_type": effective_mode,
-                **result,
-            },
+        stable_payload = _build_display_payload(
+            result=result,
+            search_type="brand_category",
+            query=query,
             health=health,
-            pending=False,
+            mode_type=effective_mode,
+            status="ready",
         )
         _write_result_cache(
             result_cache_key,
-            payload,
+            stable_payload,
             ttl_seconds=int(getattr(settings, "search_result_cache_ttl_seconds", 60)),
         )
-        return APIResponse(data=payload)
+        display_payload = stable_payload
+        if refresh_job is not None:
+            display_payload = _build_display_payload(
+                result=result,
+                search_type="brand_category",
+                query=query,
+                health=health,
+                mode_type=effective_mode,
+                pending_job=refresh_job,
+                pending_reason="refreshing_cached_results",
+                status="pending",
+            )
+        return APIResponse(data=display_payload)
 
     job = _safe_schedule_backfill(
         _schedule_brand_category_backfill_job,
@@ -1619,6 +2059,27 @@ def get_unified_search_job(
         )
         return APIResponse(
             data=ready_payload
+        )
+
+    partial_result = _build_partial_job_result(db, job=job, page=page, size=size)
+    if partial_result and _result_items_count(partial_result) >= _partial_ready_threshold(size):
+        partial_health = _needs_backfill(partial_result, force_refresh=False)[1]
+        return APIResponse(
+            data=_add_result_meta(
+                {
+                    "job_id": job_id,
+                    "status": "pending",
+                    "search_type": search_type,
+                    "query": query,
+                    "task_id": job.get("task_id"),
+                    "crawl_batch_id": job.get("crawl_batch_id"),
+                    "mode_type": payload.get("mode"),
+                    **partial_result,
+                },
+                health=partial_health,
+                pending=True,
+                pending_reason="partial_ready",
+            )
         )
 
     pending_reason = str(job.get("error_msg") or "") if status == "failed" else "job_running"

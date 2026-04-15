@@ -163,8 +163,18 @@ export function AuthModalProvider({
     [isZh]
   );
 
+  const contextValue = useMemo<AuthModalContextValue>(
+    () => ({
+      authenticated,
+      openAuthModal,
+      closeAuthModal,
+      logout,
+    }),
+    [authenticated, closeAuthModal, logout, openAuthModal]
+  );
+
   return (
-    <AuthModalContext.Provider value={{ authenticated, openAuthModal, closeAuthModal, logout }}>
+    <AuthModalContext.Provider value={contextValue}>
       {children}
       {open ? (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/42 p-4">

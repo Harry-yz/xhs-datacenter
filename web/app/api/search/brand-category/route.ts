@@ -27,7 +27,7 @@ type RequestBody = {
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
-const UPSTREAM_TIMEOUT_MS = 15000;
+const UPSTREAM_TIMEOUT_MS = 30000;
 const CATEGORY_SORT_KEYS = ["stat", "like", "read", "comments"] as const;
 const ORDER_KEYS = ["asc", "desc"] as const;
 const MODE_KEYS = ["brand", "category"] as const;
@@ -62,6 +62,10 @@ function classifyUpstreamResponse(response: Response) {
     return { errorType: "upstream_misconfigured", status: 502 };
   }
   return { errorType: "upstream_error", status: 502 };
+}
+
+function toObject(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
 }
 
 export async function POST(request: NextRequest) {
@@ -135,15 +139,13 @@ export async function POST(request: NextRequest) {
     }
 
     const payload = (await upstream.json()) as ApiEnvelope<Record<string, unknown>>;
-    const pagination =
-      payload.data && typeof payload.data === "object"
-        ? ((payload.data as Record<string, unknown>).pagination as Record<string, unknown> | undefined)
-        : undefined;
+    const data = toObject(payload.data);
+    const pagination = toObject(data.pagination);
     const hasMore = Boolean(pagination?.has_more);
     const slice = buildSearchResultsSlice({
       locale,
       activeType: "category",
-      payload: payload.data ?? {},
+      payload: data,
       page,
       size,
     });

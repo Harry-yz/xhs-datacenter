@@ -58,6 +58,10 @@ function classifyUpstreamResponse(response: Response) {
   return { errorType: "upstream_error", status: 502 };
 }
 
+function toObject(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+}
+
 export async function POST(request: NextRequest) {
   const startedAt = Date.now();
   let query = "";
@@ -123,15 +127,13 @@ export async function POST(request: NextRequest) {
     }
 
     const payload = (await upstream.json()) as ApiEnvelope<Record<string, unknown>>;
-    const pagination =
-      payload.data && typeof payload.data === "object"
-        ? ((payload.data as Record<string, unknown>).pagination as Record<string, unknown> | undefined)
-        : undefined;
+    const data = toObject(payload.data);
+    const pagination = toObject(data.pagination);
     const hasMore = Boolean(pagination?.has_more);
     const slice = buildSearchResultsSlice({
       locale,
       activeType: "creator",
-      payload: payload.data ?? {},
+      payload: data,
       page,
       size,
     });

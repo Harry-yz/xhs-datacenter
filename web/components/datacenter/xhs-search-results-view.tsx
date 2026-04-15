@@ -230,6 +230,62 @@ function deriveUiState(payload: SearchResultsSliceVM, type: SearchType): SearchU
   return "idle";
 }
 
+function mergeStablePayload(
+  previous: SearchResultsSliceVM,
+  incoming: SearchResultsSliceVM,
+  type: SearchType
+): SearchResultsSliceVM {
+  if (type === "creator") {
+    const seen = new Set<string>();
+    const creators = [
+      ...previous.creators
+        .map((item) => incoming.creators.find((candidate) => candidate.authorId === item.authorId) ?? item)
+        .filter((item) => {
+          if (!item.authorId || seen.has(item.authorId)) {
+            return false;
+          }
+          seen.add(item.authorId);
+          return true;
+        }),
+      ...incoming.creators.filter((item) => {
+        if (!item.authorId || seen.has(item.authorId)) {
+          return false;
+        }
+        seen.add(item.authorId);
+        return true;
+      }),
+    ];
+    return {
+      ...incoming,
+      creators,
+    };
+  }
+
+  const seen = new Set<string>();
+  const notes = [
+    ...previous.notes
+      .map((item) => incoming.notes.find((candidate) => candidate.noteId === item.noteId) ?? item)
+      .filter((item) => {
+        if (!item.noteId || seen.has(item.noteId)) {
+          return false;
+        }
+        seen.add(item.noteId);
+        return true;
+      }),
+    ...incoming.notes.filter((item) => {
+      if (!item.noteId || seen.has(item.noteId)) {
+        return false;
+      }
+      seen.add(item.noteId);
+      return true;
+    }),
+  ];
+  return {
+    ...incoming,
+    notes,
+  };
+}
+
 async function fetchSearchSlice(
   state: SearchState,
   locale: Locale,
@@ -349,6 +405,8 @@ export function XhsSearchResultsView({
 }) {
   const pathname = usePathname();
   const auth = useAuthModal();
+  const authAuthenticated = auth.authenticated;
+  const openAuthModal = auth.openAuthModal;
   const initialState = useMemo(() => parseInitialState(initialQuery, initialParams), [initialParams, initialQuery]);
   const [searchState, setSearchState] = useState<SearchState>(initialState);
   const [draftType, setDraftType] = useState<SearchType>(initialState.type);
@@ -409,6 +467,7 @@ export function XhsSearchResultsView({
   const softRefreshAttemptRef = useRef(0);
   const softRefreshStartedAtRef = useRef<number | null>(null);
   const softRefreshAbortRef = useRef<AbortController | null>(null);
+  const authPromptHrefRef = useRef<string | null>(null);
 
   const clearPollTimer = useCallback(() => {
     if (!pollTimerRef.current) {
@@ -482,8 +541,15 @@ export function XhsSearchResultsView({
     if (version !== requestVersionRef.current) {
       return;
     }
-    setResults(payload);
-    setUiState(deriveUiState(payload, type));
+    let nextPayload = payload;
+    setResults((previous) => {
+      nextPayload =
+        previous.pending?.status === "pending" && payload.pending?.status === "pending" && getVisibleRowCount(previous, type) > 0
+          ? mergeStablePayload(previous, payload, type)
+          : payload;
+      return nextPayload;
+    });
+    setUiState(deriveUiState(nextPayload, type));
   }, []);
 
   useEffect(() => {
@@ -499,11 +565,17 @@ export function XhsSearchResultsView({
   }, [clearPollTimer, resetSoftRefreshState]);
 
   useEffect(() => {
-    if (!requireAuth || auth.authenticated) {
+    if (!requireAuth || authAuthenticated) {
+      authPromptHrefRef.current = null;
       return;
     }
-    auth.openAuthModal({ next: buildHref(pathname, searchState) });
-  }, [auth, pathname, requireAuth, searchState]);
+    const nextHref = buildHref(pathname, searchState);
+    if (authPromptHrefRef.current === nextHref) {
+      return;
+    }
+    authPromptHrefRef.current = nextHref;
+    openAuthModal({ next: nextHref });
+  }, [authAuthenticated, openAuthModal, pathname, requireAuth, searchState]);
 
   useEffect(() => {
     function handlePopState() {
@@ -806,13 +878,14 @@ export function XhsSearchResultsView({
       : Math.max(0, Number(results.resultTotals?.creator ?? results.creators.length ?? 0));
   const totalPages = Math.max(1, Math.ceil(visibleTotal / PAGE_SIZE), page + (hasMore ? 1 : 0));
   const pageTokens = useMemo(() => buildPageTokens(page, totalPages), [page, totalPages]);
+  const visibleRows = getVisibleRowCount(results, committedType);
+  const pendingStatus = results.pending?.status;
 
   useEffect(() => {
-    const visibleRows = getVisibleRowCount(results, searchState.type);
     if (
       !env.searchAutoPollEnabled ||
       uiState !== "ready" ||
-      results.pending?.status === "pending" ||
+      pendingStatus === "pending" ||
       visibleRows === 0 ||
       visibleRows >= PAGE_SIZE ||
       hasMore
@@ -864,16 +937,27 @@ export function XhsSearchResultsView({
     return () => {
       clearSoftRefreshTimer();
     };
-  }, [applyResults, clearSoftRefreshTimer, hasMore, locale, resetSoftRefreshState, results, searchState, uiState]);
+  }, [
+    applyResults,
+    clearSoftRefreshTimer,
+    hasMore,
+    locale,
+    pendingStatus,
+    resetSoftRefreshState,
+    searchState,
+    uiState,
+    visibleRows,
+  ]);
 
   const labels = useMemo(() => buildXhsSearchLabels(locale), [locale]);
-  const canSearchInPage = authenticated || auth.authenticated || !requireAuth;
-  const visibleRows = getVisibleRowCount(results, committedType);
+  const canSearchInPage = authenticated || authAuthenticated || !requireAuth;
   const showSkeleton = visibleRows === 0 && (uiState === "loading" || uiState === "pending");
   const showTimeoutPrompt = visibleRows === 0 && uiState === "failed_timeout";
 
   function requireAuthFor(nextState: SearchState) {
-    auth.openAuthModal({ next: buildHref(pathname, nextState) });
+    const nextHref = buildHref(pathname, nextState);
+    authPromptHrefRef.current = nextHref;
+    openAuthModal({ next: nextHref });
   }
 
   function onTypeChange(type: SearchType) {

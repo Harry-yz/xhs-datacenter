@@ -6,7 +6,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${ROOT_DIR}"
 
 WEB_LOCAL_BASE="${WEB_LOCAL_BASE:-http://127.0.0.1:3210}"
-WEB_PUBLIC_BASE="${WEB_PUBLIC_BASE:-https://datacenter.photog.art}"
+WEB_PUBLIC_BASE="${WEB_PUBLIC_BASE:-https://datacenter.oran.cn}"
 API_LOCAL_BASE="${API_LOCAL_BASE:-http://127.0.0.1:8000}"
 MAX_WAIT_SECONDS="${MAX_WAIT_SECONDS:-90}"
 SKIP_BUILD="${SKIP_BUILD:-0}"
@@ -27,11 +27,25 @@ probe() {
   return 1
 }
 
+probe_static_assets() {
+  local base="$1"
+  local path="$2"
+  local label="$3"
+  if WEB_BASE="${base}" WEB_PAGE_PATH="${path}" TIMEOUT=15 "${ROOT_DIR}/scripts/check_web_static_assets.sh" >/dev/null; then
+    log "PASS ${label} -> ${base}${path}"
+    return 0
+  fi
+  log "FAIL ${label} -> ${base}${path}"
+  return 1
+}
+
 smoke_check() {
   local status=0
   probe "${WEB_LOCAL_BASE}/zh/datacenter" "web local datacenter" || status=1
   probe "${WEB_PUBLIC_BASE}/zh/datacenter/xhs" "web public xhs home" || status=1
   probe "${WEB_PUBLIC_BASE}/zh/datacenter/xhs/search?type=category&q=YSL" "web public xhs search" || status=1
+  probe_static_assets "${WEB_LOCAL_BASE}" "/zh/datacenter/xhs" "web local static assets" || status=1
+  probe_static_assets "${WEB_PUBLIC_BASE}" "/zh/datacenter/xhs" "web public static assets" || status=1
   probe "${API_LOCAL_BASE}/health" "api health" || status=1
   probe "${API_LOCAL_BASE}/api/v1/dashboard/xhs/overview?days=90" "api dashboard overview" || status=1
   probe_search_ready || status=1

@@ -41,6 +41,10 @@ function resolveType(rawType: string, payload: Record<string, unknown>): "catego
   return String(payload.search_type ?? "") === "influencer" ? "creator" : "category";
 }
 
+function toObject(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+}
+
 export async function GET(request: NextRequest, context: { params: { jobId: string } }) {
   const startedAt = Date.now();
   const locale = request.nextUrl.searchParams.get("locale") === "en" ? "en" : "zh";
@@ -83,7 +87,7 @@ export async function GET(request: NextRequest, context: { params: { jobId: stri
     }
 
     const payload = (await upstream.json()) as ApiEnvelope<Record<string, unknown>>;
-    const data = payload.data ?? {};
+    const data = toObject(payload.data);
     const activeType = resolveType(explicitType, data);
     const slice = buildSearchResultsSlice({
       locale: locale as Locale,

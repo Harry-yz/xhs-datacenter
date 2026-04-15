@@ -26,6 +26,7 @@ _search_bootstrap_done = False
 _incremental_refresh_last_at: float = 0.0
 settings = get_settings()
 _SEARCH_BOOTSTRAP_LOCK_KEY = 2026040201
+_SEARCH_BOOTSTRAP_LOCK_TIMEOUT_MS = 500
 
 @dataclass(frozen=True)
 class IntentSplitResult:
@@ -66,6 +67,38 @@ def _safe_ddl(db: Session, ddl: str, *, ignore_permission: bool = False) -> None
             db.rollback()
             return
         raise
+
+
+def _search_schema_ready(db: Session) -> bool:
+    row = db.execute(
+        text(
+            """
+            SELECT
+                to_regclass('public.xhs_search_job') IS NOT NULL AS has_search_job,
+                to_regclass('public.xhs_search_synonym_dim') IS NOT NULL AS has_synonym_dim,
+                to_regclass('public.xhs_note_term_rel') IS NOT NULL AS has_note_term_rel,
+                to_regclass('public.xhs_author_metrics_30d') IS NOT NULL AS has_author_metrics,
+                to_regclass('public.xhs_note_change_log') IS NOT NULL AS has_change_log,
+                EXISTS (
+                    SELECT 1
+                    FROM information_schema.columns
+                    WHERE table_schema = 'public'
+                      AND table_name = 'xhs_note_fact'
+                      AND column_name = 'interaction_total'
+                ) AS has_interaction_total,
+                EXISTS (
+                    SELECT 1
+                    FROM information_schema.columns
+                    WHERE table_schema = 'public'
+                      AND table_name = 'xhs_note_fact'
+                      AND column_name = 'ext_payload'
+                ) AS has_ext_payload
+            """
+        )
+    ).mappings().first()
+    if not row:
+        return False
+    return all(bool(row[key]) for key in row.keys())
 
 
 def _seed_search_synonyms(db: Session) -> None:
@@ -120,10 +153,26 @@ def ensure_search_tables(db: Session) -> None:
     global _search_bootstrap_done
     if _search_bootstrap_done:
         return
-    db.execute(text("SELECT pg_advisory_lock(:lock_key)"), {"lock_key": _SEARCH_BOOTSTRAP_LOCK_KEY})
+    if _search_schema_ready(db):
+        _search_bootstrap_done = True
+        return
+
+    lock_acquired = bool(
+        db.execute(text("SELECT pg_try_advisory_lock(:lock_key)"), {"lock_key": _SEARCH_BOOTSTRAP_LOCK_KEY}).scalar()
+    )
+    if not lock_acquired:
+        db.rollback()
+        return
     try:
         if _search_bootstrap_done:
             return
+        if _search_schema_ready(db):
+            _search_bootstrap_done = True
+            return
+        db.execute(
+            text("SET LOCAL lock_timeout = :timeout"),
+            {"timeout": f"{_SEARCH_BOOTSTRAP_LOCK_TIMEOUT_MS}ms"},
+        )
         ensure_industry_tables(db)
         _safe_ddl(
             db,
@@ -308,6 +357,10 @@ def ensure_search_tables(db: Session) -> None:
         _seed_search_synonyms(db)
         db.commit()
         _search_bootstrap_done = True
+    except Exception:
+        db.rollback()
+        if _search_schema_ready(db):
+            _search_bootstrap_done = True
     finally:
         db.execute(text("SELECT pg_advisory_unlock(:lock_key)"), {"lock_key": _SEARCH_BOOTSTRAP_LOCK_KEY})
 

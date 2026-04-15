@@ -29,6 +29,25 @@ function toCompactFollowers(locale: Locale, value: number) {
   return toLocaleCount(locale, value);
 }
 
+function toFiniteNumber(value: unknown, fallback = 0) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function toRows(value: unknown): Array<Record<string, unknown>> {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === "object");
+}
+
+function toStringArray(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.map(String).filter(Boolean);
+}
+
 export function mapNoteRows(locale: Locale, rows: Array<Record<string, unknown>>): NoteAnalysisCardVM[] {
   const coverPalette = [
     "from-[#f7c7b8] via-[#f1b8d6] to-[#a7d8ff]",
@@ -41,13 +60,13 @@ export function mapNoteRows(locale: Locale, rows: Array<Record<string, unknown>>
     const title = String(item.title ?? (locale === "zh" ? "未命名笔记" : "Untitled Note"));
     const author = String(item.author_nickname ?? item.author ?? (locale === "zh" ? "匿名作者" : "Unknown Author"));
 
-    const likeCount = Number(item.like_count ?? item.likeCount ?? 0);
-    const collectionCount = Number(item.collection_count ?? item.collectionCount ?? 0);
-    const commentCount = Number(item.comment_count ?? item.commentCount ?? 0);
-    const readCount = Number(item.read_count ?? item.readCount ?? 0);
-    const interactionTotal = Number(item.interaction_total ?? item.interactionTotal ?? (likeCount + collectionCount + commentCount));
-    const followers = Number(item.followers ?? item.author_fans_count ?? item.authorFansCount ?? 0);
-    const tags = Array.isArray(item.tags) ? item.tags.map(String) : [];
+    const likeCount = toFiniteNumber(item.like_count ?? item.likeCount, 0);
+    const collectionCount = toFiniteNumber(item.collection_count ?? item.collectionCount, 0);
+    const commentCount = toFiniteNumber(item.comment_count ?? item.commentCount, 0);
+    const readCount = toFiniteNumber(item.read_count ?? item.readCount, 0);
+    const interactionTotal = toFiniteNumber(item.interaction_total ?? item.interactionTotal, likeCount + collectionCount + commentCount);
+    const followers = toFiniteNumber(item.followers ?? item.author_fans_count ?? item.authorFansCount, 0);
+    const tags = toStringArray(item.tags);
 
     return {
       noteId,
@@ -73,10 +92,10 @@ export function mapCreatorRows(locale: Locale, rows: Array<Record<string, unknow
   return rows.map((item, index) => {
     const authorId = String(item.author_id ?? item.authorId ?? "").trim();
     const name = String(item.author_nickname ?? item.name ?? authorId ?? "");
-    const followers = Number(item.followers ?? item.fans_count ?? 0);
-    const notesCount = Number(item.note_count ?? item.notes ?? 0);
-    const totalInteractions = Number(item.interaction_total ?? item.sumStat ?? 0);
-    const tags = Array.isArray(item.tags) ? item.tags.map(String).filter(Boolean) : [];
+    const followers = toFiniteNumber(item.followers ?? item.fans_count, 0);
+    const notesCount = toFiniteNumber(item.note_count ?? item.notes, 0);
+    const totalInteractions = toFiniteNumber(item.interaction_total ?? item.sumStat, 0);
+    const tags = toStringArray(item.tags);
     const direction = tags.length ? tags.slice(0, 2).join(" / ") : choose(locale, "内容达人", "Content Creator");
     const rawProfileUrl = String(item.creator_home_url ?? item.anchor_link ?? item.profile_url ?? "").trim();
     const profileUrl = rawProfileUrl || (authorId ? `https://www.xiaohongshu.com/user/profile/${authorId}` : "");
@@ -151,19 +170,19 @@ export function buildSearchResultsSlice(params: {
   size: number;
 }): SearchResultsSliceVM {
   const { locale, activeType, payload, page, size } = params;
-  const itemsRaw = Array.isArray(payload.items) ? (payload.items as Array<Record<string, unknown>>) : [];
-  const notesRaw = Array.isArray(payload.notes) ? (payload.notes as Array<Record<string, unknown>>) : [];
+  const itemsRaw = toRows(payload.items);
+  const notesRaw = toRows(payload.notes);
   const pagination = toRecord(payload.pagination);
   const summary = toRecord(payload.summary);
 
   const notes = activeType === "category" ? mapNoteRows(locale, itemsRaw) : mapNoteRows(locale, notesRaw);
   const creators = activeType === "creator" ? mapCreatorRows(locale, itemsRaw) : [];
-  const total = Number(pagination.total ?? itemsRaw.length ?? 0);
+  const total = toFiniteNumber(pagination.total, itemsRaw.length);
   const hasMore = Boolean(pagination.has_more);
   const totalIsEstimate = Boolean(pagination.total_is_estimate);
   const totalComments =
-    Number(summary.comment_total ?? Number.NaN) ||
-    notes.reduce((sum, item) => sum + Number(item.commentCount.replace(/,/g, "")), 0);
+    toFiniteNumber(summary.comment_total, Number.NaN) ||
+    notes.reduce((sum, item) => sum + toFiniteNumber(item.commentCountValue, 0), 0);
 
   return {
     notes,
@@ -180,8 +199,8 @@ export function buildSearchResultsSlice(params: {
       creatorTotalIsEstimate: activeType === "creator" ? totalIsEstimate : false,
     },
     searchSummary: {
-      noteTotal: Math.max(0, Number(summary.note_count ?? notes.length)),
-      creatorTotal: Math.max(0, Number(summary.creator_count ?? creators.length)),
+      noteTotal: Math.max(0, toFiniteNumber(summary.note_count, notes.length)),
+      creatorTotal: Math.max(0, toFiniteNumber(summary.creator_count, creators.length)),
       totalComments: Math.max(0, totalComments),
     },
   };

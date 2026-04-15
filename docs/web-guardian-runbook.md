@@ -16,7 +16,7 @@ chmod +x scripts/deploy_web_guardian.sh
 1. 备份当前镜像到 `xhs_web:rollback`
 2. 构建 `xhs_web:current`
 3. `docker compose up -d web`
-4. 健康检查与 smoke test（含 `POST /api/search/brand-category` 的 ready 闸门）
+4. 健康检查与 smoke test（含 `/_next/static/*` 静态资源检查，以及 `POST /api/search/brand-category` 的 ready 闸门）
 5. 失败自动回滚
 6. 启动 `search_stability_watchdog.sh`（每分钟巡检）
 
@@ -28,6 +28,7 @@ cd /opt/xhs_data_center
 
 重点检查项：
 - 页面：`/zh/datacenter/xhs`
+- 静态资源：页面 HTML 中引用的 `/_next/static/*.css`、`/_next/static/*.js`
 - 搜索：`/zh/datacenter/xhs/search?type=category&q=YSL`
 - API：`/health` 与 `/api/v1/dashboard/xhs/overview?days=90`
 - 搜索代理闸门：`POST /api/search/brand-category` 返回 `ready + items`
@@ -56,7 +57,11 @@ docker compose up -d web
   - 先看 `docker compose ps web` 是否 `Up`
   - 再看 `ss -ltnp | rg :3210` 是否监听
   - 最后看网关回源是否可达（openresty 容器内 `curl http://127.0.0.1:3210/zh/datacenter`）
+- 页面只剩纯文字、图形和样式丢失：
+  - 先跑 `./scripts/check_web_static_assets.sh`
+  - 再看 `curl -I http://127.0.0.1:3210/_next/static/...` 是否返回 `200`
+  - 若页面 HTML 正常但 `/_next/static/*` 返回非 `200`，不要继续放量，先回滚或重启 `web`
 - 首屏卡顿：
   - 确认前端运行在生产模式（`next start`，不是 `next dev`）
-  - 确认 `INTERNAL_API_BASE_URL=http://fastapi:8000/api/v1`
+  - 确认 `INTERNAL_API_BASE_URL=http://127.0.0.1:8000/api/v1`
   - `NEXT_PUBLIC_API_BASE_URL` 只用于浏览器公开能力，不参与服务端搜索代理

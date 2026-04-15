@@ -8,6 +8,7 @@ WEB_BASE="${WEB_BASE:-http://127.0.0.1:3210}"
 WEB_HOME_PATH="${WEB_HOME_PATH:-/zh/datacenter/xhs}"
 WEB_SEARCH_PATH="${WEB_SEARCH_PATH:-/zh/datacenter/xhs/search?type=category&q=YSL}"
 TIMEOUT="${TIMEOUT:-5}"
+STATIC_CHECK_PAGE="${STATIC_CHECK_PAGE:-/zh/datacenter/xhs}"
 
 pass() {
   printf '[health][pass] %s\n' "$1"
@@ -36,6 +37,17 @@ probe_port() {
     pass "$label ${host}:${port}"
   else
     fail "$label ${host}:${port}"
+    return 1
+  fi
+}
+
+probe_static_assets() {
+  local label="$1"
+  local static_timeout="${STATIC_TIMEOUT:-15}"
+  if WEB_BASE="${WEB_BASE}" WEB_PAGE_PATH="${STATIC_CHECK_PAGE}" TIMEOUT="${static_timeout}" "${ROOT_DIR}/scripts/check_web_static_assets.sh" >/dev/null; then
+    pass "${label} (${WEB_BASE}${STATIC_CHECK_PAGE})"
+  else
+    fail "${label} (${WEB_BASE}${STATIC_CHECK_PAGE})"
     return 1
   fi
 }
@@ -98,6 +110,7 @@ probe_http "${API_BASE}/api/v1/dashboard/xhs/overview?days=90" "dashboard overvi
 probe_http "${API_BASE}/api/v1/dashboard/xhs/live" "dashboard live" || status=1
 probe_http "${WEB_BASE}${WEB_HOME_PATH}" "web xhs home page" || status=1
 probe_http "${WEB_BASE}${WEB_SEARCH_PATH}" "web xhs search page" || status=1
+probe_static_assets "web static assets" || status=1
 probe_search_gate || status=1
 probe_cold_search_gate || status=1
 probe_port "127.0.0.1" "8000" "api port" || status=1

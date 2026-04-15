@@ -15,7 +15,7 @@ export function buildXhsSearchLabels(locale: Locale) {
     back: isZh ? "返回数据总览" : "Back to Data Overview",
     tabCategory: isZh ? "品类/品牌" : "Categories/Brands",
     tabCreator: isZh ? "达人" : "Creators",
-    placeholder: isZh ? "输入关键词，例如：防晒、兰蔻、惊喜盒子" : "Search category, brand, or creator",
+    placeholder: "",
     search: isZh ? "搜索" : "Search",
     loadingSearch: isZh ? "搜索中..." : "Searching...",
     refresh: isZh ? "刷新" : "Refresh",
