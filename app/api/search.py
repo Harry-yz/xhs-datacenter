@@ -363,6 +363,38 @@ def _build_influencer_partial_result(
     }
 
 
+def _resolve_nonempty_search_batch_id(db: Session, *, job: dict) -> str | None:
+    batch_id = str(job.get("crawl_batch_id") or "").strip()
+    if batch_id:
+        total = int(
+            db.execute(
+                text("SELECT COUNT(*)::bigint FROM xhs_note_search_result WHERE batch_id = :batch_id"),
+                {"batch_id": batch_id},
+            ).scalar()
+            or 0
+        )
+        if total > 0:
+            return batch_id
+
+    query = str(job.get("query") or "").strip()
+    if not query:
+        return None
+    row = db.execute(
+        text(
+            """
+            SELECT batch_id
+            FROM xhs_note_search_result
+            WHERE keyword = :keyword
+            GROUP BY batch_id
+            ORDER BY MAX(created_at) DESC
+            LIMIT 1
+            """
+        ),
+        {"keyword": query},
+    ).mappings().first()
+    return str(row["batch_id"]) if row else None
+
+
 def _build_partial_job_result(
     db: Session,
     *,
@@ -370,7 +402,7 @@ def _build_partial_job_result(
     page: int,
     size: int,
 ) -> dict | None:
-    batch_id = str(job.get("crawl_batch_id") or "").strip()
+    batch_id = _resolve_nonempty_search_batch_id(db, job=job)
     if not batch_id:
         return None
     payload = _safe_payload(job.get("request_payload"))
@@ -473,6 +505,22 @@ def _add_result_meta(result: dict, *, health: dict, pending: bool, pending_reaso
         payload["pending_reason"] = pending_reason or ("|".join(health.get("reasons") or []) or "refreshing")
     if pending:
         payload["next_poll_after_ms"] = max(1000, int(settings.search_pending_poll_ms))
+    return payload
+
+
+def _add_health_reasons(health: dict, *reasons: str) -> dict:
+    payload = dict(health or {})
+    existing = list(payload.get("reasons") or [])
+    for reason in reasons:
+        if reason and reason not in existing:
+            existing.append(reason)
+    payload["reasons"] = existing
+    if existing:
+        payload["healthy"] = (
+            False
+            if any(reason in {"worker_unavailable", "v2_under_recall", "quota_exhausted"} for reason in existing)
+            else payload.get("healthy", False)
+        )
     return payload
 
 
@@ -1129,6 +1177,28 @@ def _has_recent_zero_result_note_search_task(
     return row is not None
 
 
+def _has_recent_quota_exhausted_collect_task(db: Session, *, minutes: int = 30) -> bool:
+    row = db.execute(
+        text(
+            """
+            SELECT 1
+            FROM xhs_crawl_log
+            WHERE task_type IN ('note_info', 'note_comment')
+              AND created_at >= now() - (:minutes || ' minute')::interval
+              AND (
+                    COALESCE(response_payload::text, '') ILIKE '%quota_exhausted%'
+                 OR COALESCE(error_msg, '') ILIKE '%quota%'
+                 OR COALESCE(error_msg, '') ILIKE '%次数不足%'
+                 OR COALESCE(error_msg, '') ILIKE '%余额不足%'
+              )
+            LIMIT 1
+            """
+        ),
+        {"minutes": max(1, minutes)},
+    ).first()
+    return row is not None
+
+
 def _enqueue_creator_profile_backfill(db: Session, items: list[dict]) -> None:
     if not items:
         return
@@ -1430,6 +1500,9 @@ def search_influencer(req: InfluencerSearchRequest, db: Session = Depends(get_db
             return APIResponse(data=cached)
     legacy_result: dict | None = None
     v2_result: dict | None = None
+    result_source = "legacy_only"
+    recall_guard_triggered = False
+    recall_guard_fallback = False
 
     if settings.search_v2_enabled:
         try:
@@ -1478,6 +1551,41 @@ def search_influencer(req: InfluencerSearchRequest, db: Session = Depends(get_db
             else:
                 raise HTTPException(status_code=503, detail="search_v2_unavailable")
         result = v2_result or legacy_result
+        result_source = "v2" if v2_result is not None else "legacy_v2_error"
+        if v2_result is not None:
+            recall_guard_triggered = _should_run_v2_recall_guard(
+                query=query,
+                v2_result=v2_result,
+                page_size=req.size,
+                page=req.page,
+            )
+            if recall_guard_triggered and legacy_result is None:
+                try:
+                    legacy_result = _run_with_statement_timeout(
+                        db,
+                        db_first_timeout_ms,
+                        lambda: query_influencers_db_first(
+                            db,
+                            query=query,
+                            industry=req.industry,
+                            follower_range=req.follower_range,
+                            interaction_range=req.interaction_range,
+                            date_range=req.date_range,
+                            page=req.page,
+                            size=req.size,
+                            freshness_hours=req.freshness_hours,
+                            sort=req.sort,
+                            order=req.order,
+                            include_notes=req.include_notes,
+                        ),
+                    )
+                except Exception:
+                    db.rollback()
+                    legacy_result = None
+            if _should_prefer_legacy_for_recall_guard(v2_result=v2_result, legacy_result=legacy_result):
+                result = legacy_result
+                result_source = "legacy_recall_guard"
+                recall_guard_fallback = True
         if settings.search_v2_dual_read and v2_result is not None:
             try:
                 legacy_result = query_influencers_db_first(
@@ -1513,6 +1621,7 @@ def search_influencer(req: InfluencerSearchRequest, db: Session = Depends(get_db
             include_notes=req.include_notes,
         )
         result = legacy_result
+        result_source = "legacy"
         if settings.search_v2_dual_read:
             try:
                 v2_result = query_influencers_db_first_v2(
@@ -1542,10 +1651,23 @@ def search_influencer(req: InfluencerSearchRequest, db: Session = Depends(get_db
         min_results=max(settings.search_min_healthy_results, 30),
         page_size=req.size,
     )
+    if _has_recent_quota_exhausted_collect_task(db):
+        health = _add_health_reasons(health, "quota_exhausted")
     if settings.search_v2_dual_read and v2_result is not None:
         health["dual_read_compare"] = {
             "legacy_total": int(((legacy_result or {}).get("pagination") or {}).get("total") or 0),
             "v2_total": int((v2_result.get("pagination") or {}).get("total") or 0),
+        }
+    if v2_result is not None and settings.search_v2_recall_guard_enabled:
+        if recall_guard_triggered:
+            health = _add_health_reasons(health, "v2_under_recall")
+        health["recall_guard"] = {
+            "enabled": True,
+            "triggered": bool(recall_guard_triggered),
+            "fallback_to_legacy": bool(recall_guard_fallback),
+            "selected_source": result_source,
+            "v2_total": _result_total(v2_result),
+            "legacy_total": _result_total(legacy_result),
         }
     if result["hit"]:
         refresh_job = None
@@ -1560,6 +1682,8 @@ def search_influencer(req: InfluencerSearchRequest, db: Session = Depends(get_db
                 request_payload=req.model_dump(),
                 wait_ms_if_locked=0,
             )
+            if refresh_job is not None:
+                health = _add_health_reasons(health, "backfill_queued")
         stable_payload = _build_display_payload(
             result=result,
             search_type="influencer",
@@ -1596,6 +1720,7 @@ def search_influencer(req: InfluencerSearchRequest, db: Session = Depends(get_db
         wait_ms_if_locked=settings.search_coalesce_wait_ms,
     )
     if not job:
+        health = _add_health_reasons(health, "worker_unavailable")
         failed_payload = _add_result_meta(
             {
                 "mode": "cache",
@@ -1609,6 +1734,7 @@ def search_influencer(req: InfluencerSearchRequest, db: Session = Depends(get_db
         )
         return APIResponse(data=failed_payload)
 
+    health = _add_health_reasons(health, "backfill_queued")
     pending_payload = _add_result_meta(
         {
             "mode": "async",
@@ -1785,12 +1911,16 @@ def search_brand_or_category(req: BrandCategorySearchRequest, db: Session = Depe
         min_results=max(settings.search_min_healthy_results, 30),
         page_size=req.size,
     )
+    if _has_recent_quota_exhausted_collect_task(db):
+        health = _add_health_reasons(health, "quota_exhausted")
     if settings.search_v2_dual_read and v2_result is not None:
         health["dual_read_compare"] = {
             "legacy_total": int(((legacy_result or {}).get("pagination") or {}).get("total") or 0),
             "v2_total": int((v2_result.get("pagination") or {}).get("total") or 0),
         }
     if v2_result is not None and settings.search_v2_recall_guard_enabled:
+        if recall_guard_triggered:
+            health = _add_health_reasons(health, "v2_under_recall")
         health["recall_guard"] = {
             "enabled": True,
             "triggered": bool(recall_guard_triggered),
@@ -1813,6 +1943,8 @@ def search_brand_or_category(req: BrandCategorySearchRequest, db: Session = Depe
                 request_payload={**req.model_dump(), "mode": effective_mode, "date_range": date_range},
                 wait_ms_if_locked=0,
             )
+            if refresh_job is not None:
+                health = _add_health_reasons(health, "backfill_queued")
         stable_payload = _build_display_payload(
             result=result,
             search_type="brand_category",
@@ -1852,6 +1984,7 @@ def search_brand_or_category(req: BrandCategorySearchRequest, db: Session = Depe
         wait_ms_if_locked=settings.search_coalesce_wait_ms,
     )
     if not job:
+        health = _add_health_reasons(health, "worker_unavailable")
         failed_payload = _add_result_meta(
             {
                 "mode": "cache",
@@ -1866,6 +1999,7 @@ def search_brand_or_category(req: BrandCategorySearchRequest, db: Session = Depe
         )
         return APIResponse(data=failed_payload)
 
+    health = _add_health_reasons(health, "backfill_queued")
     pending_payload = _add_result_meta(
         {
             "mode": "async",
@@ -1904,18 +2038,39 @@ def get_unified_search_job(
         response_payload = _safe_payload(job.get("response_payload"))
         response_row_count = int(response_payload.get("row_count") or 0)
         if response_row_count <= 0:
-            mark_search_job_failed(db, job_id=job_id, error_msg="no_results_after_fetch")
             return APIResponse(
                 data=_add_result_meta(
                     {
                         "job_id": job_id,
-                        "status": "failed",
+                        "status": "pending",
                         "search_type": search_type,
                         "query": query,
                     },
                     health={"reasons": ["no_results_after_fetch"], "healthy": False, "total": 0, "freshness": None},
+                    pending=True,
+                    pending_reason="waiting_for_first_page",
+                )
+            )
+        batch_result = _build_partial_job_result(db, job=job, page=page, size=size)
+        if batch_result and _result_items_count(batch_result) > 0:
+            health = _add_health_reasons(
+                _needs_backfill(batch_result, force_refresh=False)[1],
+                "backfill_batch_preferred",
+            )
+            return APIResponse(
+                data=_add_result_meta(
+                    {
+                        "job_id": job_id,
+                        "status": "ready",
+                        "search_type": search_type,
+                        "query": query,
+                        "task_id": job.get("task_id"),
+                        "crawl_batch_id": job.get("crawl_batch_id"),
+                        "mode_type": payload.get("mode"),
+                        **batch_result,
+                    },
+                    health=health,
                     pending=False,
-                    pending_reason="no_results_after_fetch",
                 )
             )
         if search_type == "influencer":
@@ -2031,7 +2186,15 @@ def get_unified_search_job(
                             result = legacy_result  # type: ignore[assignment]
             else:
                 result = run_legacy_brand_category()
+        ready_reasons: list[str] = []
+        batch_result = _build_partial_job_result(db, job=job, page=page, size=size)
+        if batch_result and _result_total(batch_result) > _result_total(result):
+            result = batch_result
+            ready_reasons.append("backfill_batch_preferred")
+
         health = _needs_backfill(result, force_refresh=False)[1]
+        if ready_reasons:
+            health = _add_health_reasons(health, *ready_reasons)
         if _should_keep_pending_until_first_page_full(result, page_size=size):
             return APIResponse(
                 data=_add_result_meta(

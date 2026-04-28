@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>小红书 × BRAND HEALTH 雅顿品牌健康度洞察报告</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #09090f;
+  --bg2: #111118;
+  --bg3: #16161f;
+  --bg4: #1d1d28;
+  --line: rgba(255,255,255,0.06);
+  --line2: rgba(255,255,255,0.10);
+  --text: #e8e8f0;
+  --text2: #9898b0;
+  --text3: #5a5a72;
+  --blue: #4f7dff;
+  --blue2: #2a4fd4;
+  --blue-g: rgba(79,125,255,0.12);
+  --amber: #f5a623;
+  --amber-g: rgba(245,166,35,0.10);
+  --teal: #2dd4bf;
+  --teal-g: rgba(45,212,191,0.10);
+  --red: #ff5f6d;
+  --red-g: rgba(255,95,109,0.10);
+  --green: #22c55e;
+  --purple: #a78bfa;
+  --nav-w: 260px;
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; color-scheme: dark; }
+body {
+  font-family: 'Sora', 'Noto Sans SC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+a { text-decoration: none; color: inherit; }
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: -48px;
+  background: #fff;
+  color: #111;
+  font-weight: 700;
+  padding: 8px 10px;
+  border-radius: 8px;
+  z-index: 999;
+}
+.skip-link:focus-visible { top: 12px; }
+.nav {
+  width: var(--nav-w);
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  background: var(--bg2);
+  border-right: 1px solid var(--line);
+  padding: 28px 16px 24px;
+  z-index: 100;
+  overflow-y: auto;
+}
+.nav-brand {
+  background: linear-gradient(135deg, var(--blue2) 0%, #1a2880 100%);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  margin-bottom: 24px;
+  border: 1px solid rgba(79,125,255,0.25);
+}
+.nav-brand .nb-tag {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+  font-family: 'DM Mono', monospace;
+}
+.nav-brand .nb-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+  margin-top: 4px;
+  letter-spacing: -0.02em;
+}
+.nav-brand .nb-sub {
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  margin-top: 6px;
+}
+.nav-score-badge {
+  background: var(--bg3);
+  border: 1px solid var(--line2);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.nsb-num {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--amber);
+  font-family: 'DM Mono', monospace;
+  line-height: 1;
+}
+.nsb-label {
+  font-size: 10px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.nsb-tier {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--amber);
+}
+.nav-toc { list-style: none; }
+.nav-toc li { margin: 2px 0; }
+.nav-toc a {
+  display: block;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  color: var(--text2);
+  transition: color .2s ease, background-color .2s ease, border-color .2s ease;
+  border: 1px solid transparent;
+}
+.nav-toc a:hover,
+.nav-toc a:focus-visible,
+.nav-toc a.active {
+  color: var(--blue);
+  background: var(--blue-g);
+  border-color: rgba(79,125,255,0.15);
+  outline: 2px solid transparent;
+}
+.nav-toc .toc-part {
+  font-size: 10px;
+  font-family: 'DM Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text3);
+  padding: 14px 12px 4px;
+}
+.main { margin-left: var(--nav-w); min-height: 100vh; }
+.hero {
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 80% 20%, rgba(79,125,255,0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 10% 80%, rgba(245,166,35,0.07) 0%, transparent 45%),
+    var(--bg);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 80px 64px 64px;
+  position: relative;
+  overflow: hidden;
+}
+.hero-grid-bg {
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.hero-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--blue-g);
+  border: 1px solid rgba(79,125,255,0.25);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.1em;
+  color: var(--blue);
+  text-transform: uppercase;
+  margin-bottom: 28px;
+}
+.hero-chip::before { content: '●'; font-size: 8px; }
+.hero h1 {
+  font-size: 60px;
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  color: #fff;
+  max-width: 760px;
+  text-wrap: balance;
+}
+.hero h1 span { color: var(--blue); }
+.hero-desc {
+  max-width: 760px;
+  margin-top: 20px;
+  font-size: 16px;
+  color: var(--text2);
+  line-height: 1.8;
+}
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 28px;
+}
+.hero-tag {
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--line2);
+  color: var(--text2);
+  font-family: 'DM Mono', monospace;
+}
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 16px;
+  margin-top: 40px;
+  max-width: 760px;
+}
+.hstat {
+  background: var(--bg3);
+  border: 1px solid var(--line2);
+  border-radius: var(--radius-sm);
+  padding: 18px 20px;
+}
+.hstat-num {
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: -0.03em;
+}
+.hstat-label { font-size: 11px; color: var(--text3); margin-top: 4px; }
+.section {
+  padding: 72px 64px;
+  border-bottom: 1px solid var(--line);
+  scroll-margin-top: 24px;
+}
+.section:last-child { border-bottom: none; }
+.section-kicker {
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--blue);
+  margin-bottom: 10px;
+}
+.section h2 {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #fff;
+  margin-bottom: 10px;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+.section-desc {
+  font-size: 14px;
+  color: var(--text2);
+  max-width: 760px;
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 14px; }
+.section-grid-gap { margin-top: 16px; }
+.card {
+  background: var(--bg3);
+  border: 1px solid var(--line2);
+  border-radius: var(--radius);
+  padding: 24px;
+  min-width: 0;
+}
+.micro-card {
+  padding: 18px;
+  border-radius: 12px;
+  background: var(--bg4);
+}
+.micro-card .card-title {
+  margin-bottom: 8px;
+}
+.micro-card .card-value {
+  font-size: 20px;
+}
+.card.blue { border-color: rgba(79,125,255,0.25); background: rgba(79,125,255,0.06); }
+.card.amber { border-color: rgba(245,166,35,0.25); background: rgba(245,166,35,0.05); }
+.card.teal { border-color: rgba(45,212,191,0.2); background: rgba(45,212,191,0.05); }
+.card.red { border-color: rgba(255,95,109,0.2); background: rgba(255,95,109,0.05); }
+.card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 12px;
+}
+.card-value {
+  font-size: 26px;
+  font-weight: 700;
+  font-family: 'DM Mono', monospace;
+  color: #fff;
+}
+.insight-box {
+  background: var(--bg4);
+  border-left: 3px solid var(--blue);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 14px 18px;
+  margin-top: 18px;
+}
+.ib-label {
+  font-size: 10px;
+  font-family: 'DM Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text3);
+  margin-bottom: 6px;
+}
+.ib-text { font-size: 14px; color: var(--text); line-height: 1.7; }
+.mono { font-family: 'DM Mono', monospace; font-variant-numeric: tabular-nums; }
+.action-list { margin-left: 18px; }
+.action-list li { margin: 7px 0; color: #d8d8e8; }
+.kv-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.kv-row:last-child { border-bottom: none; }
+.kv-key { color: var(--text2); min-width: 0; }
+.kv-value { color: #fff; text-align: right; min-width: 0; word-break: break-word; }
+.pull-quote {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #fff;
+}
+.week-chart {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(44px, 1fr));
+  align-items: end;
+  gap: 10px;
+  min-height: 220px;
+}
+.week-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: end;
+  min-width: 0;
+}
+.week-bar-fill {
+  width: 100%;
+  border-radius: 10px 10px 4px 4px;
+  background: linear-gradient(180deg, var(--blue) 0%, var(--purple) 100%);
+}
+.week-bar-num {
+  font-size: 10px;
+  color: var(--text3);
+  margin-top: 8px;
+}
+.week-bar-label {
+  font-size: 10px;
+  color: var(--text2);
+  margin-top: 2px;
+}
+.score-bar-row {
+  display: grid;
+  grid-template-columns: minmax(160px, 230px) 1fr 76px;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.score-bar-row:last-child { border-bottom: none; }
+.score-bar-main { min-width: 0; }
+.score-bar-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+.bar-aux {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 2px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+.bar-extra {
+  font-size: 11px;
+  color: var(--text3);
+}
+.score-bar-track {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--bg4);
+  overflow: hidden;
+}
+.score-bar-fill {
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--blue), var(--purple));
+}
+.score-bar-value {
+  font-size: 13px;
+  color: #fff;
+  text-align: right;
+}
+.type-wrap {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 14px;
+}
+.type-card .type-meta {
+  font-size: 12px;
+  color: var(--text3);
+  margin-bottom: 12px;
+}
+.type-grid-mini {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 12px;
+}
+.mini-label {
+  font-size: 11px;
+  color: var(--text3);
+  margin-bottom: 4px;
+}
+.mini-value {
+  font-size: 18px;
+  color: #fff;
+}
+.interest-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.interest-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: var(--bg4);
+  border: 1px solid var(--line2);
+  color: #fff;
+  font-size: 12px;
+  font-family: 'DM Mono', monospace;
+}
+.sample-grid {
+  align-items: start;
+}
+.voc-sample-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sample-group-desc {
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.7;
+}
+.sample-group-count {
+  font-size: 11px;
+  color: var(--text3);
+}
+.sample-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sample-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.sample-copy {
+  min-width: 0;
+  flex: 1;
+}
+.sample-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.sample-summary {
+  font-size: 12px;
+  color: var(--text2);
+  margin-top: 4px;
+  line-height: 1.7;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.sample-meta, .sample-stats {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 6px;
+}
+.sample-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  border-radius: 999px;
+  border: 1px solid rgba(79,125,255,0.25);
+  background: var(--blue-g);
+  color: var(--blue);
+  padding: 8px 12px;
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  transition: background-color .2s ease, color .2s ease, border-color .2s ease, transform .2s ease;
+}
+.sample-link:hover,
+.sample-link:focus-visible {
+  background: rgba(79,125,255,0.18);
+  border-color: rgba(79,125,255,0.40);
+  color: #dfe7ff;
+  outline: 2px solid rgba(79,125,255,0.28);
+  outline-offset: 2px;
+}
+.sample-link:active {
+  transform: translateY(1px);
+}
+.empty-box {
+  border: 1px dashed var(--line2);
+  border-radius: 12px;
+  padding: 18px;
+  color: var(--text3);
+}
+@media (max-width: 1280px) {
+  .section, .hero { padding-left: 36px; padding-right: 36px; }
+  .hero h1 { font-size: 48px; }
+  .type-wrap { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+@media (max-width: 1080px) {
+  .nav { position: sticky; width: 100%; height: auto; max-height: 42vh; }
+  .main { margin-left: 0; }
+  .hero { min-height: auto; padding-top: 46px; }
+  .grid4 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .grid3 { grid-template-columns: 1fr; }
+  .grid2 { grid-template-columns: 1fr; }
+  .type-wrap { grid-template-columns: 1fr; }
+  .score-bar-row { grid-template-columns: 1fr; }
+  .sample-row { flex-direction: column; }
+  .sample-link { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">跳到正文</a>
+<nav class="nav" aria-label="章节导航">
+  <div class="nav-brand" translate="no">
+    <div class="nb-tag">XHS Brand Health Report</div>
+    <div class="nb-name">小红书 × BRAND HEALTH</div>
+    <div class="nb-sub">雅顿 · 2026 Q1</div>
+  </div>
+  <div class="nav-score-badge">
+    <div class="nsb-num">74.8</div>
+    <div>
+      <div class="nsb-label">Health Score</div>
+      <div class="nsb-tier">成长强势</div>
+    </div>
+  </div>
+  <ul class="nav-toc" id="toc">
+    <li class="toc-part">封面 · 执行摘要</li><li><a href="#cover">封面</a></li><li><a href="#executive">执行摘要</a></li><li class="toc-part">第一部分 · 平台与品牌现状</li><li><a href="#market-value">01 · 音乐剧圈层商业价值</a></li><li><a href="#brand-status">02 · 雅顿品牌现状</a></li><li class="toc-part">第二部分 · 健康度评分</li><li><a href="#health-overview">03 · 健康度评分体系</a></li><li><a href="#voice-change">3.1 内容声量变化</a></li><li><a href="#role-efficiency">3.2 角色互动效率</a></li><li><a href="#ecosystem">3.3 内容生态结构</a></li><li><a href="#quality">3.4 互动质量评分</a></li><li><a href="#search">3.5 站内搜索表现</a></li><li><a href="#voc">3.6 种草与求购意向</a></li><li><a href="#benchmark">3.7 核心竞品对标</a></li><li class="toc-part">第三部分 · 受众洞察</li><li><a href="#audience">04 · 目标受众洞察</a></li><li class="toc-part">第四部分 · 结论</li><li><a href="#diagnosis">05 · 品牌健康度诊断</a></li>
+  </ul>
+</nav>
+<main class="main" id="main">
+  <section class="hero" id="cover">
+    <div class="hero-grid-bg" aria-hidden="true"></div>
+    <div class="hero-chip">XIAOHONGSHU × BRAND HEALTH</div>
+    <h1><span translate="no">雅顿</span>品牌健康度洞察报告</h1>
+    <p class="hero-desc">雅顿已经具备切入音乐剧高端人群的品牌条件，但当前最大短板不是产品力，而是围绕剧院场景的内容资产密度仍然不足。</p>
+    <div class="hero-meta">
+      <span class="hero-tag">平台：小红书</span>
+      <span class="hero-tag">报告期：2026 Q1</span>
+      <span class="hero-tag">数据口径：内容窗口 2026-01-01 至 2026-03-31</span>
+      <span class="hero-tag">生成时间：2026-04-08 11:28:14</span>
+    </div>
+    <div class="hero-stats">
+      <div class="hstat"><div class="hstat-num mono">74.8/100</div><div class="hstat-label">品牌健康度总分</div></div>
+      <div class="hstat"><div class="hstat-num mono">#3/6</div><div class="hstat-label">当前竞品排名</div></div>
+      <div class="hstat"><div class="hstat-num mono">兰蔻</div><div class="hstat-label">标杆品牌</div></div>
+    </div>
+  </section>
+  <section class="section" id="executive"><div class="section-kicker">封面 · 执行摘要</div><h2>执行摘要</h2><p class="section-desc">先给结论，再给证据。</p><div class="grid4"><article class="card stat-card"><div class="card-title">品牌健康度总分</div><div class="card-value mono">74.8/100</div></article><article class="card stat-card"><div class="card-title">当前竞品排名</div><div class="card-value mono">#3/6</div></article><article class="card stat-card"><div class="card-title">标杆品牌</div><div class="card-value mono">兰蔻</div></article></div><div class="insight-box"><div class="ib-label">Key Takeaway</div><div class="ib-text">雅顿已经具备切入音乐剧高端人群的品牌条件，但当前最大短板不是产品力，而是围绕剧院场景的内容资产密度仍然不足。</div></div><div class="grid2 section-grid-gap"><div class="card blue"><div class="card-title">三条核心结论</div><ul class="action-list"><li>音乐剧圈层在小红书已经形成高互动、高收藏、高搜索承接的审美消费内容池，具备高端品牌入局价值。</li><li>雅顿当前已经被讨论，但内容仍偏“产品心得”，真正能带动向往感与收藏动作的剧院场景内容占比仍然偏低。</li><li>接下来 90 天的关键不是放大单篇爆文，而是同步搭起“场景内容、双列达人、搜索占位”三条资产链。</li></ul></div><div class="card amber"><div class="card-title">Top 3 动作</div><ol class="action-list"><li>以“演前妆护准备、剧院社交出片、演后复盘同款”三类内容做成固定内容栏目。</li><li>达人结构优先采用圈层发声者与跨界种草机 4:6 配比，先建立专业感，再做场景放量。</li><li>用红门经典、橘灿、金胶三条产品线分别承接香氛氛围、状态修护与高端抗老诉求。</li></ol></div></div><div class="card section-grid-gap"><div class="card-title">增长锚点</div><div class="grid2"><article class="card micro-card"><div class="card-title">Q1 圈层互动规模</div><div class="card-value mono">503.8万</div></article><article class="card micro-card"><div class="card-title">雅顿剧院场景内容占比</div><div class="card-value mono">21.4%</div></article><article class="card micro-card"><div class="card-title">搜索 Top10 占位率</div><div class="card-value mono">12.7%</div></article><article class="card micro-card"><div class="card-title">90 天优先动作窗口</div><div class="card-value mono">立即启动</div></article></div></div></section>
+  <section class="section" id="market-value"><div class="section-kicker">01 · 音乐剧圈层在小红书的商业价值</div><h2>音乐剧圈层在小红书的商业价值</h2><p class="section-desc">圈层热度、互动密度与搜索承接都在放大。</p><div class="grid4"><article class="card stat-card"><div class="card-title">音乐剧笔记量</div><div class="card-value mono">2.72万</div></article><article class="card stat-card"><div class="card-title">互动总量</div><div class="card-value mono">503.8万</div></article><article class="card stat-card"><div class="card-title">阅读总量</div><div class="card-value mono">1.63亿</div></article><article class="card stat-card"><div class="card-title">发声作者数</div><div class="card-value mono">1.26万</div></article></div><div class="insight-box"><div class="ib-label">Key Takeaway</div><div class="ib-text">音乐剧圈层不是一次性热点，而是高互动、高收藏、高搜索承接并存的持续增长内容池。</div></div><div class="grid2 section-grid-gap"><div class="card"><div class="card-title">Q1 周度热度走势</div><div class="week-chart"><div class="week-bar"><div class="week-bar-fill" style="height:65px"></div><div class="week-bar-num mono">1420</div><div class="week-bar-label mono">01.06</div></div><div class="week-bar"><div class="week-bar-fill" style="height:72px"></div><div class="week-bar-num mono">1560</div><div class="week-bar-label mono">01.13</div></div><div class="week-bar"><div class="week-bar-fill" style="height:79px"></div><div class="week-bar-num mono">1710</div><div class="week-bar-label mono">01.20</div></div><div class="week-bar"><div class="week-bar-fill" style="height:76px"></div><div class="week-bar-num mono">1655</div><div class="week-bar-label mono">01.27</div></div><div class="week-bar"><div class="week-bar-fill" style="height:85px"></div><div class="week-bar-num mono">1840</div><div class="week-bar-label mono">02.03</div></div><div class="week-bar"><div class="week-bar-fill" style="height:93px"></div><div class="week-bar-num mono">2015</div><div class="week-bar-label mono">02.10</div></div><div class="week-bar"><div class="week-bar-fill" style="height:101px"></div><div class="week-bar-num mono">2190</div><div class="week-bar-label mono">02.17</div></div><div class="week-bar"><div class="week-bar-fill" style="height:107px"></div><div class="week-bar-num mono">2315</div><div class="week-bar-label mono">02.24</div></div><div class="week-bar"><div class="week-bar-fill" style="height:114px"></div><div class="week-bar-num mono">2460</div><div class="week-bar-label mono">03.03</div></div><div class="week-bar"><div class="week-bar-fill" style="height:119px"></div><div class="week-bar-num mono">2580</div><div class="week-bar-label mono">03.10</div></div><div class="week-bar"><div class="week-bar-fill" style="height:127px"></div><div class="week-bar-num mono">2745</div><div class="week-bar-label mono">03.17</div></div><div class="week-bar"><div class="week-bar-fill" style="height:134px"></div><div class="week-bar-num mono">2890</div><div class="week-bar-label mono">03.24</div></div><div class="week-bar"><div class="week-bar-fill" style="height:140px"></div><div class="week-bar-num mono">3015</div><div class="week-bar-label mono">03.31</div></div></div></div><div class="card"><div class="card-title">Q1 周度互动走势</div><div class="week-chart"><div class="week-bar"><div class="week-bar-fill" style="height:62px"></div><div class="week-bar-num mono">31.20万</div><div class="week-bar-label mono">01.06</div></div><div class="week-bar"><div class="week-bar-fill" style="height:67px"></div><div class="week-bar-num mono">33.80万</div><div class="week-bar-label mono">01.13</div></div><div class="week-bar"><div class="week-bar-fill" style="height:73px"></div><div class="week-bar-num mono">36.50万</div><div class="week-bar-label mono">01.20</div></div><div class="week-bar"><div class="week-bar-fill" style="height:70px"></div><div class="week-bar-num mono">35.10万</div><div class="week-bar-label mono">01.27</div></div><div class="week-bar"><div class="week-bar-fill" style="height:80px"></div><div class="week-bar-num mono">40.20万</div><div class="week-bar-label mono">02.03</div></div><div class="week-bar"><div class="week-bar-fill" style="height:88px"></div><div class="week-bar-num mono">44.10万</div><div class="week-bar-label mono">02.10</div></div><div class="week-bar"><div class="week-bar-fill" style="height:99px"></div><div class="week-bar-num mono">49.60万</div><div class="week-bar-label mono">02.17</div></div><div class="week-bar"><div class="week-bar-fill" style="height:103px"></div><div class="week-bar-num mono">51.80万</div><div class="week-bar-label mono">02.24</div></div><div class="week-bar"><div class="week-bar-fill" style="height:112px"></div><div class="week-bar-num mono">55.90万</div><div class="week-bar-label mono">03.03</div></div><div class="week-bar"><div class="week-bar-fill" style="height:117px"></div><div class="week-bar-num mono">58.70万</div><div class="week-bar-label mono">03.10</div></div><div class="week-bar"><div class="week-bar-fill" style="height:124px"></div><div class="week-bar-num mono">62.30万</div><div class="week-bar-label mono">03.17</div></div><div class="week-bar"><div class="week-bar-fill" style="height:131px"></div><div class="week-bar-num mono">65.50万</div><div class="week-bar-label mono">03.24</div></div><div class="week-bar"><div class="week-bar-fill" style="height:140px"></div><div class="week-bar-num mono">69.80万</div><div class="week-bar-label mono">03.31</div></div></div></div><div class="card"><div class="card-title">增长证据</div><div class="kv-row"><div class="kv-key">Q1 声量增长</div><div class="kv-value mono">+112.3%</div></div><div class="kv-row"><div class="kv-key">Q1 互动增长</div><div class="kv-value mono">+123.7%</div></div><div class="kv-row"><div class="kv-key">收藏驱动内容占比</div><div class="kv-value mono">34.9%</div></div><div class="kv-row"><div class="kv-key">搜索承接强度</div><div class="kv-value mono">41.2/100</div></div></div><div class="card"><div class="card-title">商业价值信号</div><div class="pull-quote">3 月最后一周冲到 3015 篇，声量较 1 月首周提升 112.3%，说明 Q1 末圈层热度仍在持续放大。</div></div></div><div class="section-grid-gap"><div class="card amber"><div class="card-title">机会判断</div><ul class="action-list"><li>音乐剧内容天然具备仪式感、出片感与情绪价值，适合高端护肤和香氛品牌绑定“场景消费”。</li><li>高收藏笔记集中在攻略、OOTD、演前准备三类内容，说明品牌内容不仅能被看见，也能被留存。</li><li>圈层讨论持续放大时，品牌若同步布局站内搜索与场景内容，能更快进入心智名单。</li></ul></div></div></section>
+  <section class="section" id="brand-status"><div class="section-kicker">02 · 雅顿品牌现状</div><h2>雅顿品牌现状</h2><p class="section-desc">品牌已经进入讨论，但尚未完成场景心智占位。</p><div class="grid4"><article class="card stat-card"><div class="card-title">品牌相关笔记</div><div class="card-value mono">1,276</div></article><article class="card stat-card"><div class="card-title">品牌互动总量</div><div class="card-value mono">42.7万</div></article><article class="card stat-card"><div class="card-title">品牌发声作者</div><div class="card-value mono">1,038</div></article><article class="card stat-card"><div class="card-title">搜索快照去重笔记</div><div class="card-value mono">623</div></article></div><div class="insight-box"><div class="ib-label">Key Takeaway</div><div class="ib-text">雅顿已经进入圈层讨论，但当前更像被评价的产品品牌，还没有成为被向往的剧院场景品牌。</div></div><div class="grid2 section-grid-gap"><div class="card"><div class="card-title">品牌周度声量</div><div class="week-chart"><div class="week-bar"><div class="week-bar-fill" style="height:68px"></div><div class="week-bar-num mono">62</div><div class="week-bar-label mono">01.06</div></div><div class="week-bar"><div class="week-bar-fill" style="height:74px"></div><div class="week-bar-num mono">68</div><div class="week-bar-label mono">01.13</div></div><div class="week-bar"><div class="week-bar-fill" style="height:78px"></div><div class="week-bar-num mono">71</div><div class="week-bar-label mono">01.20</div></div><div class="week-bar"><div class="week-bar-fill" style="height:81px"></div><div class="week-bar-num mono">74</div><div class="week-bar-label mono">01.27</div></div><div class="week-bar"><div class="week-bar-fill" style="height:87px"></div><div class="week-bar-num mono">79</div><div class="week-bar-label mono">02.03</div></div><div class="week-bar"><div class="week-bar-fill" style="height:91px"></div><div class="week-bar-num mono">83</div><div class="week-bar-label mono">02.10</div></div><div class="week-bar"><div class="week-bar-fill" style="height:97px"></div><div class="week-bar-num mono">88</div><div class="week-bar-label mono">02.17</div></div><div class="week-bar"><div class="week-bar-fill" style="height:101px"></div><div class="week-bar-num mono">92</div><div class="week-bar-label mono">02.24</div></div><div class="week-bar"><div class="week-bar-fill" style="height:106px"></div><div class="week-bar-num mono">97</div><div class="week-bar-label mono">03.03</div></div><div class="week-bar"><div class="week-bar-fill" style="height:114px"></div><div class="week-bar-num mono">104</div><div class="week-bar-label mono">03.10</div></div><div class="week-bar"><div class="week-bar-fill" style="height:123px"></div><div class="week-bar-num mono">112</div><div class="week-bar-label mono">03.17</div></div><div class="week-bar"><div class="week-bar-fill" style="height:131px"></div><div class="week-bar-num mono">119</div><div class="week-bar-label mono">03.24</div></div><div class="week-bar"><div class="week-bar-fill" style="height:140px"></div><div class="week-bar-num mono">127</div><div class="week-bar-label mono">03.31</div></div></div></div><div class="card"><div class="card-title">品牌快照</div><div class="kv-row"><div class="kv-key">主导内容类型</div><div class="kv-value mono">产品心得 · 46.8%</div></div><div class="kv-row"><div class="kv-key">剧院场景内容占比</div><div class="kv-value mono">21.4%</div></div><div class="kv-row"><div class="kv-key">搜索平均位次</div><div class="kv-value mono">32.4</div></div><div class="kv-row"><div class="kv-key">Top10 占位率</div><div class="kv-value mono">12.7%</div></div></div><div class="card"><div class="card-title">品牌结构拆解</div><div class="kv-row"><div class="kv-key">产品词内容占比</div><div class="kv-value mono">64.2%</div></div><div class="kv-row"><div class="kv-key">场景词内容占比</div><div class="kv-value mono">23.8%</div></div><div class="kv-row"><div class="kv-key">高收藏笔记占比</div><div class="kv-value mono">31.8%</div></div><div class="kv-row"><div class="kv-key">求购/种草意向占比</div><div class="kv-value mono">18.4%</div></div></div><div class="card"><div class="card-title">现状判断</div><div class="pull-quote">雅顿已经进入圈层讨论，但当前更像被评价的产品品牌，还没有成为被向往的剧院场景品牌。</div></div></div></section>
+  <section class="section" id="health-overview"><div class="section-kicker">03 · 健康度评分体系</div><h2>健康度评分体系</h2><p class="section-desc">六维拆解雅顿与标杆品牌的真实差距。</p><div class="grid4"><article class="card stat-card"><div class="card-title">健康度总分</div><div class="card-value mono">74.8/100</div></article><article class="card stat-card"><div class="card-title">健康度层级</div><div class="card-value mono">成长强势</div></article><article class="card stat-card"><div class="card-title">标杆品牌</div><div class="card-value mono">兰蔻</div></article><article class="card stat-card"><div class="card-title">与标杆差距</div><div class="card-value mono">-8.4分</div></article></div><div class="insight-box"><div class="ib-label">Key Takeaway</div><div class="ib-text">雅顿最强的是搜索与互动质量，最弱的是内容生态和声量持续性；品牌更容易被找到，但还不够容易被持续讨论与主动收藏。</div></div><div class="grid2 section-grid-gap"><div class="card"><div class="card-title">六维得分</div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">内容声量变化</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:86%"></div></div><div class="score-bar-value mono">70.0</div></div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">角色互动效率</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:93%"></div></div><div class="score-bar-value mono">76.0</div></div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">内容生态结构</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:83%"></div></div><div class="score-bar-value mono">68.0</div></div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">互动质量评分</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:95%"></div></div><div class="score-bar-value mono">77.0</div></div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">站内搜索表现</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:100%"></div></div><div class="score-bar-value mono">81.0</div></div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">种草与求购意向</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:95%"></div></div><div class="score-bar-value mono">77.0</div></div></div><div class="card"><div class="card-title">评分口径</div><ul class="action-list"><li>总分由内容声量、角色效率、内容生态、互动质量、搜索表现、种草意向六个子维度标准化加权构成，满分 100。</li><li>评分结果不只反映“被提及的多少”，更反映品牌在内容到搜索再到种草之间的完整度。</li><li>竞品对标用于解释分差来源，帮助明确优先补足的短板维度。</li></ul></div></div></section>
+  <section class="section" id="voice-change"><div class="section-kicker">3.1 · 内容声量变化</div><h2>内容声量变化</h2><p class="section-desc">看品牌声量是否能持续增长并沉淀成场景认知。</p><div class="grid4"><article class="card stat-card"><div class="card-title">窗口内品牌笔记</div><div class="card-value mono">1,276</div></article><article class="card stat-card"><div class="card-title">周峰值笔记量</div><div class="card-value mono">127</div></article><article class="card stat-card"><div class="card-title">最新周互动</div><div class="card-value mono">4.27万</div></article><article class="card stat-card"><div class="card-title">Q1 声量增幅</div><div class="card-value mono">+104.8%</div></article></div><div class="insight-box"><div class="ib-label">Key Takeaway</div><div class="ib-text">雅顿 Q1 声量总体保持上升，但增速主要来自品牌词与产品词放量，真正承接圈层文化的场景词占比仍偏低。</div></div><div class="grid2 section-grid-gap"><div class="card"><div class="card-title">品牌声量周变化</div><div class="week-chart"><div class="week-bar"><div class="week-bar-fill" style="height:68px"></div><div class="week-bar-num mono">62</div><div class="week-bar-label mono">01.06</div></div><div class="week-bar"><div class="week-bar-fill" style="height:74px"></div><div class="week-bar-num mono">68</div><div class="week-bar-label mono">01.13</div></div><div class="week-bar"><div class="week-bar-fill" style="height:78px"></div><div class="week-bar-num mono">71</div><div class="week-bar-label mono">01.20</div></div><div class="week-bar"><div class="week-bar-fill" style="height:81px"></div><div class="week-bar-num mono">74</div><div class="week-bar-label mono">01.27</div></div><div class="week-bar"><div class="week-bar-fill" style="height:87px"></div><div class="week-bar-num mono">79</div><div class="week-bar-label mono">02.03</div></div><div class="week-bar"><div class="week-bar-fill" style="height:91px"></div><div class="week-bar-num mono">83</div><div class="week-bar-label mono">02.10</div></div><div class="week-bar"><div class="week-bar-fill" style="height:97px"></div><div class="week-bar-num mono">88</div><div class="week-bar-label mono">02.17</div></div><div class="week-bar"><div class="week-bar-fill" style="height:101px"></div><div class="week-bar-num mono">92</div><div class="week-bar-label mono">02.24</div></div><div class="week-bar"><div class="week-bar-fill" style="height:106px"></div><div class="week-bar-num mono">97</div><div class="week-bar-label mono">03.03</div></div><div class="week-bar"><div class="week-bar-fill" style="height:114px"></div><div class="week-bar-num mono">104</div><div class="week-bar-label mono">03.10</div></div><div class="week-bar"><div class="week-bar-fill" style="height:123px"></div><div class="week-bar-num mono">112</div><div class="week-bar-label mono">03.17</div></div><div class="week-bar"><div class="week-bar-fill" style="height:131px"></div><div class="week-bar-num mono">119</div><div class="week-bar-label mono">03.24</div></div><div class="week-bar"><div class="week-bar-fill" style="height:140px"></div><div class="week-bar-num mono">127</div><div class="week-bar-label mono">03.31</div></div></div></div><div class="card"><div class="card-title">互动周变化</div><div class="week-chart"><div class="week-bar"><div class="week-bar-fill" style="height:72px"></div><div class="week-bar-num mono">2.21万</div><div class="week-bar-label mono">01.06</div></div><div class="week-bar"><div class="week-bar-fill" style="height:78px"></div><div class="week-bar-num mono">2.40万</div><div class="week-bar-label mono">01.13</div></div><div class="week-bar"><div class="week-bar-fill" style="height:81px"></div><div class="week-bar-num mono">2.48万</div><div class="week-bar-label mono">01.20</div></div><div class="week-bar"><div class="week-bar-fill" style="height:82px"></div><div class="week-bar-num mono">2.51万</div><div class="week-bar-label mono">01.27</div></div><div class="week-bar"><div class="week-bar-fill" style="height:86px"></div><div class="week-bar-num mono">2.65万</div><div class="week-bar-label mono">02.03</div></div><div class="week-bar"><div class="week-bar-fill" style="height:92px"></div><div class="week-bar-num mono">2.81万</div><div class="week-bar-label mono">02.10</div></div><div class="week-bar"><div class="week-bar-fill" style="height:97px"></div><div class="week-bar-num mono">2.98万</div><div class="week-bar-label mono">02.17</div></div><div class="week-bar"><div class="week-bar-fill" style="height:104px"></div><div class="week-bar-num mono">3.17万</div><div class="week-bar-label mono">02.24</div></div><div class="week-bar"><div class="week-bar-fill" style="height:110px"></div><div class="week-bar-num mono">3.36万</div><div class="week-bar-label mono">03.03</div></div><div class="week-bar"><div class="week-bar-fill" style="height:116px"></div><div class="week-bar-num mono">3.54万</div><div class="week-bar-label mono">03.10</div></div><div class="week-bar"><div class="week-bar-fill" style="height:124px"></div><div class="week-bar-num mono">3.79万</div><div class="week-bar-label mono">03.17</div></div><div class="week-bar"><div class="week-bar-fill" style="height:131px"></div><div class="week-bar-num mono">4.01万</div><div class="week-bar-label mono">03.24</div></div><div class="week-bar"><div class="week-bar-fill" style="height:140px"></div><div class="week-bar-num mono">4.27万</div><div class="week-bar-label mono">03.31</div></div></div></div><div class="card"><div class="card-title">增长拆解</div><div class="kv-row"><div class="kv-key">品牌词放量贡献</div><div class="kv-value mono">56%</div></div><div class="kv-row"><div class="kv-key">产品词放量贡献</div><div class="kv-value mono">27%</div></div><div class="kv-row"><div class="kv-key">场景词放量贡献</div><div class="kv-value mono">17%</div></div><div class="kv-row"><div class="kv-key">峰值周收藏增幅</div><div class="kv-value mono">+33.4%</div></div></div><div class="card amber"><div class="card-title">增长判断</div><ul class="action-list"><li>Q1 内雅顿声量持续上行，但真正驱动增长的仍以品牌词和产品词为主。</li><li>剧院场景词对增长的贡献仍偏低，说明品牌还没有把内容增长转化成文化认同增长。</li><li>如果下一阶段补足场景词与高收藏内容，声量增长更容易沉淀成长期搜索资产。</li></ul></div></div></section>
+  <section class="section" id="role-efficiency"><div class="section-kicker">3.2 · 角色互动效率</div><h2>角色互动效率</h2><p class="section-desc">真正能拉高效率的是哪一层创作者。</p><div class="grid4"><article class="card stat-card"><div class="card-title">篇均互动</div><div class="card-value mono">334.5</div></article><article class="card stat-card"><div class="card-title">最高效率人群</div><div class="card-value mono">10k-100k</div></article><article class="card stat-card"><div class="card-title">最高人群篇均互动</div><div class="card-value mono">812.0</div></article><article class="card stat-card"><div class="card-title">建议投放结构</div><div class="card-value mono">4:6</div></article></div><div class="insight-box"><div class="ib-label">Key Takeaway</div><div class="ib-text">真正帮雅顿拉升效率的不是头部账号，而是既有审美表达又有可信分享感的中腰部创作者。</div></div><div class="grid2 section-grid-gap"><div class="card"><div class="card-title">不同角色层级的互动效率</div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">0-1k</div><span class="bar-extra">样本 432</span></div><div class="score-bar-track"><div class="score-bar-fill" style="width:11%"></div></div><div class="score-bar-value mono">96</div></div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">1k-10k</div><span class="bar-extra">样本 361</span></div><div class="score-bar-track"><div class="score-bar-fill" style="width:30%"></div></div><div class="score-bar-value mono">248</div></div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">10k-100k</div><span class="bar-extra">样本 361</span></div><div class="score-bar-track"><div class="score-bar-fill" style="width:100%"></div></div><div class="score-bar-value mono">812</div></div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">100k+</div><span class="bar-extra">样本 122</span></div><div class="score-bar-track"><div class="score-bar-fill" style="width:76%"></div></div><div class="score-bar-value mono">624</div></div></div><div class="card"><div class="card-title">投放结构判断</div><div class="kv-row"><div class="kv-key">圈层发声者占比</div><div class="kv-value mono">38%</div></div><div class="kv-row"><div class="kv-key">跨界种草机占比</div><div class="kv-value mono">62%</div></div><div class="kv-row"><div class="kv-key">高互动作者集中层级</div><div class="kv-value mono">10k-100k</div></div><div class="kv-row"><div class="kv-key">头部放大效率</div><div class="kv-value mono">次高</div></div></div></div></section>
+  <section class="section" id="ecosystem"><div class="section-kicker">3.3 · 内容生态结构</div><h2>内容生态结构</h2><p class="section-desc">看雅顿能否同时覆盖高互动、高收藏和高向往内容。</p><div class="grid4"><article class="card stat-card"><div class="card-title">内容类型数</div><div class="card-value mono">4</div></article><article class="card stat-card"><div class="card-title">主导类型</div><div class="card-value mono">产品心得</div></article><article class="card stat-card"><div class="card-title">生态多样性指数</div><div class="card-value mono">66.2</div></article><article class="card stat-card"><div class="card-title">高转化类型</div><div class="card-value mono">OOTD/打卡</div></article></div><div class="insight-box"><div class="ib-label">Key Takeaway</div><div class="ib-text">产品心得占比过高，说明雅顿在圈层中更多被当作产品，而不是剧院生活方式的一部分。</div></div><div class="type-wrap section-grid-gap"><article class="card type-card blue"><div class="card-title">产品心得</div><div class="type-meta mono">占比 46.8% · 样本 597</div><div class="type-grid-mini"><div><div class="mini-label">篇均互动</div><div class="mini-value mono">286.0</div></div><div><div class="mini-label">篇均收藏</div><div class="mini-value mono">61.0</div></div></div></article><article class="card type-card amber"><div class="card-title">攻略/清单</div><div class="type-meta mono">占比 19.8% · 样本 253</div><div class="type-grid-mini"><div><div class="mini-label">篇均互动</div><div class="mini-value mono">338.0</div></div><div><div class="mini-label">篇均收藏</div><div class="mini-value mono">88.0</div></div></div></article><article class="card type-card teal"><div class="card-title">OOTD/打卡</div><div class="type-meta mono">占比 16.5% · 样本 211</div><div class="type-grid-mini"><div><div class="mini-label">篇均互动</div><div class="mini-value mono">624.0</div></div><div><div class="mini-label">篇均收藏</div><div class="mini-value mono">132.0</div></div></div></article><article class="card type-card "><div class="card-title">Repo/复盘</div><div class="type-meta mono">占比 16.9% · 样本 215</div><div class="type-grid-mini"><div><div class="mini-label">篇均互动</div><div class="mini-value mono">301.0</div></div><div><div class="mini-label">篇均收藏</div><div class="mini-value mono">57.0</div></div></div></article></div><div class="grid2 section-grid-gap"><div class="card blue"><div class="card-title">高转化内容公式</div><ul class="action-list"><li>OOTD/打卡：剧院外立面或座位区镜头 + 低饱和高级妆感 + 情绪型短文案。</li><li>攻略/清单：演前 2 小时状态管理清单 + 高质感单品露出 + 收藏导向标题。</li><li>Repo/复盘：剧后情绪延续 + 留香/妆面持久反馈 + 同款求购承接。</li></ul></div><div class="card amber"><div class="card-title">生态缺口</div><ul class="action-list"><li>产品心得占比过高，导致品牌在圈层中更像“被评价的产品”，而不是“剧院生活方式的一部分”。</li><li>高互动的 OOTD/打卡与高收藏的攻略/清单占比仍然不够，内容生态的场景面尚未铺开。</li><li>下一阶段最该补的是兼具情绪价值和收藏价值的中段内容，而不是继续堆纯产品说明。</li></ul></div></div></section>
+  <section class="section" id="quality"><div class="section-kicker">3.4 · 互动质量评分</div><h2>互动质量评分</h2><p class="section-desc">互动不是只看总量，更要看内容是否值得被留存和传播。</p><div class="grid4"><article class="card stat-card"><div class="card-title">篇均收藏</div><div class="card-value mono">76.2</div></article><article class="card stat-card"><div class="card-title">篇均评论</div><div class="card-value mono">11.4</div></article><article class="card stat-card"><div class="card-title">互动质量指数</div><div class="card-value mono">56.8</div></article><article class="card stat-card"><div class="card-title">收藏驱动贡献</div><div class="card-value mono">56%</div></article></div><div class="insight-box"><div class="ib-label">Key Takeaway</div><div class="ib-text">雅顿不缺能被收藏的内容，但高质量内容分布偏散，还没有形成稳定可复制的内容方法论。</div></div><div class="grid2 section-grid-gap"><div class="card"><div class="card-title">互动质量拆解</div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">收藏/篇</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:100%"></div></div><div class="score-bar-value mono">76.2</div></div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">评论/篇</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:14%"></div></div><div class="score-bar-value mono">11.4</div></div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">分享/篇</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:8%"></div></div><div class="score-bar-value mono">6.8</div></div></div><div class="card"><div class="card-title">竞品质量参照</div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">兰蔻</div><div class="bar-aux">质量指数领先，强在高收藏与高评论双高</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:100%"></div></div><div class="score-bar-value mono">63.4</div></div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">雅诗兰黛</div><div class="bar-aux">稳定型质量资产，评论层更强</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:95%"></div></div><div class="score-bar-value mono">60.8</div></div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">伊丽莎白雅顿</div><div class="bar-aux">收藏能力不错，但缺少连续爆点</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:89%"></div></div><div class="score-bar-value mono">56.8</div></div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">YSL</div><div class="bar-aux">高话题感但收藏沉淀略弱</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:91%"></div></div><div class="score-bar-value mono">58.2</div></div></div></div></section>
+  <section class="section" id="search"><div class="section-kicker">3.5 · 站内搜索表现</div><h2>站内搜索表现</h2><p class="section-desc">搜索效率决定品牌能否被主动找到并进入决策链路。</p><div class="grid4"><article class="card stat-card"><div class="card-title">去重搜索笔记</div><div class="card-value mono">623</div></article><article class="card stat-card"><div class="card-title">平均搜索位次</div><div class="card-value mono">32.4</div></article><article class="card stat-card"><div class="card-title">Top10 占位率</div><div class="card-value mono">12.7%</div></article><article class="card stat-card"><div class="card-title">搜索效率排名</div><div class="card-value mono">#3/6</div></article></div><div class="insight-box"><div class="ib-label">Key Takeaway</div><div class="ib-text">雅顿在搜索效率上并不吃亏，但搜索承接之后的内容资产厚度不足，可见度还难以转成长效心智。</div></div><div class="grid2 section-grid-gap"><div class="card"><div class="card-title">站内搜索快照对比</div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">兰蔻</div><div class="bar-aux">Top10 15.8% · AvgRank 41.7</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:100%"></div></div><div class="score-bar-value mono">1,185</div></div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">雅诗兰黛</div><div class="bar-aux">Top10 14.6% · AvgRank 38.5</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:93%"></div></div><div class="score-bar-value mono">1,104</div></div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">YSL</div><div class="bar-aux">Top10 13.9% · AvgRank 39.1</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:82%"></div></div><div class="score-bar-value mono">973</div></div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">伊丽莎白雅顿</div><div class="bar-aux">Top10 12.7% · AvgRank 32.4</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:52%"></div></div><div class="score-bar-value mono">623</div></div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">海蓝之谜</div><div class="bar-aux">Top10 11.9% · AvgRank 35.8</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:35%"></div></div><div class="score-bar-value mono">418</div></div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">赫莲娜</div><div class="bar-aux">Top10 10.4% · AvgRank 37.6</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:31%"></div></div><div class="score-bar-value mono">377</div></div></div><div class="card"><div class="card-title">关键词机会</div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">品牌词</div><div class="bar-aux">搜索承接最强，但竞争也最集中</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:100%"></div></div><div class="score-bar-value mono">100</div></div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">产品词</div><div class="bar-aux">橘灿、金胶等单品具备承接空间</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:74%"></div></div><div class="score-bar-value mono">74</div></div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">场景词</div><div class="bar-aux">剧院、演前、出片等词仍有明显空位</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:41%"></div></div><div class="score-bar-value mono">41</div></div></div><div class="card amber"><div class="card-title">搜索动作建议</div><ul class="action-list"><li>雅顿在搜索效率上并不吃亏，说明品牌已经具备被找得到的基础。</li><li>真正需要补的是搜索后的内容资产厚度，否则可见度难以转成长期心智。</li><li>下一阶段最值得抢的是“剧院妆护”“演前状态”“剧后留香”等场景词搜索位。</li></ul></div></div></section>
+  <section class="section" id="voc"><div class="section-kicker">3.6 · 种草与求购意向（VOC）</div><h2>种草与求购意向（VOC）</h2><p class="section-desc">看用户最愿意为哪些剧院场景表达买单。</p><div class="grid4"><article class="card stat-card"><div class="card-title">求购/种草占比</div><div class="card-value mono">18.4%</div></article><article class="card stat-card"><div class="card-title">复购/爱用占比</div><div class="card-value mono">11.2%</div></article><article class="card stat-card"><div class="card-title">高意向诉求数</div><div class="card-value mono">576</div></article><article class="card stat-card"><div class="card-title">可转译品牌表达</div><div class="card-value mono">强</div></article></div><div class="insight-box"><div class="ib-label">Key Takeaway</div><div class="ib-text">音乐剧人群对“质感、留香、舞台前后状态管理”类表达最容易产生购买联想。</div></div><div class="grid2 section-grid-gap"><div class="card"><div class="card-title">意向信号分布</div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">求同款/链接</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:100%"></div></div><div class="score-bar-value mono">235</div></div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">种草/想买</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:84%"></div></div><div class="score-bar-value mono">198</div></div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">回购/爱用</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:60%"></div></div><div class="score-bar-value mono">143</div></div></div><div class="card"><div class="card-title">高频诉求表达</div><div class="kv-row"><div class="kv-key">高频需求 01</div><div class="kv-value mono">演前状态在线</div></div><div class="kv-row"><div class="kv-key">高频需求 02</div><div class="kv-value mono">剧院氛围感留香</div></div><div class="kv-row"><div class="kv-key">高频需求 03</div><div class="kv-value mono">演后不垮妆、不疲态</div></div><div class="kv-row"><div class="kv-key">高频需求 04</div><div class="kv-value mono">高级但不过分张扬</div></div></div></div><div class="card section-grid-gap"><div class="card-title">PO 文事实样本</div><div class="grid3 sample-grid"><article class="card voc-sample-card"><div class="card-title">求同款 / 求链接</div><div class="sample-group-desc">直接出现求链接、求同款和购买路径咨询，属于最强的显性转化信号。</div><div class="sample-group-count mono">样本 3</div><div class="sample-list"><article class="sample-row"><div class="sample-copy"><div class="sample-title">求改善皮肤</div><div class="sample-summary">#皮肤不吸收 # #脸颊泛红 # #毛孔粗大 # #外油内干 # 家人们，我的毛孔越来越大了，受不了了[哭惹R][…</div><div class="sample-meta mono">momo · 2026.03.23</div><div class="sample-stats mono">互动 265 · 收藏 52</div></div><a class="sample-link" href="https://www.xiaohongshu.com/explore/69c0ca2d000000002102c05d" target="_blank" rel="noreferrer" aria-label="查看求改善皮肤原文">查看原文</a></article><article class="sample-row"><div class="sample-copy"><div class="sample-title">雅顿好用！有没有同款质地的身体乳推荐</div><div class="sample-meta mono">火鸡面大王 · 2026.04.02</div><div class="sample-stats mono">互动 0 · 收藏 0</div></div><a class="sample-link" href="https://www.xiaohongshu.com/explore/69cd1a180000000023006d77" target="_blank" rel="noreferrer" aria-label="查看雅顿好用！有没有同款质地的身体乳推荐原文">查看原文</a></article><article class="sample-row"><div class="sample-copy"><div class="sample-title">柳丝木三款热门防晒测评！一篇讲清楚不踩雷！</div><div class="sample-summary">春夏紫外线直接拉满 作为常年囤防晒的自用大户 每天出门必涂不说 户外、通勤、早八三种场景得备齐才安心 柳丝木这三款…</div><div class="sample-meta mono">弟弟王 · 2026.03.25</div><div class="sample-stats mono">互动 431 · 收藏 181</div></div><a class="sample-link" href="https://www.xiaohongshu.com/explore/69c22710000000002103bcb9" target="_blank" rel="noreferrer" aria-label="查看柳丝木三款热门防晒测评！一篇讲清楚不踩雷！原文">查看原文</a></article></div></article><article class="card voc-sample-card"><div class="card-title">种草 / 想买</div><div class="sample-group-desc">表达被打动、被安利和想入手，说明内容已经完成初步种草。</div><div class="sample-group-count mono">样本 3</div><div class="sample-list"><article class="sample-row"><div class="sample-copy"><div class="sample-title">4月好物合集｜宝妈自用无广，每一件都超爱✨</div><div class="sample-summary">1️⃣ 消毒柜 内胆全304不锈钢，连门轴都没有塑料件！36+2颗UVC灯珠+双风机四风道，30L大容量，三层置物…</div><div class="sample-meta mono">是快乐的乐乐吖 · 2026.04.04</div><div class="sample-stats mono">互动 343 · 收藏 108</div></div><a class="sample-link" href="https://www.xiaohongshu.com/explore/69cf7e65000000001e00f05e" target="_blank" rel="noreferrer" aria-label="查看4月好物合集｜宝妈自用无广，每一件都超爱✨原文">查看原文</a></article><article class="sample-row"><div class="sample-copy"><div class="sample-title">这些爆品闭眼入！✨</div><div class="sample-summary">春天，就要你好看！！ 这次，小泰加急整理了这份美妆清单 全是当季热门爆品🔥🔥🔥 从抗老面霜到持妆底妆，再到系列香氛…</div><div class="sample-meta mono">合肥银泰中心 · 2026.04.01</div><div class="sample-stats mono">互动 16 · 收藏 3</div></div><a class="sample-link" href="https://www.xiaohongshu.com/explore/69cb98580000000023017838" target="_blank" rel="noreferrer" aria-label="查看这些爆品闭眼入！✨原文">查看原文</a></article><article class="sample-row"><div class="sample-copy"><div class="sample-title">法国药妆店扫货｜这些宝藏单品闭眼入</div><div class="sample-summary">刚从法国药妆店逛到腿软，满货架的天然好物真的太好买了！从护肤到身体护理，全是本地人也在抢的口碑款，整理了这份必买清…</div><div class="sample-meta mono">Yearning · 2026.03.29</div><div class="sample-stats mono">互动 12 · 收藏 5</div></div><a class="sample-link" href="https://www.xiaohongshu.com/explore/69c893ed000000001f007f06" target="_blank" rel="noreferrer" aria-label="查看法国药妆店扫货｜这些宝藏单品闭眼入原文">查看原文</a></article></div></article><article class="card voc-sample-card"><div class="card-title">回购 / 爱用</div><div class="sample-group-desc">出现爱用、空瓶和回购表达，说明品牌已有稳定的价值背书。</div><div class="sample-group-count mono">样本 3</div><div class="sample-list"><article class="sample-row"><div class="sample-copy"><div class="sample-title">只用不囤，2026年3月空瓶</div><div class="sample-summary">#空瓶记 # #非刚需不消费物尽其用 # #不乱买东西打卡 # #物尽其用 # #日常消耗 # #铁皮计划 ##以…</div><div class="sample-meta mono">闹钟你别闹 · 2026.04.01</div><div class="sample-stats mono">互动 0 · 收藏 0</div></div><a class="sample-link" href="https://www.xiaohongshu.com/explore/69cbfcfb000000001b0229be" target="_blank" rel="noreferrer" aria-label="查看只用不囤，2026年3月空瓶原文">查看原文</a></article><article class="sample-row"><div class="sample-copy"><div class="sample-title">非刚需不购买 | 一季度空瓶分享</div><div class="sample-summary">年前收拾发现好多临期小样……疯狂消耗 娇润泉次抛：老公在某样直播间买的，他也不用，放到快过期，我当打底精华用的，就…</div><div class="sample-meta mono">从前有只鬼鬼 · 2026.04.02</div><div class="sample-stats mono">互动 0 · 收藏 0</div></div><a class="sample-link" href="https://www.xiaohongshu.com/explore/69cd28b0000000001e00dfc4" target="_blank" rel="noreferrer" aria-label="查看非刚需不购买 | 一季度空瓶分享原文">查看原文</a></article><article class="sample-row"><div class="sample-copy"><div class="sample-title">抗老路上的白月光｜护肤爱用物盘点✨</div><div class="sample-summary">作为一个干敏皮+抗老选手，今年在护肤上踩过不少坑，但也挖到了真正能让皮肤发光的宝藏。全是真实使用感受～ 1️⃣ 3…</div><div class="sample-meta mono">咖咖殷 · 2026.03.31</div><div class="sample-stats mono">互动 2 · 收藏 0</div></div><a class="sample-link" href="https://www.xiaohongshu.com/explore/69ca6330000000001a02ce6c" target="_blank" rel="noreferrer" aria-label="查看抗老路上的白月光｜护肤爱用物盘点✨原文">查看原文</a></article></div></article></div></div><div class="section-grid-gap"><div class="card amber"><div class="card-title">品牌表达转译</div><ul class="action-list"><li>品牌表达要从“功效说明”翻译成“场景状态管理”，更容易被圈层接受。</li><li>最容易激发购买联想的不是专业术语，而是“质感、留香、状态在线、剧院灯光下也撑得住”这类表达。</li><li>VOC 已经说明这群人会为带来仪式感和高级感的产品付费，不需要再做低价逻辑教育。</li></ul></div></div></section>
+  <section class="section" id="benchmark"><div class="section-kicker">3.7 · 核心竞品对标</div><h2>核心竞品对标</h2><p class="section-desc">分差不只在总分，更在不同维度的资产厚度。</p><div class="grid4"><article class="card stat-card"><div class="card-title">当前标杆</div><div class="card-value mono">兰蔻</div></article><article class="card stat-card"><div class="card-title">雅顿排名</div><div class="card-value mono">#3/6</div></article><article class="card stat-card"><div class="card-title">与标杆差距</div><div class="card-value mono">-8.4分</div></article></div><div class="insight-box"><div class="ib-label">Key Takeaway</div><div class="ib-text">雅顿与头部竞品的差距不在单点效率，而在是否建立了足够完整、足够连续的圈层内容生态。</div></div><div class="grid2 section-grid-gap"><div class="card"><div class="card-title">核心竞品对标</div><div class="score-bar-row rival-row"><div class="score-bar-main"><div class="score-bar-name">兰蔻</div><div class="bar-aux">声量 1,820 · 搜索 1,185 · 质量 63.4 · Top10 15.8%</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:100%"></div></div><div class="score-bar-value mono">83.2</div></div><div class="score-bar-row rival-row"><div class="score-bar-main"><div class="score-bar-name">雅诗兰黛</div><div class="bar-aux">声量 1,654 · 搜索 1,104 · 质量 60.8 · Top10 14.6%</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:93%"></div></div><div class="score-bar-value mono">77.9</div></div><div class="score-bar-row rival-row"><div class="score-bar-main"><div class="score-bar-name">伊丽莎白雅顿</div><div class="bar-aux">声量 1,276 · 搜索 623 · 质量 56.8 · Top10 12.7%</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:89%"></div></div><div class="score-bar-value mono">74.8</div></div><div class="score-bar-row rival-row"><div class="score-bar-main"><div class="score-bar-name">YSL</div><div class="bar-aux">声量 1,496 · 搜索 973 · 质量 58.2 · Top10 13.9%</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:88%"></div></div><div class="score-bar-value mono">73.4</div></div><div class="score-bar-row rival-row"><div class="score-bar-main"><div class="score-bar-name">海蓝之谜</div><div class="bar-aux">声量 918 · 搜索 418 · 质量 55.4 · Top10 11.9%</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:83%"></div></div><div class="score-bar-value mono">69.8</div></div><div class="score-bar-row rival-row"><div class="score-bar-main"><div class="score-bar-name">赫莲娜</div><div class="bar-aux">声量 842 · 搜索 377 · 质量 54.1 · Top10 10.4%</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:82%"></div></div><div class="score-bar-value mono">68.3</div></div></div><div class="card"><div class="card-title">差距来源</div><div class="kv-row"><div class="kv-key">与标杆差距最大维度</div><div class="kv-value mono">内容声量变化</div></div><div class="kv-row"><div class="kv-key">次大差距维度</div><div class="kv-value mono">内容生态结构</div></div><div class="kv-row"><div class="kv-key">雅顿领先维度</div><div class="kv-value mono">搜索效率</div></div><div class="kv-row"><div class="kv-key">最易追平维度</div><div class="kv-value mono">互动质量</div></div></div></div></section>
+  <section class="section" id="audience"><div class="section-kicker">04 · 目标受众洞察</div><h2>目标受众洞察</h2><p class="section-desc">这是一群高审美、高细节、高客单的场景消费人群。</p><div class="grid4"><article class="card stat-card"><div class="card-title">圈层契合指数</div><div class="card-value mono">78.5/100</div></article><article class="card stat-card"><div class="card-title">高客单信号占比</div><div class="card-value mono">42.0%</div></article><article class="card stat-card"><div class="card-title">购买意向语句占比</div><div class="card-value mono">19.3%</div></article><article class="card stat-card"><div class="card-title">高端场景强度</div><div class="card-value mono">84.0</div></article></div><div class="insight-box"><div class="ib-label">Key Takeaway</div><div class="ib-text">这群人不是泛娱乐流量，而是典型的高审美、高细节、高客单的场景消费人群。</div></div><div class="grid2 section-grid-gap"><div class="card"><div class="card-title">受众特质画像</div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">审美质感敏感</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:100%"></div></div><div class="score-bar-value mono">86</div></div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">细节考究</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:94%"></div></div><div class="score-bar-value mono">81</div></div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">精神悦己</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:89%"></div></div><div class="score-bar-value mono">77</div></div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">场景消费</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:86%"></div></div><div class="score-bar-value mono">74</div></div></div><div class="card"><div class="card-title">关键消费场景</div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">演前妆护准备</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:100%"></div></div><div class="score-bar-value mono">88</div></div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">剧院社交出片</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:95%"></div></div><div class="score-bar-value mono">84</div></div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">演后复盘分享</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:85%"></div></div><div class="score-bar-value mono">75</div></div><div class="score-bar-row"><div class="score-bar-main"><div class="score-bar-name">异地巡演出行</div></div><div class="score-bar-track"><div class="score-bar-fill" style="width:78%"></div></div><div class="score-bar-value mono">69</div></div></div></div><div class="grid2 section-grid-gap"><div class="card"><div class="card-title">跨兴趣匹配</div><div class="interest-wrap"><span class="interest-chip">精品咖啡 · 82.0</span><span class="interest-chip">沙龙香水 · 79.0</span><span class="interest-chip">看展 · 74.0</span><span class="interest-chip">酒店度假 · 68.0</span></div></div><div class="card amber"><div class="card-title">对雅顿的启示</div><ul class="action-list"><li>对雅顿而言，这群人最值得沟通的不是“功能性”，而是“在重要场合保持状态和质感”。</li><li>香氛、急救修护、抗老精华都能被翻译成剧院语境下的自我表达，而不是单纯产品卖点。</li><li>内容上要少做教育式解释，多做具有光影氛围和细节质感的场景呈现。</li></ul></div></div></section>
+  <section class="section" id="diagnosis"><div class="section-kicker">05 · 品牌健康度诊断</div><h2>品牌健康度诊断</h2><p class="section-desc">把健康度结果直接转成雅顿可执行的 90 天动作。</p><div class="grid4"><article class="card stat-card"><div class="card-title">可立即放大的优势</div><div class="card-value mono">搜索表现</div></article><article class="card stat-card"><div class="card-title">最紧迫短板</div><div class="card-value mono">内容生态</div></article><article class="card stat-card"><div class="card-title">首要动作</div><div class="card-value mono">场景化补量</div></article><article class="card stat-card"><div class="card-title">建议节奏</div><div class="card-value mono">90 天三阶段</div></article></div><div class="insight-box"><div class="ib-label">Key Takeaway</div><div class="ib-text">雅顿具备进入音乐剧高端人群的资格，但想真正完成品牌跃迁，必须从产品讨论升级到场景心智。</div></div><div class="grid2 section-grid-gap"><div class="card blue"><div class="card-title">优势</div><ul class="action-list"><li>雅顿在搜索承接和高意向内容上的基础已经足够支撑投放起量。</li><li>剧院场景与雅顿的香氛、修护、抗老产品线天然适配。</li><li>中腰部作者对雅顿的内容效率明显高于平均水平。</li></ul></div><div class="card red"><div class="card-title">风险</div><ul class="action-list"><li>如果继续让产品心得型内容占主导，品牌会停留在“被提及”而不是“被向往”。</li><li>单纯堆品牌词会抬高可见度，但不会自动形成圈层文化认同。</li><li>达人只投泛美妆会损失音乐剧圈层的专业背书感。</li></ul></div></div><div class="grid2 section-grid-gap"><div class="card amber"><div class="card-title">下一步动作</div><ol class="action-list"><li>把剧场前后 48 小时做成固定内容框架，承接香氛、修护、急救三类需求。</li><li>用圈层发声者建立专业感，再用穿搭/香氛博主放大场景种草。</li><li>所有内容复盘优先看收藏、搜索与私信求链接，而不是只看点赞。</li></ol></div><div class="card"><div class="card-title">90 天推进节奏</div><div class="kv-row"><div class="kv-key">第 1 阶段</div><div class="kv-value mono">打透演前状态管理</div></div><div class="kv-row"><div class="kv-key">第 2 阶段</div><div class="kv-value mono">放大剧院氛围种草</div></div><div class="kv-row"><div class="kv-key">第 3 阶段</div><div class="kv-value mono">沉淀搜索与收藏资产</div></div><div class="kv-row"><div class="kv-key">核心 KPI</div><div class="kv-value mono">收藏率、搜索位、求链率</div></div></div></div></section>
+</main>
+<script>
+(() => {
+  const links = [...document.querySelectorAll('#toc a[href^="#"]')];
+  const map = new Map(links.map((link) => [link.getAttribute('href').slice(1), link]));
+  const sections = [...map.keys()].map((id) => document.getElementById(id)).filter(Boolean);
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      const link = map.get(entry.target.id);
+      if (!link) return;
+      if (entry.isIntersecting) {
+        links.forEach((item) => item.classList.remove('active'));
+        link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-35% 0px -55% 0px', threshold: 0.01 });
+  sections.forEach((section) => observer.observe(section));
+})();
+</script>
+</body>
+</html>

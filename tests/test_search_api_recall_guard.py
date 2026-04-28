@@ -183,6 +183,15 @@ class SearchRecallGuardTests(unittest.TestCase):
             search_api.query_brand_category_db_first = original_query_brand
             search_api.query_brand_category_db_first_v2 = original_query_brand_v2
 
+    def test_add_health_reasons_dedupes_and_marks_worker_unhealthy(self) -> None:
+        health = search_api._add_health_reasons(
+            {"healthy": True, "reasons": ["low_results"]},
+            "low_results",
+            "worker_unavailable",
+        )
+        self.assertEqual(health["reasons"], ["low_results", "worker_unavailable"])
+        self.assertFalse(health["healthy"])
+
 
 if __name__ == "__main__":
     unittest.main()

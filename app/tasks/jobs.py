@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import time
 import uuid
 
 from requests import HTTPError, RequestException
@@ -23,6 +24,8 @@ from app.tasks.celery_app import celery_app
 
 settings = get_settings()
 client = HuitunClient()
+_quota_cache: tuple[float, dict[str, object]] | None = None
+_quota_cache_ttl_seconds = 300
 
 
 def _db() -> Session:
@@ -68,6 +71,55 @@ def _is_task_limit_error(exc: Exception) -> bool:
             "reached the limit",
         )
     )
+
+
+def _is_quota_error(exc: Exception) -> bool:
+    message = str(exc).lower()
+    return any(
+        token in message
+        for token in (
+            "quota",
+            "surplus",
+            "余额不足",
+            "次数不足",
+            "剩余次数",
+            "调用次数",
+            "no remaining",
+            "exhausted",
+        )
+    )
+
+
+def _get_cached_quota_data() -> dict[str, object] | None:
+    global _quota_cache
+    now_ts = time.monotonic()
+    if _quota_cache and now_ts - _quota_cache[0] < _quota_cache_ttl_seconds:
+        return _quota_cache[1]
+    try:
+        response = client.get_quota()
+    except Exception:
+        return None
+    data = response.get("data") if isinstance(response, dict) else None
+    if not isinstance(data, dict):
+        return None
+    _quota_cache = (now_ts, data)
+    return data
+
+
+def _quota_remaining(task_type: str) -> int | None:
+    data = _get_cached_quota_data()
+    if not data:
+        return None
+    raw = data.get(task_type)
+    try:
+        return int(raw)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return None
+
+
+def _is_huitun_quota_exhausted(task_type: str) -> bool:
+    remaining = _quota_remaining(task_type)
+    return remaining is not None and remaining <= 0
 
 
 def _retry_later(task, exc: Exception):
@@ -135,6 +187,38 @@ def _recent_note_comment_limit_errors(db: Session, window_minutes: int = 20) -> 
         {"window_minutes": max(5, window_minutes)},
     ).scalar()
     return int(value or 0)
+
+
+def _log_quota_skipped(
+    db: Session,
+    *,
+    batch_id: str,
+    task_type: str,
+    note_id: str,
+    task_id: str | None,
+    back_url: str,
+    error: str | None = None,
+) -> dict:
+    response_payload: dict[str, object] = {
+        "skipped": True,
+        "reason": "quota_exhausted",
+        "quota_remaining": _quota_remaining(task_type),
+    }
+    if error:
+        response_payload["error"] = error
+    create_crawl_log(
+        db,
+        batch_id=batch_id,
+        task_type=task_type,
+        biz_type="collect",
+        status="success",
+        note_id=note_id,
+        task_id=task_id,
+        request_payload={"note_id": note_id, "back_url": back_url},
+        response_payload=response_payload,
+    )
+    db.commit()
+    return {"batch_id": batch_id, "skipped": True, "reason": "quota_exhausted"}
 
 
 def _safe_log_failure(
@@ -397,6 +481,15 @@ def trigger_note_info(self, note_id: str) -> dict:
     back_url = _callback_url("/test/noteInfo/back")
     db = _db()
     try:
+        if _is_huitun_quota_exhausted("note_info"):
+            return _log_quota_skipped(
+                db,
+                batch_id=batch_id,
+                task_type="note_info",
+                note_id=note_id,
+                task_id=self.request.id,
+                back_url=back_url,
+            )
         response = client.create_note_info(note_link=note_id, back_url=back_url)
         create_crawl_log(
             db,
@@ -413,6 +506,26 @@ def trigger_note_info(self, note_id: str) -> dict:
         return {"batch_id": batch_id, "response": response}
     except Exception as exc:
         db.rollback()
+        if _is_task_limit_error(exc) or _is_quota_error(exc):
+            _safe_log_skipped_success(
+                db,
+                batch_id=batch_id,
+                task_type="note_info",
+                biz_type="collect",
+                note_id=note_id,
+                task_id=self.request.id,
+                request_payload={"note_id": note_id, "back_url": back_url},
+                response_payload={
+                    "skipped": True,
+                    "reason": "quota_exhausted" if _is_quota_error(exc) else "provider_note_info_task_pool_saturated",
+                    "error": str(exc),
+                },
+            )
+            return {
+                "batch_id": batch_id,
+                "skipped": True,
+                "reason": "quota_exhausted" if _is_quota_error(exc) else "provider_note_info_task_pool_saturated",
+            }
         _safe_log_failure(
             db,
             batch_id=batch_id,
@@ -520,6 +633,15 @@ def trigger_note_comments(self, note_id: str) -> dict:
     back_url = _callback_url("/test/noteComment/back")
     db = _db()
     try:
+        if _is_huitun_quota_exhausted("note_comment"):
+            return _log_quota_skipped(
+                db,
+                batch_id=batch_id,
+                task_type="note_comment",
+                note_id=note_id,
+                task_id=self.request.id,
+                back_url=back_url,
+            )
         # Stop hammering provider when comment async task pool is saturated.
         if _recent_note_comment_limit_errors(db) >= 60:
             create_crawl_log(
@@ -556,7 +678,7 @@ def trigger_note_comments(self, note_id: str) -> dict:
         return {"batch_id": batch_id, "response": response}
     except Exception as exc:
         db.rollback()
-        if _is_task_limit_error(exc):
+        if _is_task_limit_error(exc) or _is_quota_error(exc):
             _safe_log_skipped_success(
                 db,
                 batch_id=batch_id,
@@ -567,11 +689,15 @@ def trigger_note_comments(self, note_id: str) -> dict:
                 request_payload={"note_id": note_id, "back_url": back_url},
                 response_payload={
                     "skipped": True,
-                    "reason": "provider_comment_task_pool_saturated",
+                    "reason": "quota_exhausted" if _is_quota_error(exc) else "provider_comment_task_pool_saturated",
                     "error": str(exc),
                 },
             )
-            return {"batch_id": batch_id, "skipped": True}
+            return {
+                "batch_id": batch_id,
+                "skipped": True,
+                "reason": "quota_exhausted" if _is_quota_error(exc) else "provider_comment_task_pool_saturated",
+            }
 
         _safe_log_failure(
             db,

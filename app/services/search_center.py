@@ -271,6 +271,10 @@ def ensure_search_tables(db: Session) -> None:
         )
         _safe_ddl(
             db,
+            "CREATE INDEX IF NOT EXISTS idx_xhs_note_search_result_batch_rank ON xhs_note_search_result(batch_id, search_rank)",
+        )
+        _safe_ddl(
+            db,
             """
             CREATE TABLE IF NOT EXISTS xhs_note_term_rel (
                 id bigserial PRIMARY KEY,
