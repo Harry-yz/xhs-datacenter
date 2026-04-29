@@ -57,8 +57,18 @@ class ReportDataComposer:
                 "primary_audience": "品牌市场负责人",
                 "platform": "小红书",
             },
+            "input_profile": {
+                "brand": evidence.brand,
+                "category": evidence.category,
+                "core_products": evidence.core_products,
+                "competitor_brands": evidence.competitors,
+                "time_window_days": evidence.window_days,
+                "expanded_terms": evidence.aliases,
+            },
             "meta": {
                 "brand": evidence.brand,
+                "category": evidence.category,
+                "core_products": evidence.core_products,
                 "aliases": evidence.aliases,
                 "competitors": evidence.competitors,
                 "window_days": evidence.window_days,
@@ -169,7 +179,7 @@ def _fallback_editorial(evidence: EvidencePack, metric: MetricAnalysis, diagnosi
         summary += " 当前结论已按数据质量限制降级表达。"
     return ExecutiveEditorial(
         title=f"{evidence.brand} 小红书品牌健康报告",
-        subtitle=f"基于近 {evidence.window_days} 天数据库全量相关笔记聚合",
+        subtitle=f"{evidence.category or '品牌'} · 近 {evidence.window_days} 天",
         executive_summary=summary,
         key_findings=findings[:5],
         management_diagnosis=str(diagnosis.health_diagnosis.get("summary") or summary),
@@ -355,8 +365,8 @@ def _fallback_sections(
         section_id = f"section-{idx:02d}"
         if idx == 1:
             body = [editorial.executive_summary or f"本报告评估 {evidence.brand} 在小红书的品牌健康度、内容资产、搜索占位、用户反馈和竞品位置。"]
-            bullets = [f"报告对象：{evidence.brand}", f"分析窗口：近 {evidence.window_days} 天", "报告用途：企业售前品牌健康诊断"]
-            table = [{"指标": "数据范围", "当前值": "小红书数据库全量相关聚合"}, {"指标": "竞品", "当前值": "、".join(evidence.competitors) or "未输入"}]
+            bullets = [f"报告对象：{evidence.brand}", f"品类：{evidence.category or '未标注'}", f"核心产品：{'、'.join(evidence.core_products) or '未标注'}", f"分析窗口：近 {evidence.window_days} 天"]
+            table = [{"指标": "核心产品", "当前值": "、".join(evidence.core_products) or "未标注"}, {"指标": "竞品品牌", "当前值": "、".join(evidence.competitors)}]
         elif idx == 2:
             body = [editorial.management_diagnosis or editorial.executive_summary or "品牌具备可分析的内容资产和搜索声量，需要结合互动效率、竞品差距和用户反馈判断下一步增长机会。"]
             bullets = editorial.key_findings[:5] or [item.claim for item in diagnosis.executive_findings[:5]]
@@ -371,11 +381,11 @@ def _fallback_sections(
             bullets = [item.claim for item in claims[:5]] or editorial.key_findings[:5]
             table = []
         elif idx == 5:
-            body = [f"小红书对 {evidence.brand} 的价值在于同时承接搜索、种草、内容资产和用户反馈。报告不把平台当作单纯曝光渠道，而是评估品牌是否在小红书形成可持续的内容经营能力。"]
-            bullets = ["搜索词承接决定用户主动需求能否被捕捉", "收藏和评论反映内容是否具备决策价值", "作者分布反映品牌是否依赖少量账号"]
+            body = [f"小红书对 {evidence.category or evidence.brand} 的价值在于同时承接搜索、种草、内容资产和用户反馈。报告不把平台当作单纯曝光渠道，而是评估品牌是否围绕核心产品形成可持续的内容经营能力。"]
+            bullets = ["搜索词承接决定用户主动需求能否被捕捉", "收藏和评论反映内容是否具备决策价值", f"核心产品优先看：{'、'.join(evidence.core_products) or evidence.brand}"]
             table = [{"机会": item.get("search_keyword", ""), "笔记数": item.get("note_count", 0), "互动": item.get("interaction_total", 0)} for item in keywords[:5]]
         elif idx == 6:
-            body = [f"{evidence.brand} 当前在数据库中具备 {metrics.note_count} 条相关笔记和 {metrics.author_count} 个参与作者，说明品牌已有较强的可见基础。下一步需要判断这些声量是否集中在少数主题，还是已经形成多产品、多场景内容资产。"]
+            body = [f"{evidence.brand} 当前在数据库中具备 {metrics.note_count} 条相关笔记和 {metrics.author_count} 个参与作者。下一步需要判断这些声量是否真正围绕 {'、'.join(evidence.core_products) or '核心产品'} 沉淀为内容资产。"]
             bullets = [f"总互动 {metrics.interaction_total}", f"收藏 {metrics.collection_total}", f"分享 {metrics.share_total}"]
             table = [{"标题": note.title, "作者": note.author_nickname, "互动": note.interaction_total} for note in top_notes[:5]]
         elif idx == 7:

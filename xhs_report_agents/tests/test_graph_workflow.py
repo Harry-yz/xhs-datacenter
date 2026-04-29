@@ -13,8 +13,10 @@ class FakeDataScout:
     def build_evidence_pack(self, **kwargs):
         return EvidencePack(
             brand=kwargs["brand"],
-            aliases=[kwargs["brand"]],
-            competitors=[],
+            category=kwargs["category"],
+            core_products=kwargs["core_products"],
+            aliases=[kwargs["brand"], *kwargs["core_products"]],
+            competitors=kwargs["competitor_brands"],
             window_days=kwargs["window_days"],
             generated_at="2026-04-28T00:00:00",
             core_metrics=MetricBlock(note_count=3, author_count=2, interaction_total=12),
@@ -42,9 +44,10 @@ def test_langgraph_offline_workflow_reaches_finalize(tmp_path: Path):
         runtime=runtime,
         initial_state={
             "brand": "测试品牌",
-            "aliases": [],
-            "competitors": [],
-            "days": 90,
+            "category": "测试品类",
+            "core_products": ["测试产品"],
+            "competitor_brands": ["测试竞品"],
+            "time_window": 90,
             "max_notes": 10,
             "max_comments": 10,
             "enable_text_fallback": False,

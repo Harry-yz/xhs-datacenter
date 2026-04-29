@@ -5,9 +5,10 @@ from typing import Any, TypedDict
 
 class ReportState(TypedDict, total=False):
     brand: str
-    aliases: list[str]
-    competitors: list[str]
-    days: int
+    category: str
+    core_products: list[str]
+    competitor_brands: list[str]
+    time_window: int
     max_notes: int
     max_comments: int
     enable_text_fallback: bool

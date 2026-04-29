@@ -71,9 +71,10 @@ class ReportGraphRuntime:
         try:
             pack = self.data_scout.build_evidence_pack(
                 brand=state["brand"],
-                aliases=state.get("aliases", []),
-                competitors=state.get("competitors", []),
-                window_days=int(state.get("days", 90)),
+                category=state["category"],
+                core_products=state.get("core_products", []),
+                competitor_brands=state.get("competitor_brands", []),
+                window_days=int(state.get("time_window", 90)),
                 max_notes=int(state.get("max_notes", 1000)),
                 max_comments=int(state.get("max_comments", 500)),
                 enable_text_fallback=bool(state.get("enable_text_fallback", False)),
@@ -82,9 +83,11 @@ class ReportGraphRuntime:
         except Exception as exc:
             pack = EvidencePack(
                 brand=state["brand"],
-                aliases=state.get("aliases", []),
-                competitors=state.get("competitors", []),
-                window_days=int(state.get("days", 90)),
+                category=state.get("category", ""),
+                core_products=state.get("core_products", []),
+                aliases=[state["brand"], *state.get("core_products", [])],
+                competitors=state.get("competitor_brands", []),
+                window_days=int(state.get("time_window", 90)),
                 generated_at=datetime.now().isoformat(timespec="seconds"),
                 core_metrics=MetricBlock(),
                 data_quality=DataQuality(
@@ -107,7 +110,9 @@ class ReportGraphRuntime:
                 {
                     "evidence_pack": state.get("compressed_evidence") or _payload(state)["evidence_pack"],
                     "brand": state["brand"],
-                    "competitors": state.get("competitors", []),
+                    "category": state.get("category", ""),
+                    "core_products": state.get("core_products", []),
+                    "competitor_brands": state.get("competitor_brands", []),
                     "instruction": "补充小红书品牌健康度售前报告的稳健背景，不显式展示来源。",
                 },
                 ExternalContext,

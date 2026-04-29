@@ -11,8 +11,10 @@ class FakeDataScout:
     def build_evidence_pack(self, **kwargs):
         return EvidencePack(
             brand=kwargs["brand"],
-            aliases=[kwargs["brand"]],
-            competitors=[],
+            category=kwargs["category"],
+            core_products=kwargs["core_products"],
+            aliases=[kwargs["brand"], *kwargs["core_products"]],
+            competitors=kwargs["competitor_brands"],
             window_days=kwargs["window_days"],
             generated_at="2026-04-28T00:00:00",
             core_metrics=MetricBlock(note_count=1, author_count=1),
@@ -90,10 +92,21 @@ def test_pipeline_writes_outputs(tmp_path: Path):
     pipeline.html_renderer = HtmlRenderer()
     pipeline.use_pro_editor = True
     pipeline.use_external_context = True
-    bundle = pipeline.generate(brand="测试品牌", aliases=[], competitors=[], days=90, max_notes=10, max_comments=10)
+    bundle = pipeline.generate(
+        brand="测试品牌",
+        category="测试品类",
+        core_products=["测试产品"],
+        competitor_brands=["测试竞品"],
+        time_window=90,
+        max_notes=10,
+        max_comments=10,
+    )
     md_path, html_path = pipeline.write_outputs(bundle, tmp_path)
     assert md_path.exists()
     assert html_path.exists()
     assert md_path.parent == tmp_path
     assert bundle.report_json["kpis"]["note_count"] == 1
+    assert bundle.report_json["input_profile"]["category"] == "测试品类"
+    assert bundle.report_json["input_profile"]["core_products"] == ["测试产品"]
+    assert bundle.report_json["input_profile"]["competitor_brands"] == ["测试竞品"]
     assert len(bundle.report_json["report_sections"]) == 15

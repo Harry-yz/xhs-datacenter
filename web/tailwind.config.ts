@@ -32,8 +32,28 @@ const config: Config = {
         }
       },
       fontFamily: {
-        sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
-        display: ["Urbanist", "Inter", "ui-sans-serif", "system-ui", "sans-serif"]
+        sans: [
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "Segoe UI",
+          "Noto Sans SC",
+          "PingFang SC",
+          "Microsoft YaHei",
+          "ui-sans-serif",
+          "system-ui",
+          "sans-serif"
+        ],
+        display: [
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "Segoe UI",
+          "Noto Sans SC",
+          "PingFang SC",
+          "Microsoft YaHei",
+          "ui-sans-serif",
+          "system-ui",
+          "sans-serif"
+        ]
       },
       backgroundImage: {
         "gradient-hero": "var(--gradient-hero)",

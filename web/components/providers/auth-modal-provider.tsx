@@ -11,7 +11,7 @@ import {
   useState,
 } from "react";
 import { X } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import type { Locale } from "@/config/i18n";
 
@@ -45,7 +45,6 @@ export function AuthModalProvider({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const isZh = locale === "zh";
 
   const [authenticated, setAuthenticated] = useState(initialAuthenticated);
@@ -90,10 +89,10 @@ export function AuthModalProvider({
     if (authenticated) {
       return;
     }
-    if (searchParams.get("auth") !== "1") {
+    const current = new URLSearchParams(window.location.search);
+    if (current.get("auth") !== "1") {
       return;
     }
-    const current = new URLSearchParams(searchParams.toString());
     const next = current.get("next") || pathname || `/${locale}/datacenter`;
     current.delete("auth");
     current.delete("next");
@@ -101,7 +100,7 @@ export function AuthModalProvider({
     const cleaned = query ? `${pathname}?${query}` : pathname;
     router.replace(cleaned);
     openAuthModal({ next });
-  }, [authenticated, locale, openAuthModal, pathname, router, searchParams]);
+  }, [authenticated, locale, openAuthModal, pathname, router]);
 
   async function submitLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

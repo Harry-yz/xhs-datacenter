@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 
 import { DashboardHero } from "@/components/datacenter/dashboard-hero";
 import { LiveIndustryMatrix } from "@/components/datacenter/live-industry-matrix";
@@ -10,8 +9,6 @@ import { XhsSearchEntry } from "@/components/datacenter/xhs-search-entry";
 import { SiteHeader } from "@/components/navigation/site-header";
 import { getDictionary } from "@/config/dictionaries";
 import { buildMetadata } from "@/config/metadata";
-import { SESSION_COOKIE } from "@/config/i18n";
-import { isAuthenticatedSession } from "@/config/auth";
 import { PageShell } from "@/layouts/page-shell";
 import { getXhsOverview } from "@/services/datacenter";
 import { withLocale } from "@/utils/routes";
@@ -30,14 +27,13 @@ export default async function XhsOverviewPage({ params }: AppPageProps) {
     getDictionary(params.lang),
     getXhsOverview(params.lang)
   ]);
-  const authenticated = isAuthenticatedSession(cookies().get(SESSION_COOKIE)?.value);
   const fallbackKpis = overview.kpis.slice(0, 3);
   const searchBasePath = withLocale(params.lang, "/datacenter/xhs/search");
+  const authenticated = false;
 
   return (
     <PageShell dark>
       <SiteHeader
-        authenticated={authenticated}
         dictionary={dictionary}
         locale={params.lang}
         pathname={withLocale(params.lang, "/datacenter/xhs")}

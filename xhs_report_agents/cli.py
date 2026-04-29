@@ -17,9 +17,10 @@ else:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Generate an XHS brand health report with multi-agent analysis.")
     parser.add_argument("--brand", required=True, help="目标品牌名")
-    parser.add_argument("--aliases", default="", help="品牌别名，逗号分隔")
-    parser.add_argument("--competitors", default="", help="竞品品牌，逗号分隔")
-    parser.add_argument("--days", type=int, default=90, help="分析时间窗，默认 90 天")
+    parser.add_argument("--category", required=True, help="品类/赛道，例如：高端护肤与美妆")
+    parser.add_argument("--core-products", required=True, help="核心产品/产品线，逗号分隔")
+    parser.add_argument("--competitor-brands", required=True, help="竞品品牌，逗号分隔，至少 1 个")
+    parser.add_argument("--time-window", type=int, required=True, help="分析时间窗，单位天，例如 90")
     parser.add_argument("--max-notes", type=int, default=1000, help="最多纳入分析的笔记数")
     parser.add_argument("--max-comments", type=int, default=500, help="最多纳入分析的评论数")
     parser.add_argument("--output-dir", default=None, help="输出目录，默认 xhs_report_agents/outputs")
@@ -32,6 +33,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--no-external-context", action="store_true", help="关闭外部背景增强，仅使用数据库证据")
     parser.add_argument("--report-depth", choices=["sales-15"], default="sales-15", help="报告深度模板，默认企业售前 15 页")
     args = parser.parse_args(argv)
+    core_products = _split_csv(args.core_products)
+    competitor_brands = _split_csv(args.competitor_brands)
+    if not core_products:
+        parser.error("--core-products 至少需要 1 个核心产品")
+    if not competitor_brands:
+        parser.error("--competitor-brands 至少需要 1 个竞品品牌")
+    if args.time_window <= 0:
+        parser.error("--time-window 必须大于 0")
 
     settings = get_settings(args.output_dir, require_llm_key=not args.offline)
     settings = replace(
@@ -48,9 +57,10 @@ def main(argv: list[str] | None = None) -> int:
     )
     bundle = pipeline.generate(
         brand=args.brand.strip(),
-        aliases=_split_csv(args.aliases),
-        competitors=_split_csv(args.competitors),
-        days=args.days,
+        category=args.category.strip(),
+        core_products=core_products,
+        competitor_brands=competitor_brands,
+        time_window=args.time_window,
         max_notes=args.max_notes,
         max_comments=args.max_comments,
         enable_text_fallback=args.enable_text_fallback,

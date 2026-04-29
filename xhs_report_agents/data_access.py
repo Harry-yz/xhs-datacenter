@@ -37,14 +37,15 @@ class DataScoutAgent:
         self,
         *,
         brand: str,
-        aliases: list[str],
-        competitors: list[str],
+        category: str,
+        core_products: list[str],
+        competitor_brands: list[str],
         window_days: int,
         max_notes: int = 1000,
         max_comments: int = 500,
         enable_text_fallback: bool = False,
     ) -> EvidencePack:
-        terms = _expand_brand_terms(brand, aliases)
+        terms = _expand_brand_terms(brand, core_products)
         with self.engine.begin() as conn:
             metrics = self._fetch_full_metrics(conn, terms=terms, window_days=window_days)
             rows = self._fetch_stratified_notes(
@@ -62,8 +63,8 @@ class DataScoutAgent:
             coverage = self._fetch_coverage_diagnostics(conn, terms=terms, window_days=window_days)
             comments = self._fetch_comments(conn, [r["note_id"] for r in rows[:250]], limit=max_comments)
             competitor_metrics = []
-            for comp in competitors:
-                comp_terms = _clean_terms([comp])
+            for comp in competitor_brands:
+                comp_terms = _expand_brand_terms(comp, [])
                 competitor_metrics.append(
                     CompetitorMetric(
                         brand=comp,
@@ -74,8 +75,10 @@ class DataScoutAgent:
         quality = _data_quality(metrics, comments, len(rows))
         return EvidencePack(
             brand=brand,
+            category=category,
+            core_products=core_products,
             aliases=terms,
-            competitors=competitors,
+            competitors=competitor_brands,
             window_days=window_days,
             generated_at=datetime.now().isoformat(timespec="seconds"),
             core_metrics=metrics,

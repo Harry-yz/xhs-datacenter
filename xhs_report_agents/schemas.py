@@ -66,6 +66,8 @@ class CompetitorMetric(BaseModel):
 
 class EvidencePack(BaseModel):
     brand: str
+    category: str = ""
+    core_products: list[str] = Field(default_factory=list)
     aliases: list[str]
     competitors: list[str]
     window_days: int
