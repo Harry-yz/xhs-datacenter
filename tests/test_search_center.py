@@ -23,6 +23,21 @@ class _FakeDB:
         return _FakeScalarResult(self.rows)
 
 
+class _FakeMappingRowsResult:
+    def __init__(self, rows=None, scalar_value=0):
+        self._rows = rows or []
+        self._scalar_value = scalar_value
+
+    def mappings(self):
+        return self
+
+    def all(self):
+        return self._rows
+
+    def scalar(self):
+        return self._scalar_value
+
+
 class SearchCenterTests(unittest.TestCase):
     def test_category_order_clause_defaults_to_interaction(self) -> None:
         clause = search_center._category_order_clause("stat", "desc")
@@ -128,6 +143,79 @@ class SearchCenterTests(unittest.TestCase):
         finally:
             search_center._search_bootstrap_done = original_done
             search_center.ensure_search_tables = original_ensure
+
+    def test_brand_category_v2_fast_count_skips_second_count_query(self) -> None:
+        class _FastCountDB:
+            def __init__(self):
+                self.calls = 0
+
+            def execute(self, *_args, **_kwargs):
+                self.calls += 1
+                rows = [{"note_id": f"n{i}", "title": "t", "author_id": "a"} for i in range(31)]
+                return _FakeMappingRowsResult(rows=rows, scalar_value=999)
+
+        db = _FastCountDB()
+        original_expand = search_center._expand_query_terms
+        original_resolve = search_center.resolve_industry_key
+        try:
+            search_center._expand_query_terms = lambda *_args, **_kwargs: ["防晒"]
+            search_center.resolve_industry_key = lambda *_args, **_kwargs: None
+            result = search_center.query_brand_category_db_first_v2(
+                db,  # type: ignore[arg-type]
+                query="防晒",
+                mode="category",
+                industry=None,
+                min_like=0,
+                date_range=30,
+                page=1,
+                size=30,
+                freshness_hours=24,
+                fast_count=True,
+            )
+        finally:
+            search_center._expand_query_terms = original_expand
+            search_center.resolve_industry_key = original_resolve
+
+        self.assertEqual(db.calls, 1)
+        self.assertTrue(result["pagination"]["has_more"])
+        self.assertEqual(result["pagination"]["total"], 31)
+
+    def test_brand_category_v2_exact_count_keeps_second_count_query(self) -> None:
+        class _ExactCountDB:
+            def __init__(self):
+                self.calls = 0
+
+            def execute(self, *_args, **_kwargs):
+                self.calls += 1
+                if self.calls == 1:
+                    rows = [{"note_id": "n1", "title": "t", "author_id": "a"}]
+                    return _FakeMappingRowsResult(rows=rows)
+                return _FakeMappingRowsResult(scalar_value=42)
+
+        db = _ExactCountDB()
+        original_expand = search_center._expand_query_terms
+        original_resolve = search_center.resolve_industry_key
+        try:
+            search_center._expand_query_terms = lambda *_args, **_kwargs: ["防晒"]
+            search_center.resolve_industry_key = lambda *_args, **_kwargs: None
+            result = search_center.query_brand_category_db_first_v2(
+                db,  # type: ignore[arg-type]
+                query="防晒",
+                mode="category",
+                industry=None,
+                min_like=0,
+                date_range=30,
+                page=1,
+                size=30,
+                freshness_hours=24,
+                fast_count=False,
+            )
+        finally:
+            search_center._expand_query_terms = original_expand
+            search_center.resolve_industry_key = original_resolve
+
+        self.assertEqual(db.calls, 2)
+        self.assertEqual(result["pagination"]["total"], 42)
 
 
 if __name__ == "__main__":

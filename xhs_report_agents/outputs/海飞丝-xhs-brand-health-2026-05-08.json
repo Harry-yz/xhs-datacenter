@@ -1,0 +1,4011 @@
+{
+  "report_meta": {
+    "brand": "海飞丝",
+    "report_type": "sales_15_xhs_brand_health",
+    "primary_audience": "品牌市场负责人",
+    "platform": "小红书"
+  },
+  "input_profile": {
+    "brand": "海飞丝",
+    "category": "洗护发与去屑头皮护理",
+    "core_products": [
+      "去屑洗发水",
+      "头皮护理",
+      "洗发露"
+    ],
+    "competitor_brands": [
+      "清扬",
+      "潘婷",
+      "欧莱雅",
+      "沙宣"
+    ],
+    "time_window_days": 90,
+    "expanded_terms": [
+      "海飞丝",
+      "去屑洗发水",
+      "头皮护理",
+      "洗发露"
+    ]
+  },
+  "meta": {
+    "brand": "海飞丝",
+    "category": "洗护发与去屑头皮护理",
+    "core_products": [
+      "去屑洗发水",
+      "头皮护理",
+      "洗发露"
+    ],
+    "aliases": [
+      "海飞丝",
+      "去屑洗发水",
+      "头皮护理",
+      "洗发露"
+    ],
+    "competitors": [
+      "清扬",
+      "潘婷",
+      "欧莱雅",
+      "沙宣"
+    ],
+    "window_days": 90,
+    "generated_at": "2026-05-08T12:10:22",
+    "data_scope": "full_database_aggregation",
+    "evidence_sample_note_count": 80,
+    "evidence_sample_comment_count": 50
+  },
+  "data_scope": {
+    "core_metrics": "full_database_aggregation",
+    "evidence_sample_notes": 80,
+    "evidence_sample_comments": 50,
+    "competitors": [
+      "清扬",
+      "潘婷",
+      "欧莱雅",
+      "沙宣"
+    ],
+    "coverage_diagnostics": [
+      {
+        "type": "coverage_window",
+        "window_days": 30,
+        "note_count": 134,
+        "author_count": 130,
+        "interaction_total": 31
+      },
+      {
+        "type": "coverage_window",
+        "window_days": 90,
+        "note_count": 644,
+        "author_count": 572,
+        "interaction_total": 110588
+      },
+      {
+        "type": "coverage_window",
+        "window_days": 180,
+        "note_count": 644,
+        "author_count": 572,
+        "interaction_total": 110588
+      },
+      {
+        "type": "coverage_window",
+        "window_days": 365,
+        "note_count": 644,
+        "author_count": 572,
+        "interaction_total": 110588
+      },
+      {
+        "type": "coverage_database",
+        "window_days": 90,
+        "note_count": 6876182,
+        "expanded_term_count": 4,
+        "expanded_terms": [
+          "海飞丝",
+          "去屑洗发水",
+          "头皮护理",
+          "洗发露"
+        ]
+      }
+    ],
+    "expanded_terms": [
+      "海飞丝",
+      "去屑洗发水",
+      "头皮护理",
+      "洗发露"
+    ]
+  },
+  "editorial": {
+    "title": "海飞丝小红书品牌健康度诊断：声量稳健，增长待破局",
+    "subtitle": "基于近90天全量数据与竞品对标分析",
+    "executive_summary": "海飞丝在小红书平台健康度得分为72.0，展现出稳健的声量基础与高效的用户互动能力。近90天内，品牌相关笔记644篇，总互动量超11万次，篇均互动（171.72）显著高于主要竞品欧莱雅（59.19），表明现有内容能有效引发用户参与。然而，品牌声量规模与头部竞品存在数量级差距，且在“去屑洗发水”、“控油蓬松”等核心细分需求场景的搜索影响力有待加强。部分高互动内容（如生活Vlog）与品牌核心信息关联度较弱，可能稀释专业形象。最关键的是，数据中缺乏直接的转化指标，使得营销投入的商业回报难以评估。本报告基于确定性数据聚合与事实校验结论生成，但需注意：竞争对手数据（清扬、潘婷、沙宣）样本量极低，可能影响市场格局判断；评论样本有限且无情感分析，用户真实倾向评估存在局限。",
+    "key_findings": [
+      "声量效率优势明显，但规模差距显著：海飞丝篇均互动（171.72）远高于欧莱雅（59.19），内容互动效率突出。但笔记总量（644篇）仅为欧莱雅（11962篇）的5.4%，声量规模存在巨大差距，限制了品牌在平台的整体影响力。",
+      "内容资产覆盖有效模式，但关联度需优化：品牌成功的内容集群包括“成分党深度科普”（如二硫化硒、水杨酸）、“真实效果见证”和“生活方式融合”。然而，部分高互动笔记（如生活Vlog、美食内容）与品牌核心产品关联度弱，可能分散用户对品牌专业价值的认知。",
+      "细分场景搜索占位不足：在“去屑洗发水”、“控油蓬松”等高需求细分话题中，品牌相关话题的互动量低于更泛的品类话题，表明品牌在精准触达目标用户、承接细分需求方面存在短板。",
+      "核心受众与痛点清晰，但转化路径不明：数据表明，受头屑、头油困扰的消费者，关注成分功效的“成分党”，以及追求蓬松控油的用户是品牌核心受众。其主要痛点为头屑反复、头皮易油。然而，缺乏购买转化、搜索转化等直接效果数据，无法评估内容种草到购买的实际效率。",
+      "竞争情报存在盲区：提供的竞争对手数据中，清扬、潘婷、沙宣的笔记数和互动量异常低，可能与数据抓取范围或品牌策略有关，需谨慎解读。同时，笔记中频繁提及的竞品（如康如、薇姿）未在对比列表中，市场竞争格局可能比预设的更复杂。"
+    ],
+    "management_diagnosis": "海飞丝在小红书平台处于“声量稳健但增长受限，互动高效但转化不明”的状态。品牌已建立有效的声量基础和高于部分竞品的内容互动效率，内容资产覆盖了成分科普、效果见证等有效模式。然而，管理层需关注三大结构性挑战：第一，声量规模与头部竞品差距巨大，增长面临瓶颈；第二，部分高互动内容与品牌核心价值关联度不足，存在稀释专业形象的风险；第三，也是最关键的一点，缺乏转化数据使得营销投入的回报难以评估，存在资源错配风险。未来90天，建议优先聚焦细分场景声量提升（如“二硫化硒洗发水”、“控油蓬松”），优化内容关联度，并初步建立转化评估体系，将内容优势转化为可衡量的商业价值。",
+    "closing_note": "本报告所有指标均来自确定性SQL聚合数据，洞察文本已经过事实校验。报告中已明确标注数据局限性，包括竞品数据异常、评论样本有限、缺乏转化指标等，相关结论均基于现有数据范围，未做过度推断。"
+  },
+  "external_context": {
+    "category_context": [
+      "洗护发与去屑头皮护理是个人护理中的基础品类，消费者需求稳定且持续。",
+      "该品类产品功能细分明显，核心诉求包括去屑、控油、蓬松、防脱和头皮养护。",
+      "消费者对产品成分的关注度日益提升，如水杨酸、二硫化硒等成为热门讨论点。",
+      "市场竞争激烈，既有国际大牌，也有众多新兴品牌和细分赛道玩家。",
+      "用户决策易受社交媒体内容影响，尤其是真实使用体验和成分科普类内容。",
+      "产品使用场景与日常生活紧密相关，如通勤、运动、熬夜等场景下的护发需求常被提及。"
+    ],
+    "platform_context": [
+      "小红书是美妆个护品类的重要种草和口碑平台，用户乐于分享真实体验和测评。",
+      "平台内容形式多样，图文、短视频、Vlog等均能有效传递产品信息。",
+      "用户互动行为（点赞、收藏、评论）是衡量内容热度和品牌声量的关键指标。",
+      "热门话题和标签（如#去屑洗发水#、#控油蓬松#）能有效聚合兴趣用户。",
+      "平台存在大量跨品类内容关联，例如将护发与健身、养生、职场生活等场景结合。",
+      "品牌官方号与达人合作是常见的内容传播模式，能有效扩大品牌影响力。"
+    ],
+    "brand_context": [
+      "海飞丝是宝洁旗下知名的去屑洗发水品牌，在中国市场拥有长期的品牌认知和用户基础。",
+      "品牌近期营销活动涉及明星合作（如品牌大使李云霄），并推广特定产品线（如玫瑰双抗瓶、二硫化硒洗发水）。",
+      "从用户讨论看，品牌产品线覆盖了去屑、控油、蓬松等多个细分需求。",
+      "部分用户提及海飞丝是“从小用到大的品牌”，表明其拥有一定的品牌情怀和信任度。",
+      "品牌在小红书上有官方账号（如“海飞丝头与肩”）进行内容发布和互动。",
+      "品牌产品常出现在多品牌洗发水测评和推荐类内容中，与竞品进行对比。"
+    ],
+    "cautions": [
+      "提供的竞争对手数据中，清扬、潘婷、沙宣的笔记数和互动量极低，可能与数据抓取范围或品牌在该平台的声量策略有关，需谨慎解读。",
+      "部分高互动笔记内容与海飞丝品牌关联度较弱（如生活Vlog、美食内容），可能影响品牌声量分析的纯粹性。",
+      "数据时间窗口为90天，可能无法反映品牌长期的声量趋势或季节性波动。",
+      "用户评论样本数量有限，且未提供情感分析结果，难以全面评估用户对品牌的真实情感倾向。",
+      "笔记内容中提及的竞品（如康如、薇姿、蔓迪等）在提供的竞争对手列表中未出现，表明市场竞争格局可能比预设的更复杂。",
+      "无法从现有数据中判断品牌营销活动（如明星合作）的具体效果和投入产出比。"
+    ]
+  },
+  "kpis": {
+    "health_score": 72.0,
+    "note_count": 644,
+    "author_count": 572,
+    "interaction_total": 110588,
+    "like_total": 69681,
+    "comment_total": 6924,
+    "collection_total": 31042,
+    "share_total": 2941,
+    "avg_interaction": 171.72,
+    "avg_collection": 48.2,
+    "data_quality": {
+      "status": "ok",
+      "reasons": [],
+      "notes": []
+    }
+  },
+  "dimension_scores": [
+    {
+      "name": "声量渗透",
+      "score": 85.0,
+      "confidence": "high",
+      "rationale": "品牌在90天内拥有644篇笔记和572位作者，总互动量达110,588次，平均互动171.72次，表明品牌在平台上有显著的声量基础和用户参与度。与主要竞争对手（如欧莱雅）相比，笔记数和互动总量存在差距，但平均互动水平较高。",
+      "evidence_ids": [
+        "core_metrics",
+        "competitor_metrics"
+      ]
+    },
+    {
+      "name": "互动质量",
+      "score": 78.0,
+      "confidence": "high",
+      "rationale": "平均互动（171.72）和平均收藏（48.2）均处于较高水平，表明内容能有效引发用户互动和深度兴趣。Top笔记中，互动量最高的笔记（如N1）互动达7651次，且包含大量收藏和分享，显示内容具有传播力。",
+      "evidence_ids": [
+        "core_metrics",
+        "N1",
+        "N2",
+        "N5"
+      ]
+    },
+    {
+      "name": "内容资产",
+      "score": 70.0,
+      "confidence": "medium",
+      "rationale": "品牌拥有官方账号（如“海飞丝头与肩”）和明星合作内容（如品牌大使李云霄），内容形式涵盖产品测评、生活Vlog、成分科普等。但部分高互动笔记（如N3、N11）与品牌关联度较弱，可能稀释品牌核心信息的传递。",
+      "evidence_ids": [
+        "N8",
+        "N17",
+        "N20",
+        "top_authors"
+      ]
+    },
+    {
+      "name": "搜索占位",
+      "score": 65.0,
+      "confidence": "medium",
+      "rationale": "品牌关键词“海飞丝”相关笔记611篇，互动68,784次，在搜索中占据一定份额。但相关话题如“去屑洗发水”、“控油蓬松”等互动量更高，表明品牌在细分需求场景中的占位有待加强。",
+      "evidence_ids": [
+        "keyword_signals"
+      ]
+    },
+    {
+      "name": "达人结构",
+      "score": 75.0,
+      "confidence": "medium",
+      "rationale": "Top作者中包括头部达人（如蛋挞美研社，粉丝61.8万）和品牌官方号，能覆盖不同粉丝层级。但作者分布中，粉丝量级跨度大，且部分高互动作者（如可可乐乐，粉丝仅24）内容与品牌关联度低，达人合作结构的精准度和效果评估数据不足。",
+      "evidence_ids": [
+        "top_authors",
+        "A1",
+        "A6"
+      ]
+    },
+    {
+      "name": "转化潜力",
+      "score": 60.0,
+      "confidence": "low",
+      "rationale": "数据中缺乏直接的转化指标（如点击购买、搜索转化率）。从内容看，部分笔记（如N2、N4、N12）包含明确的产品推荐和功效描述，可能引导购买兴趣。但评论样本有限且未提供情感分析，无法准确评估用户购买意向和转化效果。",
+      "evidence_ids": [
+        "N2",
+        "N4",
+        "N12",
+        "comment_signals"
+      ]
+    }
+  ],
+  "health_score": 72.0,
+  "kpi_cards": [
+    {
+      "label": "健康度",
+      "value": 72.0,
+      "hint": "/100"
+    },
+    {
+      "label": "相关笔记",
+      "value": 644,
+      "hint": "全量聚合"
+    },
+    {
+      "label": "参与作者",
+      "value": 572,
+      "hint": "去重作者"
+    },
+    {
+      "label": "总互动",
+      "value": 110588,
+      "hint": "赞评藏转"
+    }
+  ],
+  "benchmark_gap": [
+    "声量渗透: 与欧莱雅相比，笔记数量（644 vs 11962）和总互动量（110,588 vs 707,995）存在显著差距，表明品牌在平台声量规模上仍有较大提升空间。; 互动质量: 平均互动（171.72）高于欧莱雅（59.19），显示品牌内容互动效率较高，但需持续优化以维持优势。; 内容资产: 缺乏与竞品（如欧莱雅）在内容类型、发布频率、合作达人层级等方面的详细对比数据，无法精确评估差距。; 搜索占位: 在核心品类关键词（如“去屑洗发水”）的搜索占位中，品牌相关话题互动量（如“海飞丝”14,775）低于更泛的品类话题（如“去屑洗发水”27,049），表明品牌在细分需求场景中的搜索影响力有待加强。; 达人结构: 缺乏竞品达人结构（如合作达人数量、粉丝层级分布、内容类型）的详细对比数据，无法精确评估差距。; 转化潜力: 缺乏竞品转化数据（如购买转化率、客单价）的对比，无法评估品牌在转化效率上的相对位置。"
+  ],
+  "metric_findings": [
+    {
+      "claim": "品牌在90天内拥有稳定的声量基础和较高的用户互动水平。",
+      "evidence_ids": [
+        "core_metrics"
+      ],
+      "confidence": "high"
+    },
+    {
+      "claim": "品牌内容互动效率（平均互动）高于主要竞争对手欧莱雅。",
+      "evidence_ids": [
+        "core_metrics",
+        "competitor_metrics"
+      ],
+      "confidence": "high"
+    },
+    {
+      "claim": "品牌通过明星合作（如李云霄）和官方账号进行内容营销，但部分高互动内容与品牌核心信息关联度较弱。",
+      "evidence_ids": [
+        "N8",
+        "N17",
+        "N3",
+        "N11"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "claim": "品牌在细分需求场景（如“去屑洗发水”、“控油蓬松”）的搜索占位中，影响力低于更泛的品类话题。",
+      "evidence_ids": [
+        "keyword_signals"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "claim": "缺乏直接的转化数据，无法准确评估品牌的购买转化潜力。",
+      "evidence_ids": [
+        "comment_signals"
+      ],
+      "confidence": "low"
+    }
+  ],
+  "competitors": [
+    {
+      "brand": "清扬",
+      "note_count": 3,
+      "author_count": 3,
+      "like_total": 2,
+      "comment_total": 1,
+      "collection_total": 0,
+      "share_total": 0,
+      "interaction_total": 3,
+      "avg_interaction": 1.0,
+      "avg_collection": 0.0
+    },
+    {
+      "brand": "潘婷",
+      "note_count": 3,
+      "author_count": 3,
+      "like_total": 2857,
+      "comment_total": 99,
+      "collection_total": 1081,
+      "share_total": 40,
+      "interaction_total": 4077,
+      "avg_interaction": 1359.0,
+      "avg_collection": 360.33
+    },
+    {
+      "brand": "欧莱雅",
+      "note_count": 11962,
+      "author_count": 9450,
+      "like_total": 459939,
+      "comment_total": 44029,
+      "collection_total": 176926,
+      "share_total": 27101,
+      "interaction_total": 707995,
+      "avg_interaction": 59.19,
+      "avg_collection": 14.79
+    },
+    {
+      "brand": "沙宣",
+      "note_count": 2,
+      "author_count": 2,
+      "like_total": 189,
+      "comment_total": 4,
+      "collection_total": 117,
+      "share_total": 3,
+      "interaction_total": 313,
+      "avg_interaction": 156.5,
+      "avg_collection": 58.5
+    }
+  ],
+  "competitor_benchmark": [
+    {
+      "brand": "清扬",
+      "note_count": 3,
+      "author_count": 3,
+      "like_total": 2,
+      "comment_total": 1,
+      "collection_total": 0,
+      "share_total": 0,
+      "interaction_total": 3,
+      "avg_interaction": 1.0,
+      "avg_collection": 0.0
+    },
+    {
+      "brand": "潘婷",
+      "note_count": 3,
+      "author_count": 3,
+      "like_total": 2857,
+      "comment_total": 99,
+      "collection_total": 1081,
+      "share_total": 40,
+      "interaction_total": 4077,
+      "avg_interaction": 1359.0,
+      "avg_collection": 360.33
+    },
+    {
+      "brand": "欧莱雅",
+      "note_count": 11962,
+      "author_count": 9450,
+      "like_total": 459939,
+      "comment_total": 44029,
+      "collection_total": 176926,
+      "share_total": 27101,
+      "interaction_total": 707995,
+      "avg_interaction": 59.19,
+      "avg_collection": 14.79
+    },
+    {
+      "brand": "沙宣",
+      "note_count": 2,
+      "author_count": 2,
+      "like_total": 189,
+      "comment_total": 4,
+      "collection_total": 117,
+      "share_total": 3,
+      "interaction_total": 313,
+      "avg_interaction": 156.5,
+      "avg_collection": 58.5
+    }
+  ],
+  "competitor_positioning": [
+    {
+      "brand": "本品牌",
+      "note_count": 644,
+      "avg_interaction": 171.72,
+      "volume_index": 100.0,
+      "efficiency_index": 100.0,
+      "position": "基准",
+      "caution": ""
+    },
+    {
+      "brand": "清扬",
+      "note_count": 3,
+      "avg_interaction": 1.0,
+      "volume_index": 0.5,
+      "efficiency_index": 0.6,
+      "position": "低声量低效率",
+      "caution": "样本量明显低于本品牌，篇均互动不宜直接外推"
+    },
+    {
+      "brand": "潘婷",
+      "note_count": 3,
+      "avg_interaction": 1359.0,
+      "volume_index": 0.5,
+      "efficiency_index": 791.4,
+      "position": "小样本高效率",
+      "caution": "样本量明显低于本品牌，篇均互动不宜直接外推"
+    },
+    {
+      "brand": "欧莱雅",
+      "note_count": 11962,
+      "avg_interaction": 59.19,
+      "volume_index": 1857.5,
+      "efficiency_index": 34.5,
+      "position": "高声量待提效",
+      "caution": ""
+    },
+    {
+      "brand": "沙宣",
+      "note_count": 2,
+      "avg_interaction": 156.5,
+      "volume_index": 0.3,
+      "efficiency_index": 91.1,
+      "position": "低声量低效率",
+      "caution": "样本量明显低于本品牌，篇均互动不宜直接外推"
+    }
+  ],
+  "keywords": [
+    {
+      "type": "keyword",
+      "search_keyword": "海飞丝",
+      "note_count": 611,
+      "interaction_total": 68784
+    },
+    {
+      "type": "keyword",
+      "search_keyword": "洗发水",
+      "note_count": 19,
+      "interaction_total": 22773
+    },
+    {
+      "type": "keyword",
+      "search_keyword": "敏感肌修护",
+      "note_count": 2,
+      "interaction_total": 1967
+    },
+    {
+      "type": "keyword",
+      "search_keyword": "运动",
+      "note_count": 1,
+      "interaction_total": 7651
+    },
+    {
+      "type": "keyword",
+      "search_keyword": "未标注",
+      "note_count": 1,
+      "interaction_total": 2235
+    },
+    {
+      "type": "keyword",
+      "search_keyword": "熬夜恢复",
+      "note_count": 1,
+      "interaction_total": 1864
+    },
+    {
+      "type": "keyword",
+      "search_keyword": "彩妆",
+      "note_count": 1,
+      "interaction_total": 1545
+    },
+    {
+      "type": "keyword",
+      "search_keyword": "软装",
+      "note_count": 1,
+      "interaction_total": 1337
+    },
+    {
+      "type": "keyword",
+      "search_keyword": "电脑",
+      "note_count": 1,
+      "interaction_total": 1337
+    },
+    {
+      "type": "keyword",
+      "search_keyword": "面霜",
+      "note_count": 1,
+      "interaction_total": 624
+    },
+    {
+      "type": "keyword",
+      "search_keyword": "健康管理",
+      "note_count": 1,
+      "interaction_total": 462
+    },
+    {
+      "type": "keyword",
+      "search_keyword": "补水喷雾",
+      "note_count": 1,
+      "interaction_total": 9
+    },
+    {
+      "type": "keyword",
+      "search_keyword": "维生素",
+      "note_count": 1,
+      "interaction_total": 0
+    },
+    {
+      "type": "keyword",
+      "search_keyword": "YSL",
+      "note_count": 1,
+      "interaction_total": 0
+    },
+    {
+      "type": "keyword",
+      "search_keyword": "欧莱雅",
+      "note_count": 1,
+      "interaction_total": 0
+    }
+  ],
+  "keyword_opportunity_matrix": [
+    {
+      "keyword": "洗发水",
+      "category": "产品词",
+      "note_count": 19,
+      "interaction_total": 22773,
+      "avg_interaction": 1198.58,
+      "relevance_score": 90,
+      "reason": "命中核心产品/产品线，适合转成内容选题。",
+      "recommended_action": "围绕“洗发水”产出测评、使用教程和横向对比内容。",
+      "demand_score": 87.5,
+      "supply_gap_score": 37.5,
+      "opportunity_score": 77.5
+    },
+    {
+      "keyword": "海飞丝",
+      "category": "品牌词",
+      "note_count": 611,
+      "interaction_total": 68784,
+      "avg_interaction": 112.58,
+      "relevance_score": 96,
+      "reason": "品牌主动搜索词，适合观察心智承接。",
+      "recommended_action": "复盘“海飞丝”下高互动内容，稳定承接主动搜索需求。",
+      "demand_score": 62.5,
+      "supply_gap_score": 12.5,
+      "opportunity_score": 66.1
+    },
+    {
+      "keyword": "熬夜恢复",
+      "category": "场景词",
+      "note_count": 1,
+      "interaction_total": 1864,
+      "avg_interaction": 1864.0,
+      "relevance_score": 68,
+      "reason": "命中使用场景，可用于拓展内容入口。",
+      "recommended_action": "小规模测试“熬夜恢复”场景内容，验证是否能带来新增互动。",
+      "demand_score": 37.5,
+      "supply_gap_score": 87.5,
+      "opportunity_score": 60.8
+    },
+    {
+      "keyword": "敏感肌修护",
+      "category": "功效词",
+      "note_count": 2,
+      "interaction_total": 1967,
+      "avg_interaction": 983.5,
+      "relevance_score": 80,
+      "reason": "命中用户问题或功效诉求，适合做转化型内容。",
+      "recommended_action": "用真实问题场景解释“敏感肌修护”相关功效，补充评论区答疑。",
+      "demand_score": 12.5,
+      "supply_gap_score": 62.5,
+      "opportunity_score": 57.2
+    }
+  ],
+  "topics": [
+    {
+      "type": "topic",
+      "name": "海飞丝",
+      "note_count": 146,
+      "interaction_total": 14775
+    },
+    {
+      "type": "topic",
+      "name": "洗发水推荐",
+      "note_count": 95,
+      "interaction_total": 23211
+    },
+    {
+      "type": "topic",
+      "name": "去屑洗发水",
+      "note_count": 63,
+      "interaction_total": 27049
+    },
+    {
+      "type": "topic",
+      "name": "上薯喝咖啡",
+      "note_count": 60,
+      "interaction_total": 0
+    },
+    {
+      "type": "topic",
+      "name": "洗发水",
+      "note_count": 49,
+      "interaction_total": 5741
+    },
+    {
+      "type": "topic",
+      "name": "李云霄海飞丝",
+      "note_count": 49,
+      "interaction_total": 1097
+    },
+    {
+      "type": "topic",
+      "name": "李沛恩",
+      "note_count": 44,
+      "interaction_total": 539
+    },
+    {
+      "type": "topic",
+      "name": "李云霄",
+      "note_count": 39,
+      "interaction_total": 7697
+    },
+    {
+      "type": "topic",
+      "name": "余承恩",
+      "note_count": 38,
+      "interaction_total": 489
+    },
+    {
+      "type": "topic",
+      "name": "油头洗发水",
+      "note_count": 35,
+      "interaction_total": 7388
+    },
+    {
+      "type": "topic",
+      "name": "洗发水分享",
+      "note_count": 31,
+      "interaction_total": 1937
+    },
+    {
+      "type": "topic",
+      "name": "惊时洗发水",
+      "note_count": 31,
+      "interaction_total": 34
+    },
+    {
+      "type": "topic",
+      "name": "诗裴丝洗发水",
+      "note_count": 31,
+      "interaction_total": 0
+    },
+    {
+      "type": "topic",
+      "name": "资生堂洗发水",
+      "note_count": 30,
+      "interaction_total": 0
+    },
+    {
+      "type": "topic",
+      "name": "固色洗头水",
+      "note_count": 30,
+      "interaction_total": 0
+    },
+    {
+      "type": "topic",
+      "name": "潘婷桃桃洗护",
+      "note_count": 30,
+      "interaction_total": 0
+    },
+    {
+      "type": "topic",
+      "name": "春日尝鲜",
+      "note_count": 30,
+      "interaction_total": 0
+    },
+    {
+      "type": "topic",
+      "name": "油头救星",
+      "note_count": 28,
+      "interaction_total": 13661
+    },
+    {
+      "type": "topic",
+      "name": "洗发水测评",
+      "note_count": 28,
+      "interaction_total": 3684
+    },
+    {
+      "type": "topic",
+      "name": "二硫化硒洗发水",
+      "note_count": 27,
+      "interaction_total": 10997
+    },
+    {
+      "type": "topic",
+      "name": "头皮护理",
+      "note_count": 23,
+      "interaction_total": 23001
+    },
+    {
+      "type": "topic",
+      "name": "海飞丝二硫化硒洗发水",
+      "note_count": 23,
+      "interaction_total": 8086
+    },
+    {
+      "type": "topic",
+      "name": "控油蓬松",
+      "note_count": 23,
+      "interaction_total": 7184
+    },
+    {
+      "type": "topic",
+      "name": "洗发水控油蓬松",
+      "note_count": 19,
+      "interaction_total": 4169
+    }
+  ],
+  "weekly_trend": [
+    {
+      "type": "weekly_trend",
+      "week_start": "2026-03-23",
+      "note_count": 231,
+      "interaction_total": 66835
+    },
+    {
+      "type": "weekly_trend",
+      "week_start": "2026-03-30",
+      "note_count": 242,
+      "interaction_total": 35862
+    },
+    {
+      "type": "weekly_trend",
+      "week_start": "2026-04-06",
+      "note_count": 41,
+      "interaction_total": 7878
+    },
+    {
+      "type": "weekly_trend",
+      "week_start": "2026-04-13",
+      "note_count": 113,
+      "interaction_total": 13
+    },
+    {
+      "type": "weekly_trend",
+      "week_start": "2026-04-20",
+      "note_count": 17,
+      "interaction_total": 0
+    }
+  ],
+  "top_notes": [
+    {
+      "evidence_id": "N1",
+      "note_id": "69c64158000000002301fb04",
+      "sample_group": "top_interaction",
+      "title": "5min头皮八段锦🔥跟老祖宗养头发‼️头发疯长",
+      "content_excerpt": "5min头皮八段锦🔥跟老祖宗养头发‼️头发疯长 姐妹们！大推荐头皮按摩💆‍♀️好处真的太多了！ 如果你经常头油、头发也一抓一大把，平时又容易情绪紧张，每天一定要练[生气R][生气R] 八式完整跟练+详细讲解+镜像纠错版来咯‼️ 懒人友好，简单好学，姨妈期也能练～ 每天只要5分钟，头皮放松了，更容易入眠💤 #00:08[时刻]#开天门-通前侧 #00:37[时刻]#按颞区-通旁侧 #01:02[时刻]#叩击百会-升阳气 #01:24[时…",
+      "author_nickname": "蛋挞美研社",
+      "publish_time": "2026-03-28T03:07:04+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69c64158000000002301fb04",
+      "like_count": 2501,
+      "comment_count": 42,
+      "collection_count": 4374,
+      "share_count": 734,
+      "interaction_total": 7651,
+      "tags": [
+        "见人不如健身",
+        "在小红书轻养生",
+        "健康管理",
+        "头皮八段锦",
+        "养发护发",
+        "中式养发",
+        "头皮护理",
+        "头皮按摩",
+        "梳头",
+        "坚持梳头",
+        "健身POV",
+        "健身行动派",
+        "一种很新的健身方式",
+        "健身邪修大法",
+        "健康养生",
+        "养生日常",
+        "传统养生功法",
+        "经络疏通",
+        "上热下寒",
+        "八段锦",
+        "健身人随地大小练",
+        "穴位养生",
+        "运动万粉助力计划",
+        "变美",
+        "逆袭",
+        "我的运动日常",
+        "自律",
+        "居家跟练",
+        "太极拳",
+        "养生人的长期主义",
+        "体态",
+        "中式养生",
+        "气血不足",
+        "养生动作一学就会",
+        "蛋挞美研社"
+      ]
+    },
+    {
+      "evidence_id": "N2",
+      "note_id": "69c76190000000001d01c250",
+      "sample_group": "top_interaction",
+      "title": "头发养护大公开‍！给油屑头一点震撼",
+      "content_excerpt": "头发养护大公开‍！给油屑头一点震撼 所有说洗发水洗不掉头油头屑的都往我这看🙋‍♀️ 最近我找到了一个宝藏洗发水：盐屋去屑洗发水✨ 这个牌子是基于死海盐研发的洗护产品📝，在德国可以说是渠道王者实力特别强。 它把这些死海原盐添加在洗发水里，能从根源把头皮环境慢慢的调理健康，那些不适的痒感也能恰到好处的压下去。 #去屑洗发水 ##去屑 ##控油 ##蓬松 # #德国药妆同款Salthouse #",
+      "author_nickname": "杨毛卷er",
+      "publish_time": "2026-03-28T21:05:20+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69c76190000000001d01c250",
+      "like_count": 3755,
+      "comment_count": 62,
+      "collection_count": 1664,
+      "share_count": 6,
+      "interaction_total": 5487,
+      "tags": [
+        "去屑洗发水",
+        "去屑",
+        "控油",
+        "蓬松",
+        "德国药妆同款Salthouse"
+      ]
+    },
+    {
+      "evidence_id": "N3",
+      "note_id": "69d26bc0000000001b0010f9",
+      "sample_group": "top_interaction",
+      "title": "vlog🍜📦这是我研二下去工位的一天",
+      "content_excerpt": "#大学生活分享篇 # #vlog # #研究生日常 # #日常花销 # #今天吃什么呢 # #读研日记 # #我独自生活 # #vlog我的一天 # #一人食吃什么 # #每天都有值得记录的瞬间 #",
+      "author_nickname": "油条小豆蒋",
+      "publish_time": "2026-04-06T06:03:44+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69d26bc0000000001b0010f9",
+      "like_count": 2444,
+      "comment_count": 127,
+      "collection_count": 84,
+      "share_count": 10,
+      "interaction_total": 2665,
+      "tags": [
+        "大学生活分享篇",
+        "vlog",
+        "研究生日常",
+        "日常花销",
+        "今天吃什么呢",
+        "读研日记",
+        "我独自生活",
+        "vlog我的一天",
+        "一人食吃什么",
+        "每天都有值得记录的瞬间"
+      ]
+    },
+    {
+      "evidence_id": "N4",
+      "note_id": "69c27a25000000001d01df54",
+      "sample_group": "top_interaction",
+      "title": "油头已经开始期待夏天了！！！",
+      "content_excerpt": "康如高良姜去屑控油洗发水绝了！！油头屑都建议去查看看！！终于遇到本命洗发水了！真的让我用一次就服了！透明啫喱质地，本来以为去屑控油的会干涩，没想到搓出的泡沫巨绵密，像云朵一样软fufu！上头按摩的时候，泡沫包裹整个头皮，不是那种搓盘子感，是顺滑又洗得干净的感觉！ 用完第一次头皮就干干净净，小白屑直接消失！控油效果更是惊艳，第三天头发还是清爽蓬松的！扒开头缝也没见到头屑长出来大惊喜来的！！最绝的还是味道！高级植物清香，洗完头发留着淡淡香…",
+      "author_nickname": "小小",
+      "publish_time": "2026-03-28T22:51:27+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69c27a25000000001d01df54",
+      "like_count": 1669,
+      "comment_count": 56,
+      "collection_count": 787,
+      "share_count": 11,
+      "interaction_total": 2523,
+      "tags": [
+        "康如",
+        "康如高良姜去屑控油洗发水",
+        "康如高良姜洗发水",
+        "控油蓬松",
+        "油头救星",
+        "去屑洗发水",
+        "蓬松发根",
+        "无限回购",
+        "洗发水控油蓬松",
+        "洗发水推荐"
+      ]
+    },
+    {
+      "evidence_id": "N5",
+      "note_id": "69d0f96000000000230267e3",
+      "sample_group": "top_interaction",
+      "title": "妈妈喜欢提前很早把即将用完的东西给装满",
+      "content_excerpt": "洗澡的时候看到这个爆笑，不管什么味的洗发水，灌满就行哈哈哈哈#海飞丝 #",
+      "author_nickname": "可可乐乐",
+      "publish_time": "2026-04-05T03:43:28+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69d0f96000000000230267e3",
+      "like_count": 1861,
+      "comment_count": 385,
+      "collection_count": 112,
+      "share_count": 98,
+      "interaction_total": 2456,
+      "tags": [
+        "海飞丝"
+      ]
+    },
+    {
+      "evidence_id": "N6",
+      "note_id": "69d1f34100000000210061d5",
+      "sample_group": "top_interaction",
+      "title": "🎁X13～去宝洁大楼给我的美发屋进点货",
+      "content_excerpt": "#朱旺旺 # #洗发水 # #洗头 # #油头 # #蓬松 # #护发素 # #细软塌 # #海飞丝二硫化硒洗发水 # #潘婷3分钟奇迹精油 # #发之食谱月影花洗发水 #",
+      "author_nickname": "朱旺旺就是朱旺旺呗",
+      "publish_time": "2026-04-07T01:01:10+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69d1f34100000000210061d5",
+      "like_count": 1419,
+      "comment_count": 282,
+      "collection_count": 252,
+      "share_count": 313,
+      "interaction_total": 2266,
+      "tags": []
+    },
+    {
+      "evidence_id": "N7",
+      "note_id": "69c639ba000000001e00eb7a",
+      "sample_group": "top_interaction",
+      "title": "行业公认标准做出来的去屑洗发水，有点意思",
+      "content_excerpt": "作为一个对成分有点执念的人 我很有必要的给各位亲朋好友讲述一个事实 那就是其实很多去屑洗发水都是治标不治本 只清除表面头屑，却没干预头屑产生的根源 所以才会陷入洗两天好两天的死循环 根据头屑反复其实是头皮代谢的周期连锁反应，主要分三个阶段，每一步都环环相扣，缺一不可 简单来说，可以把头皮想象成一片土壤： 诱发期：皮脂分泌太旺，相当于土壤过度肥沃 滋生期：角质细胞的正常生长节奏被破坏，没长好的角质提前脱落，就成了头屑 爆发期：头皮发痒，…",
+      "author_nickname": "小鹿是只医学牲",
+      "publish_time": "2026-03-29T03:41:55+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69c639ba000000001e00eb7a",
+      "like_count": 1316,
+      "comment_count": 25,
+      "collection_count": 862,
+      "share_count": 32,
+      "interaction_total": 2235,
+      "tags": [
+        "康如高良姜洗发水",
+        "康如",
+        "康如高良姜去屑洗发水",
+        "去屑洗发水",
+        "敏感头",
+        "洗发水红榜",
+        "头皮要洗更要养",
+        "哪种洗发水好用",
+        "二硫化硒洗发水"
+      ]
+    },
+    {
+      "evidence_id": "N8",
+      "note_id": "69c568f50000000023025310",
+      "sample_group": "top_interaction",
+      "title": "护发云课堂上线！",
+      "content_excerpt": "点击视频查收@李云霄 的护发小秘诀啦～也可以🎵 【海飞丝头皮护理官方号】下单同款#海飞丝玫瑰双抗瓶 # 哦 #海飞丝品牌大使李云霄 # #多面玫瑰云感蓬蓬 #",
+      "author_nickname": "海飞丝头与肩",
+      "publish_time": "2026-03-27T18:26:02+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69c568f50000000023025310",
+      "like_count": 1411,
+      "comment_count": 278,
+      "collection_count": 317,
+      "share_count": 146,
+      "interaction_total": 2152,
+      "tags": [
+        "海飞丝玫瑰双抗瓶",
+        "海飞丝品牌大使李云霄",
+        "多面玫瑰云感蓬蓬"
+      ]
+    },
+    {
+      "evidence_id": "N9",
+      "note_id": "69c4dd8b000000001a0364be",
+      "sample_group": "top_interaction",
+      "title": "薇姿5瓶洗发水一篇看懂！对号入座不踩雷🔥",
+      "content_excerpt": "薇姿5瓶洗发水一篇看懂！对号入座不踩雷🔥 把薇姿家最火的5瓶全集齐了！ 绿标清爽版、绿标水润版、爆蓬红标、粉标、去油瓶，每瓶王牌成分都扒明白了 对号入座，闭眼买不踩雷！💯 #薇姿绿标洗发水 # #二硫化硒洗发水 # #薇姿二硫化硒洗发水 # #油头救星 # #细软塌 # #去屑洗发水 # #敏感头皮 # #洗发水推荐 # #护肤 # #美妆 #",
+      "author_nickname": "禾森Sen",
+      "publish_time": "2026-03-26T23:25:59+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69c4dd8b000000001a0364be",
+      "like_count": 1165,
+      "comment_count": 33,
+      "collection_count": 942,
+      "share_count": 2,
+      "interaction_total": 2142,
+      "tags": [
+        "薇姿绿标洗发水",
+        "二硫化硒洗发水",
+        "薇姿二硫化硒洗发水",
+        "油头救星",
+        "细软塌",
+        "去屑洗发水",
+        "敏感头皮",
+        "洗发水推荐",
+        "护肤",
+        "美妆"
+      ]
+    },
+    {
+      "evidence_id": "N10",
+      "note_id": "69cb3f24000000001d01e098",
+      "sample_group": "top_interaction",
+      "title": "秒了我所有的洗发水！！！！",
+      "content_excerpt": "我之前因为头发太细软而无比焦虑！每次我坐在工位同事走过来我都怕他们瞥到我的宽发缝，但是咱也是七零八碎的办法都用了真的没招了！但我最近换了这瓶玫瑰洗发水之后很神奇，洗完真的很蓬松，是那种第二天起来还能超级支棱的蓬松，细软发谁懂！！！就是已经到什么程度呢，我今天在电梯碰到老板，他居然夸我最近气血很足看起来头发都变多了。。。真的没长很多新头发，只是那个发根蓬的啊整个发缝就真的是缩缩缩！终于体会到蓬松是一种什么样的体验了🥹🫶 另外别的不说，这…",
+      "author_nickname": "Canga种草",
+      "publish_time": "2026-03-31T20:20:45+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69cb3f24000000001d01e098",
+      "like_count": 1266,
+      "comment_count": 37,
+      "collection_count": 740,
+      "share_count": 3,
+      "interaction_total": 2046,
+      "tags": []
+    },
+    {
+      "evidence_id": "N11",
+      "note_id": "69ca4824000000001a024406",
+      "sample_group": "top_interaction",
+      "title": "加麻加辣的多汤麻辣烫🔥",
+      "content_excerpt": "#吃播 # #吃播日常 # #吃货 # #咀嚼音 # #沉浸式吃播 # #麻辣烫 # #吃货薯看这里 # #深夜偷吃 ##海飞丝水杨酸洗发水 # #海飞丝 #",
+      "author_nickname": "糕糕吃不饱-",
+      "publish_time": "2026-04-01T02:16:17+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69ca4824000000001a024406",
+      "like_count": 1712,
+      "comment_count": 66,
+      "collection_count": 157,
+      "share_count": 39,
+      "interaction_total": 1974,
+      "tags": [
+        "吃播",
+        "吃播日常",
+        "吃货",
+        "咀嚼音",
+        "沉浸式吃播",
+        "麻辣烫",
+        "吃货薯看这里",
+        "深夜偷吃",
+        "海飞丝水杨酸洗发水",
+        "海飞丝"
+      ]
+    },
+    {
+      "evidence_id": "N12",
+      "note_id": "69cb56d10000000028008d4f",
+      "sample_group": "top_interaction",
+      "title": "顽固头屑暴击！二硫化硒这瓶超有效",
+      "content_excerpt": "作为被头屑困扰很久的成分党，之前跟风入了多款传统二硫化硒洗发水，本想着能搞定头屑，结果要么越用头屑越多，要么头皮刺激、头发干涩，踩雷无数后才发现，二硫化硒的成分形态，才是去屑效果的关键！ - 大部分人遇到的头屑反复、使用感差，根本不是自身头皮问题，而是传统二硫化硒洗发水的固有弊端：普通二硫化硒成分稳定性极差，开封后极易分解，析出单质硒后会出现洗发水发黑、分层的情况，效果直接断崖式下跌，这就是为啥刚开始有用，后来完全失效 再加上成分浓度…",
+      "author_nickname": "小陈还在睡（深扒成分版）",
+      "publish_time": "2026-04-01T02:07:35+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69cb56d10000000028008d4f",
+      "like_count": 1276,
+      "comment_count": 43,
+      "collection_count": 601,
+      "share_count": 42,
+      "interaction_total": 1962,
+      "tags": [
+        "海飞丝二硫化硒洗发水",
+        "二硫化硒",
+        "头屑反复",
+        "去屑洗发水",
+        "头皮护理",
+        "头屑克星",
+        "洗发水推荐",
+        "油头救星",
+        "头皮健康",
+        "护发好物"
+      ]
+    },
+    {
+      "evidence_id": "N13",
+      "note_id": "69cb426a000000002003b3db",
+      "sample_group": "top_interaction",
+      "title": "04女大:）专升本倒时！学校群师欺我脑无力…",
+      "content_excerpt": "#大学生精神状态 ##治愈系vlog ##女大学生 ##我都学习进化论 ##海飞丝水杨酸洗发水 ##海飞丝肌底控油瓶 #",
+      "author_nickname": "一天要长多少膘",
+      "publish_time": "2026-04-01T01:00:08+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69cb426a000000002003b3db",
+      "like_count": 1755,
+      "comment_count": 46,
+      "collection_count": 110,
+      "share_count": 16,
+      "interaction_total": 1927,
+      "tags": [
+        "大学生精神状态",
+        "治愈系vlog",
+        "女大学生",
+        "我都学习进化论",
+        "海飞丝水杨酸洗发水",
+        "海飞丝肌底控油瓶"
+      ]
+    },
+    {
+      "evidence_id": "N14",
+      "note_id": "69c4f26c000000001d01db29",
+      "sample_group": "top_interaction",
+      "title": "乌诺地尔很牛？？今天就来辣评一下",
+      "content_excerpt": "最近真的被脱发搞到没脾气了。 不知道是不是换季加上工作压力大，每次洗完头，浴室地漏那一把头发，看得我心都凉半截。公司洗手台的台面上，也总能发现好多根我的漏网之鱼，有时候同事站旁边，还挺尴尬的。 我这人吧，对头发还挺有执念的，毕竟发量直接影响颜值。所以看到蔓迪出了款防脱洗发水，立马就心动了，想着反正是日常洗护，试试也不亏。 先说说最让我好奇的，乌诺地尔。 刚听到这个词，我也以为是啥新科技。扒了一下才明白，它有点像给毛囊松土。就是让毛囊那…",
+      "author_nickname": "美美小美伢",
+      "publish_time": "2026-03-27T01:06:02+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69c4f26c000000001d01db29",
+      "like_count": 1047,
+      "comment_count": 61,
+      "collection_count": 727,
+      "share_count": 29,
+      "interaction_total": 1864,
+      "tags": [
+        "防脱洗发水",
+        "洗发水推荐",
+        "蔓迪防脱洗发水",
+        "掉发怎么办",
+        "养发心得",
+        "头皮护理",
+        "乌诺地尔",
+        "脱发",
+        "养发",
+        "细软塌"
+      ]
+    },
+    {
+      "evidence_id": "N15",
+      "note_id": "69c36f7c000000001e00c46b",
+      "sample_group": "top_interaction",
+      "title": "好用到炸裂的去屑止痒控油洗发水",
+      "content_excerpt": "细软塌油屑头不骗油屑头！都是我真金白银买回来用过后总结出的去屑王炸洗发水，撒谎立刻掉头发！！！ #康如高良姜去屑控油洗发水 # 截至目前用过最不挑人的一款去屑洗发水，没有之一！！！好用程度从收到这个样品到第一次洗完就开始怒蹲400ml大包装上！并且再也没用过其他。洗前头发油的可以炒盘菜，不需要撩就能看到成片的头屑，洗完立刻不止是油没了，头屑一扫而空，而且就连头皮发痒的问题也能直接解决，并且整个头皮是透气的，发丝却没有一点干涩。而且牛就…",
+      "author_nickname": "鸡腿先生",
+      "publish_time": "2026-03-26T02:35:30+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69c36f7c000000001e00c46b",
+      "like_count": 1168,
+      "comment_count": 52,
+      "collection_count": 567,
+      "share_count": 39,
+      "interaction_total": 1826,
+      "tags": [
+        "康如高良姜去屑控油洗发水",
+        "薇姿绿标去屑洗发水",
+        "海飞丝二硫化硒洗发水",
+        "去屑",
+        "去屑洗发水",
+        "控油",
+        "洗护推荐"
+      ]
+    },
+    {
+      "evidence_id": "N16",
+      "note_id": "69c8c7a00000000022027f16",
+      "sample_group": "top_interaction",
+      "title": "十年脂溢油头自救！油屑头救星！一篇搞定",
+      "content_excerpt": "#脂溢性油头 # #洗头 # #头屑 # #控油 # #去屑 # #清扬二硫化硒洗发水 # #清扬二硫化硒 # #二硫化硒洗发水 # #去屑洗发水 # #清扬去屑洗发水 #",
+      "author_nickname": "张慧贤",
+      "publish_time": "2026-03-30T02:02:34+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69c8c7a00000000022027f16",
+      "like_count": 1131,
+      "comment_count": 39,
+      "collection_count": 509,
+      "share_count": 19,
+      "interaction_total": 1698,
+      "tags": [
+        "脂溢性油头",
+        "洗头",
+        "头屑",
+        "控油",
+        "去屑",
+        "清扬二硫化硒洗发水",
+        "清扬二硫化硒",
+        "二硫化硒洗发水",
+        "去屑洗发水",
+        "清扬去屑洗发水"
+      ]
+    },
+    {
+      "evidence_id": "N17",
+      "note_id": "69c49d120000000020038385",
+      "sample_group": "top_interaction",
+      "title": "李云霄｜独一无二的玫瑰",
+      "content_excerpt": "🎬 时间是玫瑰，是旅人，是星辰 是每个诗意的瞬间与绽放的自我 舞台上，以专业奔赴每一场亮相 让发丝时刻在线 生活里，以温柔滋养每一段日常 让身心轻盈蓬松 和海飞丝全新品牌大使李云霄一起 绽放每一面精彩 #李云霄 # #李云霄优秀 #",
+      "author_nickname": "品牌力研究所",
+      "publish_time": "2026-03-26T18:42:26+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69c49d120000000020038385",
+      "like_count": 1317,
+      "comment_count": 84,
+      "collection_count": 147,
+      "share_count": 64,
+      "interaction_total": 1612,
+      "tags": [
+        "李云霄",
+        "李云霄优秀"
+      ]
+    },
+    {
+      "evidence_id": "N18",
+      "note_id": "69c34e55000000002200349f",
+      "sample_group": "top_interaction",
+      "title": "解决掉发超有效的方法",
+      "content_excerpt": "#养发干货 ##头皮护理 ##养发 ##脱发 ##发际线养护 ##产后脱发 # #蔓迪防脱洗发水 ##洗发水推荐 ##防脱洗发水 ##细软塌 #",
+      "author_nickname": "配方拽拽",
+      "publish_time": "2026-03-28T01:48:31+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69c34e55000000002200349f",
+      "like_count": 1206,
+      "comment_count": 60,
+      "collection_count": 310,
+      "share_count": 30,
+      "interaction_total": 1606,
+      "tags": [
+        "养发干货",
+        "头皮护理",
+        "养发",
+        "脱发",
+        "发际线养护",
+        "产后脱发",
+        "蔓迪防脱洗发水",
+        "洗发水推荐",
+        "防脱洗发水",
+        "细软塌"
+      ]
+    },
+    {
+      "evidence_id": "N19",
+      "note_id": "69c65bf0000000001a02310d",
+      "sample_group": "top_interaction",
+      "title": "真想用这瓶水杨酸洗全身！！",
+      "content_excerpt": "海飞丝头皮透气预洗凝露 + 水杨酸控油瓶 我的油头护理组合拳 作为资深大油头！！还没进入夏天已经油冒得框框的，所以我真的使出了油皮救命的劲来洗头！ 对比起我对我这个油痘皮在脸上使的劲，我发现我的头皮是真的没洗干净！没用对成分！然后我最近测试了一下给头皮用上水杨酸，发现控油效果真的是肉眼可见，感觉整个头皮都不咋出油了！！！ 这套水杨酸组合真的是YYDS！你们是不是也不知道海飞丝出水杨酸了！ 头皮预洗凝露（1.7%水杨酸+2%果酸） 这瓶…",
+      "author_nickname": "黑不溜秋圆圆",
+      "publish_time": "2026-03-28T03:46:21+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69c65bf0000000001a02310d",
+      "like_count": 968,
+      "comment_count": 40,
+      "collection_count": 531,
+      "share_count": 39,
+      "interaction_total": 1578,
+      "tags": [
+        "海飞丝",
+        "油头救星",
+        "海飞丝头皮透气预洗凝露",
+        "海飞丝水杨酸洗发水",
+        "油头洗发水",
+        "控油蓬松",
+        "不想天天洗头",
+        "头皮深层清洁"
+      ]
+    },
+    {
+      "evidence_id": "N20",
+      "note_id": "69ca45e9000000001d01e96c",
+      "sample_group": "top_interaction",
+      "title": "独处Vlog·🥞：东北女的1日我独生活日记📔",
+      "content_excerpt": "嗨！ 你们今天有发生什么开心或者难过的事情吗！ 是在下班或放学的路上吗 还是在吃晚饭呢 #vlog我的一天 # #vlog博主 # #我的日常Vlog # #海飞丝玫瑰双抗瓶 # #治愈系Vlog # #独处时光 # #独处日常 # #普通人的生活也值得记录 # #沉浸式记录生活 # #日常vlog #",
+      "author_nickname": "雪肥",
+      "publish_time": "2026-04-01T01:43:35+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69ca45e9000000001d01e96c",
+      "like_count": 1260,
+      "comment_count": 175,
+      "collection_count": 127,
+      "share_count": 15,
+      "interaction_total": 1577,
+      "tags": [
+        "vlog我的一天",
+        "vlog博主",
+        "我的日常Vlog",
+        "海飞丝玫瑰双抗瓶",
+        "治愈系Vlog",
+        "独处时光",
+        "独处日常",
+        "普通人的生活也值得记录",
+        "沉浸式记录生活",
+        "日常vlog"
+      ]
+    },
+    {
+      "evidence_id": "N21",
+      "note_id": "69c6845b000000001a027dd9",
+      "sample_group": "top_interaction",
+      "title": "听劝！脂溢性皮炎别乱看，认准这几位就够了",
+      "content_excerpt": "脂溢性皮炎，从崩溃到与它和解，这条路真的很长。很感谢那些愿意分享自己真实经历的博主，让我知道我不是一个人在战斗。所以，我想把这份陪伴传递下去，分享几位一直给我力量和方法的“战友”。 @jinx金金 10年玫瑰脂皮经验 @宗宗_宗 头皮护理 脂溢性脱发 @可乐护肤日记 脂皮稳定护肤指南 @8个树大王 修护屏障➕维稳 @哈哈一堆肉肉 底妆➕护肤 @姬大脑袋 13年脂皮经验总结➕护肤干货 @大湾区金子酱 10年烂脸➕急救好物 @普普不是通通…",
+      "author_nickname": "小周周",
+      "publish_time": "2026-03-28T05:21:31+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69c6845b000000001a027dd9",
+      "like_count": 709,
+      "comment_count": 32,
+      "collection_count": 773,
+      "share_count": 31,
+      "interaction_total": 1545,
+      "tags": [
+        "当我真正开始爱自己",
+        "脂溢性皮炎",
+        "脂溢性脱发",
+        "脂皮护肤推荐",
+        "脂皮修护",
+        "脂皮化妆",
+        "变美思路",
+        "烂脸"
+      ]
+    },
+    {
+      "evidence_id": "N22",
+      "note_id": "69c33c48000000001f006c5b",
+      "sample_group": "top_interaction",
+      "title": "30+打工人| 保持体面、懒人也可以精致起来",
+      "content_excerpt": "Hi姐妹们～ 欢迎来到一边想躺平一边偷偷卷的桃气弹频道！ 主：朝九晚五打工人 副：成长型Plog博主 . 最近真的很忙 根本顾不上打理自己 但越是这样越不敢松懈 万一要被面试，总不能顶着一头油塌去吧 可谁还有精力天天洗头吹造型 于是我这个懒人开发了两套护发模式 既能应付日常，也能应对突发状况 . 懒人模式 遇到来姨妈或者太累了不想洗头 可头发贴住头皮，直接掏出Spes免洗洗发巾 抽一张，往头发上擦几下 不用水，不湿手，瞬间清爽蓬松 同…",
+      "author_nickname": "桃气弹",
+      "publish_time": "2026-03-25T19:10:17+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69c33c48000000001f006c5b",
+      "like_count": 721,
+      "comment_count": 74,
+      "collection_count": 662,
+      "share_count": 7,
+      "interaction_total": 1464,
+      "tags": [
+        "屈臣氏集团185周年",
+        "在健康与美的每一刻",
+        "打工人护发秘籍",
+        "职场生存指南",
+        "精简生活",
+        "好物分享",
+        "职场妈妈",
+        "屈臣氏",
+        "职场人必备"
+      ]
+    },
+    {
+      "evidence_id": "N23",
+      "note_id": "69c63307000000001a0273f3",
+      "sample_group": "top_interaction",
+      "title": "萎靡三千丝遇到了心软的神…",
+      "content_excerpt": "头油头屑真的太磨人了！试了好多洗发水都踩坑，直到用上海飞丝，才算把头皮这点烦心事捋顺了，这波直接焊死在我的洗护清单里！ 挤一点就能搓出绵密的泡沫，抹在头皮上轻轻揉一揉，能感觉到泡沫把油脂和头屑都裹住了，洗的时候一点不糊头皮，冲完水瞬间清爽，发根都支棱起来了，摸着头皮滑溜溜的，一点不假滑也不紧绷。 最舒服的是洗完后的状态，头屑直接看不见了，头皮清清爽爽的，就算是隔天没洗，头发也只是微微出油，不会贴在头皮上显邋遢，发尾还能保持蓬松感，随便…",
+      "author_nickname": "迷糊面包片🍞",
+      "publish_time": "2026-04-08T23:07:05+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69c63307000000001a0273f3",
+      "like_count": 690,
+      "comment_count": 51,
+      "collection_count": 671,
+      "share_count": 11,
+      "interaction_total": 1423,
+      "tags": [
+        "囤货消耗",
+        "消耗库存",
+        "物尽其用",
+        "洗发露",
+        "洗护好物",
+        "超赞的洗发水",
+        "断舍离极简生活",
+        "日常消耗",
+        "洗发水",
+        "洗发水测评",
+        "哪种洗发水好用",
+        "洗护",
+        "空瓶记"
+      ]
+    },
+    {
+      "evidence_id": "N24",
+      "note_id": "69cb7694000000001a02e14c",
+      "sample_group": "top_interaction",
+      "title": "这样洗管一周！洗出干净头皮绸缎发丝",
+      "content_excerpt": "#海飞丝二硫化硒洗发水 # #去屑洗发水 # #控油去屑 # #脂头 # #洗发水推荐 # #超活态二硫化硒 # #控油蓬松 # #洗发 # #养发护发 # #油头救星 #",
+      "author_nickname": "暴躁老弟",
+      "publish_time": "2026-04-01T01:50:04+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69cb7694000000001a02e14c",
+      "like_count": 781,
+      "comment_count": 47,
+      "collection_count": 569,
+      "share_count": 6,
+      "interaction_total": 1403,
+      "tags": [
+        "海飞丝二硫化硒洗发水",
+        "去屑洗发水",
+        "控油去屑",
+        "脂头",
+        "洗发水推荐",
+        "超活态二硫化硒",
+        "控油蓬松",
+        "洗发",
+        "养发护发",
+        "油头救星"
+      ]
+    },
+    {
+      "evidence_id": "N25",
+      "note_id": "69c4c59c000000001a0241a8",
+      "sample_group": "top_interaction",
+      "title": "李云霄同款戒指💍光芒万丈",
+      "content_excerpt": "李云霄@李云霄 ×海飞丝品牌大使 佩戴宝得意「四海千金」系列 天河石有钱花镂空戒指 聚光灯下，以专业演绎每一次登场，让风采始终闪耀📸 于指尖晕开东方雅致 似春日花朵，悄然绽放 #李云霄 # #李云霄海飞丝品牌大使 # #李云霄同款 # #李云霄穿搭 # #李云霄商务 # #宝得意 # #宝得意四海千金 # #同款戒指 #",
+      "author_nickname": "宝得意中人",
+      "publish_time": "2026-03-26T21:35:24+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69c4c59c000000001a0241a8",
+      "like_count": 781,
+      "comment_count": 367,
+      "collection_count": 144,
+      "share_count": 56,
+      "interaction_total": 1348,
+      "tags": [
+        "李云霄",
+        "李云霄海飞丝品牌大使",
+        "李云霄同款",
+        "李云霄穿搭",
+        "李云霄商务",
+        "宝得意",
+        "宝得意四海千金",
+        "同款戒指"
+      ]
+    },
+    {
+      "evidence_id": "N26",
+      "note_id": "69ccdc260000000023011b81",
+      "sample_group": "top_interaction",
+      "title": "大油头不用这俩都不敢出门。。。",
+      "content_excerpt": "我那大油头闺蜜咋发现的这俩玩意儿…上头也太爽了吧！ 油皮的姐妹强烈建议去试试这俩weleda家的迷迭香洗护搭子，油软塌直接治的服服帖帖，发根都跟着支棱起来了。 洗发水挤出来是透明啫喱状，稍微搓搓就有泡沫，这个洗感很舒适，让我惊喜的是它虽然不是那种泡沫很夸张的，但能深入头皮把油脂和脏东西吸得干干净净，甚至有种钻在我脑门里吸油的感觉！！洗完后的头皮干干净净超级舒爽 趁着半干去涂这个头皮精华，爽肤水状的质地也很曼妙，上头后一点儿都不油腻，按…",
+      "author_nickname": "摸鱼尖子生",
+      "publish_time": "2026-04-02T22:45:47+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69ccdc260000000023011b81",
+      "like_count": 728,
+      "comment_count": 36,
+      "collection_count": 568,
+      "share_count": 5,
+      "interaction_total": 1337,
+      "tags": [
+        "油头",
+        "weleda头皮精华",
+        "weleda迷迭香洗发水",
+        "头皮精华",
+        "头皮护理",
+        "高颅顶",
+        "去油洗发水",
+        "好用的洗发水",
+        "夏天必备",
+        "好物分享",
+        "weleda迷迭香头皮精华"
+      ]
+    },
+    {
+      "evidence_id": "N27",
+      "note_id": "69c4d641000000001a029ebc",
+      "sample_group": "top_interaction",
+      "title": "乌诺地尔是真能处，掉发它是真减少",
+      "content_excerpt": "作为一个常年对着电脑的打工人，脱发这件事简直是我的心头痛。每天洗完澡看着下水道那团头发，真的会怀疑自己是不是得了什么大病。头顶的头发越来越贴头皮，吹完头发看着镜子里的自己，总有种未老先衰的即视感。 后来做了功课才知道，脱发说白了就是毛囊在搞事情。压力大、熬夜多，毛囊周围的胶原蛋白会慢慢变硬，就像土地板结一样，发根扎不深，头发自然一碰就掉。 我现在的宝藏就是蔓迪那款防脱洗发水。它里面有个叫乌诺地尔的成分，专门针对毛囊硬化这个问题，相当于…",
+      "author_nickname": "水煮美人鱼",
+      "publish_time": "2026-03-26T23:28:42+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69c4d641000000001a029ebc",
+      "like_count": 654,
+      "comment_count": 51,
+      "collection_count": 616,
+      "share_count": 16,
+      "interaction_total": 1337,
+      "tags": [
+        "防脱发",
+        "头皮护理",
+        "洗护好物",
+        "蔓迪防脱洗发水",
+        "乌诺地尔",
+        "护发养发",
+        "脱发",
+        "养发",
+        "防脱洗发水",
+        "洗发水推荐"
+      ]
+    },
+    {
+      "evidence_id": "N28",
+      "note_id": "69c5f312000000001f006685",
+      "sample_group": "top_interaction",
+      "title": "30+姐姐｜松弛感就是对自己最大的温柔",
+      "content_excerpt": "以前总觉得事事都要做到满分才算对自己负责 屈臣氏小程序，最快30分钟送到 特别适合我这种临时抱佛脚的人✨ - ▫勤快模式｜海飞丝盈润修护洗发水 有时候想认真对待自己，就好好洗个头。 这款洗完头发清爽顺滑，头皮也舒服 · ▫懒人模式｜Spes免洗洗发巾 有时候就是不想动，但又不想被看出来 这片免洗巾设计的真的很懂 头发瞬间蓬松不粘腻 5秒搞定，懒人也有懒人的体面 · ▫造型加持｜施华蔻刚劲质感定型发胶 这个发胶喷完蓬松有型，不硬不粘 细…",
+      "author_nickname": "嘟嘟可爱多🥨",
+      "publish_time": "2026-03-27T21:17:44+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69c5f312000000001f006685",
+      "like_count": 752,
+      "comment_count": 109,
+      "collection_count": 306,
+      "share_count": 84,
+      "interaction_total": 1251,
+      "tags": []
+    },
+    {
+      "evidence_id": "N29",
+      "note_id": "69c62ed3000000001a020945",
+      "sample_group": "top_interaction",
+      "title": "脂溢性皮炎别乱洗！二硫化硒用对才有用",
+      "content_excerpt": "#海飞丝 ##二硫化硒 ##洗发水 #",
+      "author_nickname": "轩轩儿",
+      "publish_time": "2026-03-28T01:01:30+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69c62ed3000000001a020945",
+      "like_count": 704,
+      "comment_count": 53,
+      "collection_count": 376,
+      "share_count": 114,
+      "interaction_total": 1247,
+      "tags": []
+    },
+    {
+      "evidence_id": "N30",
+      "note_id": "69cb5eef000000001b003836",
+      "sample_group": "top_interaction",
+      "title": "博主自用，洗一次爱一次的防脱套装！",
+      "content_excerpt": "博主自用，洗一次爱一次的防脱套装！ 不用复杂护理，日常洗头就能养出好发量，自用送礼都精彩~ #菁华全马年有心礼盒 # #菁华全防脱 # #菁华全 # #菁华全防脱洗发水 # #防脱 # #头皮护理 # #养发护发 # #洗护好物 # #新年礼物 # #马年礼物 #",
+      "author_nickname": "2+1",
+      "publish_time": "2026-03-31T22:00:02+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69cb5eef000000001b003836",
+      "like_count": 897,
+      "comment_count": 28,
+      "collection_count": 310,
+      "share_count": 5,
+      "interaction_total": 1240,
+      "tags": [
+        "菁华全马年有心礼盒",
+        "菁华全防脱",
+        "菁华全",
+        "菁华全防脱洗发水",
+        "防脱",
+        "头皮护理",
+        "养发护发",
+        "洗护好物",
+        "新年礼物",
+        "马年礼物"
+      ]
+    },
+    {
+      "evidence_id": "N31",
+      "note_id": "69ccd3540000000022003ba3",
+      "sample_group": "top_interaction",
+      "title": "油头本命！海飞丝真的太懂懒人了。",
+      "content_excerpt": "谁懂啊！头发一油就显邋遢，直到我又用回海飞丝，直接打开新世界！ 经典老牌子就是靠谱，从小用到大的安心感～ 挤出来是顺滑的质地，随便搓搓就有超绵密的泡沫，上头皮软乎乎的，洗感超舒服！ 淡淡清香很好闻，不刺鼻，洗完整个浴室都香香的～ 洗完吹干那一刻直接惊艳！发根全支棱起来，高颅顶轻松拿捏，头发轻盈又蓬松，完全不贴头皮！ 头皮清清爽爽像在呼吸，摸起来软软的不干涩，发丝也顺滑不毛躁。 以前一天不洗就油到打结，现在能撑好几天，依旧清爽不塌，懒人…",
+      "author_nickname": "蛋挞不说话",
+      "publish_time": "2026-04-02T21:47:26+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69ccd3540000000022003ba3",
+      "like_count": 1001,
+      "comment_count": 30,
+      "collection_count": 206,
+      "share_count": 0,
+      "interaction_total": 1237,
+      "tags": []
+    },
+    {
+      "evidence_id": "N32",
+      "note_id": "69ca4593000000002301c9c9",
+      "sample_group": "top_interaction",
+      "title": "用对二硫化硒，头屑终于不跟我作对了",
+      "content_excerpt": "之前身边好多姐妹都被顽固头屑缠上，试过市面上不少传统二硫化硒洗发水，刚开始有点用，没过多久头屑又卷土重来，完全治标不治本😮‍💨 - 而且传统款的使用感真的一言难尽，搓半天都很难起泡，味道还怪怪的很刺鼻，洗完头发干得像稻草，梳都梳不开，而且不能经常用，一周只能用一两次，头屑反复的时候真的很糟心！ - 其实不是二硫化硒没用，是传统二硫化硒成分本身有局限！普通款的二硫化硒很容易分解变质，开封久了瓶口还会发黑，析出单质硒之后，效果直接大打折扣…",
+      "author_nickname": "讲成分的c同学",
+      "publish_time": "2026-03-31T02:50:19+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69ca4593000000002301c9c9",
+      "like_count": 736,
+      "comment_count": 27,
+      "collection_count": 446,
+      "share_count": 24,
+      "interaction_total": 1233,
+      "tags": [
+        "海飞丝二硫化硒洗发水",
+        "二硫化硒",
+        "去屑干货",
+        "头皮修护",
+        "护发心得",
+        "二硫化硒洗发水",
+        "好用洗发水",
+        "顽固头屑",
+        "养发护发"
+      ]
+    },
+    {
+      "evidence_id": "N33",
+      "note_id": "69c33cab000000001b002248",
+      "sample_group": "top_interaction",
+      "title": "30+国企人｜班味退散！自带光芒赴从容",
+      "content_excerpt": "Halo～我是五个栗子！🌰 30+国企打工人，下班两小时做博主 · 今天聊聊，头发护理的 勤快模式vs懒人模式，我全都要！ . 当代年轻人的头发护理现状： 想精致但偶尔犯懒，想偷懒但又不想被看出来 是不是你？反正我是 . 作为每天忙到飞起的国企打工人 白天开会写材料，晚上还要搞副业 洗头这件事真的能省则省，但又不能太敷衍 于是我就琢磨出了两套模式： . 🛀 懒人模式：急救清爽，3分钟搞定 加班到家累到不想动？那就开启懒人模式 Spes…",
+      "author_nickname": "五个栗子",
+      "publish_time": "2026-03-25T19:10:30+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69c33cab000000001b002248",
+      "like_count": 624,
+      "comment_count": 79,
+      "collection_count": 497,
+      "share_count": 3,
+      "interaction_total": 1203,
+      "tags": [
+        "屈臣氏集团185周年",
+        "在健康与美的每一刻",
+        "屈臣氏小程序",
+        "懒人护发",
+        "免洗洗发巾",
+        "海飞丝",
+        "施华蔻",
+        "Spes",
+        "头发护理",
+        "国企打工人的日常",
+        "下班两小时做博主"
+      ]
+    },
+    {
+      "evidence_id": "N34",
+      "note_id": "69ca3456000000001a023294",
+      "sample_group": "top_interaction",
+      "title": "细软塌的神！！！",
+      "content_excerpt": "细软发的痛，是就算没怎么出油，头发还是软趴趴的！就是真的是头发太贴了，显得我发缝宽到能插秧！！！就那种每天早上人都睡不醒，还得爬起来夹头发，谁知道啊？！ 但我最近买的这个玫瑰洗发水，本来真的是冲香味买的，结果发现它真的让我把那个蓬松焊死了！就很神奇，我之前不管用什么洗发水洗完多蓬松第二早起来就会打回原样，但这个睡醒还是松松软软，不怎么需要用夹板的那种！这瓶里面实打实是加了玫瑰精粹的，就是面霜的那种，抗氧化效果也还蛮好的！ 这个香味我也…",
+      "author_nickname": "熹贵妃要开心",
+      "publish_time": "2026-03-31T02:17:19+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69ca3456000000001a023294",
+      "like_count": 644,
+      "comment_count": 7,
+      "collection_count": 489,
+      "share_count": 0,
+      "interaction_total": 1140,
+      "tags": [
+        "海飞丝玫瑰双抗瓶",
+        "玫瑰香",
+        "油头救星",
+        "蓬松洗发水",
+        "玫瑰香洗发水",
+        "细软塌发型",
+        "护发好物"
+      ]
+    },
+    {
+      "evidence_id": "N35",
+      "note_id": "69ca2e7d0000000023010b9d",
+      "sample_group": "top_interaction",
+      "title": "油屑头本命洗发水！洗一次清爽3天",
+      "content_excerpt": "#护发 ##洗发水 ##油头 ##赛逸洗发水 ##二硫化硒洗发水 ##去屑洗发水 ##洗发水推荐 ##控油洗发水 #",
+      "author_nickname": "陈陈超爱买",
+      "publish_time": "2026-03-31T01:22:03+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69ca2e7d0000000023010b9d",
+      "like_count": 571,
+      "comment_count": 43,
+      "collection_count": 523,
+      "share_count": 3,
+      "interaction_total": 1140,
+      "tags": [
+        "护发",
+        "洗发水",
+        "油头",
+        "赛逸洗发水",
+        "二硫化硒洗发水",
+        "去屑洗发水",
+        "洗发水推荐",
+        "控油洗发水"
+      ]
+    },
+    {
+      "evidence_id": "N36",
+      "note_id": "69c4db1a000000001a035862",
+      "sample_group": "top_interaction",
+      "title": "二胎产后我悟了：爱自己才是头等大事！💕",
+      "content_excerpt": "当了二胎妈妈才发现，产后焦虑这件事真不是矫情 掉发、8痕难护理、身体变化…每天照镜子都觉得自己在变老 先说让我差点崩溃的产后掉发😭 洗个头地漏堵一堆，梳个头发更是一抓一大把 虽说产后🐔素变化造成掉发是正常的，但那些“坏掉”的毛囊可不会自己长回来的！！🥹 所以赶紧做功课，找到了🌟人源化蛋白养毛囊的DJM千字文头皮精华 【人源化蛋白】，是真正能直接被人体吸收的，所以里面的3+17型蛋白、弹性蛋白、纤连蛋白，都能直接“喂”给毛囊和头皮，从而…",
+      "author_nickname": "圆脸的Diana（家有新生儿）",
+      "publish_time": "2026-03-27T22:48:12+08:00",
+      "post_url": "https://www.xiaohongshu.com/explore/69c4db1a000000001a035862",
+      "like_count": 547,
+      "comment_count": 22,
+      "collection_count": 539,
+      "share_count": 8,
+      "interaction_total": 1116,
+      "tags": [
+        "产后恢复",
+        "头皮护理",
+        "养发护发",
+        "DJM千字文",
+        "头皮精华",
+        "千字文头皮精华",
+        "剖腹产",
+        "剖腹产恢复",
+        "剖腹产经验分享",
+        "我的美丽秘诀",
+        "分享爱用物",
+        "辣妈成长记"
+      ]
+    }
+  ],
+  "evidence_sample_groups": [
+    {
+      "sample_group": "top_interaction",
+      "note_count": 80,
+      "interaction_total": 97290,
+      "collection_total": 28757,
+      "comment_total": 5283
+    }
+  ],
+  "top_authors": [
+    {
+      "evidence_id": "A1",
+      "author_id": "5d18cbfe0000000012018ad0",
+      "author_nickname": "蛋挞美研社",
+      "note_count": 1,
+      "fans_count": 618338,
+      "interaction_total": 7651
+    },
+    {
+      "evidence_id": "A2",
+      "author_id": "5e1567cb00000000010003fa",
+      "author_nickname": "杨毛卷er",
+      "note_count": 1,
+      "fans_count": 106750,
+      "interaction_total": 5487
+    },
+    {
+      "evidence_id": "A3",
+      "author_id": "5da95e6a0000000001000f3c",
+      "author_nickname": "海飞丝头与肩",
+      "note_count": 2,
+      "fans_count": 22978,
+      "interaction_total": 3248
+    },
+    {
+      "evidence_id": "A4",
+      "author_id": "64738335000000002b00bddf",
+      "author_nickname": "油条小豆蒋",
+      "note_count": 1,
+      "fans_count": 67471,
+      "interaction_total": 2665
+    },
+    {
+      "evidence_id": "A5",
+      "author_id": "6509a15700000000170236f6",
+      "author_nickname": "小小",
+      "note_count": 1,
+      "fans_count": 13246,
+      "interaction_total": 2523
+    },
+    {
+      "evidence_id": "A6",
+      "author_id": "5fdd7ff500000000010064a8",
+      "author_nickname": "可可乐乐",
+      "note_count": 1,
+      "fans_count": 24,
+      "interaction_total": 2456
+    },
+    {
+      "evidence_id": "A7",
+      "author_id": "55b1ba535894463e9e610816",
+      "author_nickname": "朱旺旺就是朱旺旺呗",
+      "note_count": 1,
+      "fans_count": 992289,
+      "interaction_total": 2266
+    },
+    {
+      "evidence_id": "A8",
+      "author_id": "6248014400000000210206af",
+      "author_nickname": "小鹿是只医学牲",
+      "note_count": 1,
+      "fans_count": 31251,
+      "interaction_total": 2235
+    },
+    {
+      "evidence_id": "A9",
+      "author_id": "69516b3900000000370089b6",
+      "author_nickname": "禾森Sen",
+      "note_count": 1,
+      "fans_count": 208511,
+      "interaction_total": 2142
+    },
+    {
+      "evidence_id": "A10",
+      "author_id": "5f0113100000000001001a2c",
+      "author_nickname": "Canga种草",
+      "note_count": 1,
+      "fans_count": 22055,
+      "interaction_total": 2046
+    },
+    {
+      "evidence_id": "A11",
+      "author_id": "5fccff3d000000000100a6d2",
+      "author_nickname": "糕糕吃不饱-",
+      "note_count": 1,
+      "fans_count": 51696,
+      "interaction_total": 1974
+    },
+    {
+      "evidence_id": "A12",
+      "author_id": "5e0176060000000001004254",
+      "author_nickname": "小陈还在睡（深扒成分版）",
+      "note_count": 1,
+      "fans_count": 80096,
+      "interaction_total": 1962
+    },
+    {
+      "evidence_id": "A13",
+      "author_id": "5f074dc00000000001004923",
+      "author_nickname": "一天要长多少膘",
+      "note_count": 1,
+      "fans_count": 230306,
+      "interaction_total": 1927
+    },
+    {
+      "evidence_id": "A14",
+      "author_id": "688c18070000000028027a30",
+      "author_nickname": "美美小美伢",
+      "note_count": 1,
+      "fans_count": 22859,
+      "interaction_total": 1864
+    },
+    {
+      "evidence_id": "A15",
+      "author_id": "5f806816000000000101d19a",
+      "author_nickname": "鸡腿先生",
+      "note_count": 1,
+      "fans_count": 20786,
+      "interaction_total": 1826
+    }
+  ],
+  "content": {
+    "clusters": [
+      {
+        "cluster_name": "成分党深度科普",
+        "description": "聚焦产品核心成分（如二硫化硒、水杨酸、乌诺地尔）的原理、功效与使用方法，强调科学依据和解决根本问题。",
+        "evidence_ids": [
+          "N7",
+          "N12",
+          "N14",
+          "N19",
+          "N27"
+        ],
+        "key_elements": [
+          "成分解析",
+          "作用机理",
+          "对比传统产品",
+          "解决反复问题"
+        ]
+      },
+      {
+        "cluster_name": "真实体验与效果见证",
+        "description": "以个人使用前后对比、长期使用感受为核心，突出产品在去屑、控油、蓬松、防脱等方面的具体效果和惊喜点。",
+        "evidence_ids": [
+          "N2",
+          "N4",
+          "N10",
+          "N15",
+          "N23",
+          "N24"
+        ],
+        "key_elements": [
+          "使用前后对比",
+          "具体效果描述（如头屑消失、控油持久）",
+          "使用感受（泡沫、香味）",
+          "解决特定痛点（油头、细软塌）"
+        ]
+      },
+      {
+        "cluster_name": "生活方式与场景融合",
+        "description": "将护发产品融入日常生活场景（如打工人、学生党、懒人、养生），强调便捷性、场景适配性和情感共鸣。",
+        "evidence_ids": [
+          "N1",
+          "N3",
+          "N5",
+          "N11",
+          "N13",
+          "N20",
+          "N22",
+          "N28"
+        ],
+        "key_elements": [
+          "场景化（通勤、熬夜、运动、独处）",
+          "情感共鸣（焦虑、治愈、自律）",
+          "便捷解决方案（免洗、快速护理）",
+          "跨品类关联（健身、养生、美食）"
+        ]
+      },
+      {
+        "cluster_name": "明星合作与品牌官宣",
+        "description": "围绕品牌代言人/大使（如李云霄）的官宣、同款、活动内容，旨在提升品牌形象和粉丝互动。",
+        "evidence_ids": [
+          "N8",
+          "N17",
+          "N25"
+        ],
+        "key_elements": [
+          "明星同款",
+          "品牌活动",
+          "形象关联",
+          "粉丝向内容"
+        ]
+      },
+      {
+        "cluster_name": "多品牌测评与推荐",
+        "description": "在洗发水品类测评中，将海飞丝与其他品牌（如康如、薇姿、潘婷）进行对比，提供选购指南。",
+        "evidence_ids": [
+          "N9",
+          "N15",
+          "N16"
+        ],
+        "key_elements": [
+          "横向对比",
+          "成分对比",
+          "适用人群推荐",
+          "红黑榜"
+        ]
+      }
+    ],
+    "winning_patterns": [
+      {
+        "claim": "结合传统养生（如八段锦）与头皮护理的“中式养发”内容能引发高互动和收藏。",
+        "evidence_ids": [
+          "N1"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim": "针对“油屑头”痛点，提供具体、震撼的解决方案（如特定成分洗发水）的内容容易获得高点赞和收藏。",
+        "evidence_ids": [
+          "N2",
+          "N4",
+          "N15"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim": "将产品融入生活Vlog（如学生党、打工人日常），通过真实场景和情感共鸣带动互动，但品牌关联度可能较弱。",
+        "evidence_ids": [
+          "N3",
+          "N5",
+          "N11",
+          "N13",
+          "N20"
+        ],
+        "confidence": "medium"
+      },
+      {
+        "claim": "深度成分科普（如二硫化硒、水杨酸）能吸引成分党用户，获得高收藏和深度评论。",
+        "evidence_ids": [
+          "N7",
+          "N12",
+          "N19"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim": "明星合作内容（如品牌大使李云霄）能有效提升品牌声量和粉丝互动。",
+        "evidence_ids": [
+          "N8",
+          "N17",
+          "N25"
+        ],
+        "confidence": "medium"
+      }
+    ],
+    "underused_topics": [
+      "评论中出现对特定人群（如青春期学生、产后脱发）的咨询，但现有高互动笔记中针对性内容较少。",
+      "有笔记展示产品组合使用（如N19），且评论中有对搭配使用的疑问，但此类系统性教程内容不足。",
+      "评论中用户关心使用频率、见效周期等长期管理问题，但现有内容多聚焦单次使用效果。",
+      "评论中多次出现对“敏感头皮”、“是否刺激”的担忧，但专门针对此痛点的高互动内容较少。"
+    ],
+    "search_keyword_opportunities": [
+      "keyword: 二硫化硒洗发水; opportunity: 该话题互动量高（10,997），且海飞丝有相关产品（海飞丝二硫化硒洗发水）和内容（N12, N24），可加强在此细分成分赛道的占位。; evidence_ids: ['keyword_signals', 'N12', 'N24']",
+      "keyword: 控油蓬松; opportunity: 该话题互动量高（7,184），是用户核心需求。海飞丝有相关产品（如玫瑰双抗瓶、肌底控油瓶）和内容，可进一步强化“控油蓬松”的解决方案输出。; evidence_ids: ['keyword_signals', 'N4', 'N10', 'N19']",
+      "keyword: 脂溢性皮炎/脂头; opportunity: 相关话题（如“脂头”）有互动（2,946），且用户评论中存在相关咨询（C39）。海飞丝二硫化硒产品可针对此专业需求进行内容深化。; evidence_ids: ['keyword_signals', 'N24', 'comment_signals']",
+      "keyword: 头皮护理; opportunity: 该话题互动量极高（23,001），是品类核心。海飞丝内容已涉及，但可更系统地从“头皮健康”角度输出内容，超越单一产品推荐。; evidence_ids: ['keyword_signals', 'N1', 'N19']"
+    ],
+    "content_formulas": [
+      "标题直击核心痛点（如“油屑头震撼”、“顽固头屑暴击”），正文深入解析问题根源，并引出含有特定有效成分（如二硫化硒、水杨酸）的产品作为科学解决方案。",
+      "将传统养生概念（如八段锦、经络疏通）与头皮护理、头发生长相结合，提供新颖、有文化底蕴的护发方法，吸引健康养生人群。",
+      "在记录日常生活（如学生党、打工人、独处时光）的Vlog中，自然展示产品使用场景（如洗头、护发），通过真实生活状态引发共鸣，软性传递产品信息。",
+      "针对特定需求（如去屑、控油），对多款产品（包括海飞丝及竞品）进行成分、功效、使用感的横向对比，提供清晰的选购指南。"
+    ]
+  },
+  "content_clusters": [
+    {
+      "cluster_name": "成分党深度科普",
+      "description": "聚焦产品核心成分（如二硫化硒、水杨酸、乌诺地尔）的原理、功效与使用方法，强调科学依据和解决根本问题。",
+      "evidence_ids": [
+        "N7",
+        "N12",
+        "N14",
+        "N19",
+        "N27"
+      ],
+      "key_elements": [
+        "成分解析",
+        "作用机理",
+        "对比传统产品",
+        "解决反复问题"
+      ]
+    },
+    {
+      "cluster_name": "真实体验与效果见证",
+      "description": "以个人使用前后对比、长期使用感受为核心，突出产品在去屑、控油、蓬松、防脱等方面的具体效果和惊喜点。",
+      "evidence_ids": [
+        "N2",
+        "N4",
+        "N10",
+        "N15",
+        "N23",
+        "N24"
+      ],
+      "key_elements": [
+        "使用前后对比",
+        "具体效果描述（如头屑消失、控油持久）",
+        "使用感受（泡沫、香味）",
+        "解决特定痛点（油头、细软塌）"
+      ]
+    },
+    {
+      "cluster_name": "生活方式与场景融合",
+      "description": "将护发产品融入日常生活场景（如打工人、学生党、懒人、养生），强调便捷性、场景适配性和情感共鸣。",
+      "evidence_ids": [
+        "N1",
+        "N3",
+        "N5",
+        "N11",
+        "N13",
+        "N20",
+        "N22",
+        "N28"
+      ],
+      "key_elements": [
+        "场景化（通勤、熬夜、运动、独处）",
+        "情感共鸣（焦虑、治愈、自律）",
+        "便捷解决方案（免洗、快速护理）",
+        "跨品类关联（健身、养生、美食）"
+      ]
+    },
+    {
+      "cluster_name": "明星合作与品牌官宣",
+      "description": "围绕品牌代言人/大使（如李云霄）的官宣、同款、活动内容，旨在提升品牌形象和粉丝互动。",
+      "evidence_ids": [
+        "N8",
+        "N17",
+        "N25"
+      ],
+      "key_elements": [
+        "明星同款",
+        "品牌活动",
+        "形象关联",
+        "粉丝向内容"
+      ]
+    },
+    {
+      "cluster_name": "多品牌测评与推荐",
+      "description": "在洗发水品类测评中，将海飞丝与其他品牌（如康如、薇姿、潘婷）进行对比，提供选购指南。",
+      "evidence_ids": [
+        "N9",
+        "N15",
+        "N16"
+      ],
+      "key_elements": [
+        "横向对比",
+        "成分对比",
+        "适用人群推荐",
+        "红黑榜"
+      ]
+    }
+  ],
+  "search_opportunities": [
+    "keyword: 二硫化硒洗发水; opportunity: 该话题互动量高（10,997），且海飞丝有相关产品（海飞丝二硫化硒洗发水）和内容（N12, N24），可加强在此细分成分赛道的占位。; evidence_ids: ['keyword_signals', 'N12', 'N24']",
+    "keyword: 控油蓬松; opportunity: 该话题互动量高（7,184），是用户核心需求。海飞丝有相关产品（如玫瑰双抗瓶、肌底控油瓶）和内容，可进一步强化“控油蓬松”的解决方案输出。; evidence_ids: ['keyword_signals', 'N4', 'N10', 'N19']",
+    "keyword: 脂溢性皮炎/脂头; opportunity: 相关话题（如“脂头”）有互动（2,946），且用户评论中存在相关咨询（C39）。海飞丝二硫化硒产品可针对此专业需求进行内容深化。; evidence_ids: ['keyword_signals', 'N24', 'comment_signals']",
+    "keyword: 头皮护理; opportunity: 该话题互动量极高（23,001），是品类核心。海飞丝内容已涉及，但可更系统地从“头皮健康”角度输出内容，超越单一产品推荐。; evidence_ids: ['keyword_signals', 'N1', 'N19']"
+  ],
+  "audience": {
+    "segments": [
+      {
+        "claim": "受头屑、头油、头皮瘙痒等问题困扰的消费者",
+        "evidence_ids": [
+          "N2",
+          "N4",
+          "N7",
+          "N12",
+          "N15",
+          "N16",
+          "N23",
+          "N24",
+          "N29"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim": "关注头皮健康、成分功效（如水杨酸、二硫化硒）的成分党或护肤爱好者",
+        "evidence_ids": [
+          "N7",
+          "N9",
+          "N12",
+          "N19",
+          "N24"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim": "追求头发蓬松、控油效果，希望改善细软塌发质的用户",
+        "evidence_ids": [
+          "N4",
+          "N10",
+          "N19",
+          "N22",
+          "N26"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim": "面临脱发、发量焦虑，寻求防脱解决方案的用户",
+        "evidence_ids": [
+          "N14",
+          "N18",
+          "N27",
+          "N30"
+        ],
+        "confidence": "medium"
+      },
+      {
+        "claim": "生活节奏快、追求便捷护发（如免洗产品）的懒人或忙碌人群",
+        "evidence_ids": [
+          "N22",
+          "N28",
+          "C1",
+          "C2",
+          "C4",
+          "C8",
+          "C20",
+          "C26",
+          "C29"
+        ],
+        "confidence": "medium"
+      },
+      {
+        "claim": "受脂溢性皮炎等头皮问题困扰，寻求专业护理建议的用户",
+        "evidence_ids": [
+          "N21",
+          "N29"
+        ],
+        "confidence": "medium"
+      }
+    ],
+    "purchase_motivations": [
+      {
+        "claim": "解决头屑反复、头油、头皮瘙痒等具体头皮问题",
+        "evidence_ids": [
+          "N2",
+          "N4",
+          "N7",
+          "N12",
+          "N15",
+          "N16",
+          "N23",
+          "N24",
+          "N29"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim": "追求头发蓬松、控油持久，改善细软塌发质，提升发型美观度",
+        "evidence_ids": [
+          "N4",
+          "N10",
+          "N19",
+          "N22",
+          "N26"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim": "对产品成分（如水杨酸、二硫化硒）有认知，相信其能从根源解决头皮问题",
+        "evidence_ids": [
+          "N7",
+          "N9",
+          "N12",
+          "N19",
+          "N24"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim": "寻求防脱、固发、增加发量的效果",
+        "evidence_ids": [
+          "N14",
+          "N18",
+          "N27",
+          "N30"
+        ],
+        "confidence": "medium"
+      },
+      {
+        "claim": "被博主真实体验、测评或明星代言（如李云霄）种草",
+        "evidence_ids": [
+          "N8",
+          "N17",
+          "N25",
+          "top_authors"
+        ],
+        "confidence": "medium"
+      },
+      {
+        "claim": "需要便捷、省时的护发解决方案（如免洗洗发巾）",
+        "evidence_ids": [
+          "N22",
+          "N28",
+          "C1",
+          "C2",
+          "C4",
+          "C8"
+        ],
+        "confidence": "medium"
+      }
+    ],
+    "pain_points": [
+      {
+        "claim": "头屑反复出现，难以根治，影响社交自信和外观",
+        "evidence_ids": [
+          "N7",
+          "N12",
+          "N15",
+          "N23"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim": "头皮易出油，头发扁塌，需要频繁洗头，费时费力",
+        "evidence_ids": [
+          "N4",
+          "N19",
+          "N22",
+          "N26",
+          "C42",
+          "C43"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim": "头皮敏感、瘙痒，使用部分产品后可能出现刺激或不适",
+        "evidence_ids": [
+          "N12",
+          "C34",
+          "C39",
+          "C40",
+          "C47"
+        ],
+        "confidence": "medium"
+      },
+      {
+        "claim": "脱发、掉发严重，发量减少，产生焦虑",
+        "evidence_ids": [
+          "N14",
+          "N18",
+          "N27"
+        ],
+        "confidence": "medium"
+      },
+      {
+        "claim": "尝试过多种洗发水但效果不佳或踩雷，对产品选择感到困惑",
+        "evidence_ids": [
+          "N12",
+          "N15",
+          "C46"
+        ],
+        "confidence": "medium"
+      },
+      {
+        "claim": "脂溢性皮炎等头皮问题带来长期困扰，需要专业护理",
+        "evidence_ids": [
+          "N21",
+          "N29"
+        ],
+        "confidence": "medium"
+      }
+    ],
+    "usage_scenarios": [
+      "日常洗护，解决头油、头屑问题，保持头皮清爽",
+      "运动、健身后清洁头皮，或结合养生（如头皮按摩）进行护理",
+      "熬夜、压力大等生活场景下，应对头皮出油、脱发加剧",
+      "追求快速、便捷的护发，如使用免洗洗发巾应对懒人时刻或紧急场合",
+      "作为学生、打工人等特定人群，在宿舍、办公室等场景下的护发需求"
+    ],
+    "confidence": "medium",
+    "limitations": [
+      "数据不足：缺乏用户年龄、收入、城市等具体人口统计学属性，无法进行精准的人群画像细分。",
+      "数据不足：评论样本数量有限且未提供情感分析，难以全面、量化地评估用户对品牌或产品的真实情感倾向和满意度。",
+      "数据不足：部分高互动笔记（如生活Vlog）与品牌核心产品关联度较弱，可能影响对受众关注点判断的纯粹性。",
+      "数据不足：无法从现有数据中判断用户购买后的实际使用效果和复购意愿。",
+      "数据不足：竞争对手数据（清扬、潘婷、沙宣）异常低，可能影响对市场竞争格局下受众需求差异的判断。"
+    ]
+  },
+  "audience_segments": [
+    {
+      "claim": "受头屑、头油、头皮瘙痒等问题困扰的消费者",
+      "evidence_ids": [
+        "N2",
+        "N4",
+        "N7",
+        "N12",
+        "N15",
+        "N16",
+        "N23",
+        "N24",
+        "N29"
+      ],
+      "confidence": "high"
+    },
+    {
+      "claim": "关注头皮健康、成分功效（如水杨酸、二硫化硒）的成分党或护肤爱好者",
+      "evidence_ids": [
+        "N7",
+        "N9",
+        "N12",
+        "N19",
+        "N24"
+      ],
+      "confidence": "high"
+    },
+    {
+      "claim": "追求头发蓬松、控油效果，希望改善细软塌发质的用户",
+      "evidence_ids": [
+        "N4",
+        "N10",
+        "N19",
+        "N22",
+        "N26"
+      ],
+      "confidence": "high"
+    },
+    {
+      "claim": "面临脱发、发量焦虑，寻求防脱解决方案的用户",
+      "evidence_ids": [
+        "N14",
+        "N18",
+        "N27",
+        "N30"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "claim": "生活节奏快、追求便捷护发（如免洗产品）的懒人或忙碌人群",
+      "evidence_ids": [
+        "N22",
+        "N28",
+        "C1",
+        "C2",
+        "C4",
+        "C8",
+        "C20",
+        "C26",
+        "C29"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "claim": "受脂溢性皮炎等头皮问题困扰，寻求专业护理建议的用户",
+      "evidence_ids": [
+        "N21",
+        "N29"
+      ],
+      "confidence": "medium"
+    }
+  ],
+  "diagnosis": {
+    "executive_findings": [
+      {
+        "claim": "海飞丝在小红书平台拥有显著的声量基础和较高的用户互动效率，但声量规模与头部竞品（如欧莱雅）存在较大差距。",
+        "evidence_ids": [
+          "core_metrics",
+          "competitor_metrics"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim": "品牌内容互动效率（平均互动171.72）高于主要竞争对手欧莱雅（59.19），表明现有内容能有效引发用户参与。",
+        "evidence_ids": [
+          "core_metrics",
+          "competitor_metrics"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim": "高互动内容主要围绕成分科普（如二硫化硒、水杨酸）、真实效果见证和生活方式融合，但部分生活Vlog类内容与品牌核心信息关联度较弱。",
+        "evidence_ids": [
+          "N1",
+          "N2",
+          "N3",
+          "N7",
+          "N11",
+          "N12",
+          "N19"
+        ],
+        "confidence": "medium"
+      },
+      {
+        "claim": "品牌在细分需求场景（如“去屑洗发水”、“控油蓬松”）的搜索占位中，影响力低于更泛的品类话题，表明在精准触达目标用户方面存在不足。",
+        "evidence_ids": [
+          "keyword_signals"
+        ],
+        "confidence": "medium"
+      },
+      {
+        "claim": "缺乏直接的转化数据（如购买转化率），无法准确评估营销活动的实际销售效果。",
+        "evidence_ids": [
+          "comment_signals"
+        ],
+        "confidence": "low"
+      }
+    ],
+    "health_diagnosis": {
+      "summary": "海飞丝品牌在小红书平台处于“声量稳健但增长受限，互动高效但转化不明”的状态。品牌拥有稳定的声量基础和高于部分竞品的互动效率，内容资产覆盖了成分科普、效果见证、生活方式等多种有效模式。然而，品牌声量规模与头部竞品差距显著，且在核心细分需求场景的搜索影响力有待加强。部分高互动内容与品牌核心信息关联度不足，可能稀释品牌专业形象。最关键的是，缺乏转化数据使得营销投入的回报难以评估，存在资源错配风险。"
+    },
+    "main_strengths": [
+      "互动效率高：平均互动（171.72）和平均收藏（48.2）均处于较高水平，表明内容能有效引发用户深度参与和传播。",
+      "内容模式有效：成功的内容集群包括“成分党深度科普”、“真实体验与效果见证”以及“生活方式与场景融合”，这些模式能精准触达并打动目标受众。",
+      "明星合作与官方运营：通过品牌大使李云霄合作及官方账号运营，建立了品牌形象和粉丝互动渠道。",
+      "品牌认知基础：部分用户提及海飞丝是“从小用到大的品牌”，表明其拥有一定的品牌情怀和信任度。"
+    ],
+    "main_weaknesses": [
+      "声量规模差距大：与头部竞品欧莱雅相比，笔记数量和总互动量存在数量级差距，限制了品牌在平台的整体影响力。",
+      "内容关联度稀释：部分高互动笔记（如生活Vlog、美食内容）与品牌核心产品关联度弱，可能分散用户对品牌专业价值的认知。",
+      "细分场景占位不足：在“去屑洗发水”、“控油蓬松”等高需求细分话题中，品牌话题的互动量低于泛品类话题，精准触达能力有待提升。",
+      "转化效果不明：缺乏购买转化、搜索转化等直接效果数据，无法评估营销活动的实际商业回报。",
+      "竞争情报不完整：提供的竞争对手数据（清扬、潘婷、沙宣）异常低，可能掩盖真实的市场竞争态势。"
+    ],
+    "next_90_days_targets": [
+      "提升细分场景声量：在“二硫化硒洗发水”、“控油蓬松”、“脂溢性皮炎”等高潜力细分话题中，将品牌相关话题互动量提升20%。",
+      "优化内容关联度：将高互动但低关联度的内容占比降低15%，确保核心内容更聚焦于产品功效、成分和头皮健康解决方案。",
+      "建立转化评估体系：通过合作达人笔记挂链、评论区引导等方式，初步建立对内容引流至电商或搜索的转化效果追踪。",
+      "深化成分教育：针对“水杨酸”、“二硫化硒”等核心成分，产出至少3篇深度科普内容，巩固品牌在成分赛道的专业形象。"
+    ],
+    "priority_actions": [
+      "内容策略聚焦：减少与品牌核心价值关联度低的生活Vlog类内容投放，将资源集中于“成分科普”、“效果见证”和“场景化解决方案”三大高效内容集群。",
+      "细分话题占位：针对“二硫化硒洗发水”、“控油蓬松”、“敏感头皮”等搜索机会，策划并投放系列内容，强化品牌在细分需求场景中的搜索排名和内容占比。",
+      "达人合作优化：在保持头部达人合作的同时，增加与中腰部成分党、皮肤科背景达人的合作，产出更专业、可信的深度内容。",
+      "转化路径测试：在部分高互动笔记中测试添加产品购买链接或引导搜索关键词，初步收集转化数据，评估内容种草到购买的效率。",
+      "竞争情报补全：重新评估或补充主要竞争对手（特别是康如、薇姿等在笔记中频繁出现的品牌）在小红书平台的真实声量与内容策略，以制定更精准的竞争策略。"
+    ]
+  },
+  "risk_opportunities": {
+    "risks": [
+      "risk: 声量规模与头部竞品（如欧莱雅）差距较大，可能影响品牌在平台的整体影响力和市场份额。; evidence_ids: ['competitor_metrics']; severity: 高",
+      "risk: 部分高互动内容与品牌关联度低，可能稀释品牌核心信息的传递，影响用户对品牌专业形象的认知。; evidence_ids: ['N3', 'N11']; severity: 中",
+      "risk: 在细分需求场景（如去屑、控油）的搜索占位中，品牌话题互动量低于泛品类话题，表明品牌在精准触达目标用户方面存在不足。; evidence_ids: ['keyword_signals']; severity: 中",
+      "risk: 缺乏转化数据，无法评估营销活动的实际销售效果，可能导致资源投入与产出不匹配。; evidence_ids: ['comment_signals']; severity: 中",
+      "risk: 竞争对手数据（清扬、潘婷、沙宣）异常低，可能掩盖真实的市场竞争态势，影响策略制定的准确性。; evidence_ids: ['competitor_metrics']; severity: 低",
+      "声量规模差距大：与头部竞品欧莱雅相比，笔记数量和总互动量存在数量级差距，限制了品牌在平台的整体影响力。",
+      "内容关联度稀释：部分高互动笔记（如生活Vlog、美食内容）与品牌核心产品关联度弱，可能分散用户对品牌专业价值的认知。",
+      "细分场景占位不足：在“去屑洗发水”、“控油蓬松”等高需求细分话题中，品牌话题的互动量低于泛品类话题，精准触达能力有待提升。",
+      "转化效果不明：缺乏购买转化、搜索转化等直接效果数据，无法评估营销活动的实际商业回报。",
+      "竞争情报不完整：提供的竞争对手数据（清扬、潘婷、沙宣）异常低，可能掩盖真实的市场竞争态势。"
+    ],
+    "opportunities": [
+      "评论中出现对特定人群（如青春期学生、产后脱发）的咨询，但现有高互动笔记中针对性内容较少。",
+      "有笔记展示产品组合使用（如N19），且评论中有对搭配使用的疑问，但此类系统性教程内容不足。",
+      "评论中用户关心使用频率、见效周期等长期管理问题，但现有内容多聚焦单次使用效果。",
+      "评论中多次出现对“敏感头皮”、“是否刺激”的担忧，但专门针对此痛点的高互动内容较少。",
+      "keyword: 二硫化硒洗发水; opportunity: 该话题互动量高（10,997），且海飞丝有相关产品（海飞丝二硫化硒洗发水）和内容（N12, N24），可加强在此细分成分赛道的占位。; evidence_ids: ['keyword_signals', 'N12', 'N24']",
+      "keyword: 控油蓬松; opportunity: 该话题互动量高（7,184），是用户核心需求。海飞丝有相关产品（如玫瑰双抗瓶、肌底控油瓶）和内容，可进一步强化“控油蓬松”的解决方案输出。; evidence_ids: ['keyword_signals', 'N4', 'N10', 'N19']",
+      "keyword: 脂溢性皮炎/脂头; opportunity: 相关话题（如“脂头”）有互动（2,946），且用户评论中存在相关咨询（C39）。海飞丝二硫化硒产品可针对此专业需求进行内容深化。; evidence_ids: ['keyword_signals', 'N24', 'comment_signals']",
+      "keyword: 头皮护理; opportunity: 该话题互动量极高（23,001），是品类核心。海飞丝内容已涉及，但可更系统地从“头皮健康”角度输出内容，超越单一产品推荐。; evidence_ids: ['keyword_signals', 'N1', 'N19']"
+    ]
+  },
+  "confidence_summary": {
+    "counts": {
+      "high": 27,
+      "medium": 31,
+      "low": 3
+    },
+    "strong_evidence_ratio": 44.3,
+    "claim_count": 61,
+    "sample": [
+      {
+        "source": "health_dimension",
+        "label": "声量渗透",
+        "confidence": "high"
+      },
+      {
+        "source": "health_dimension",
+        "label": "互动质量",
+        "confidence": "high"
+      },
+      {
+        "source": "health_dimension",
+        "label": "内容资产",
+        "confidence": "medium"
+      },
+      {
+        "source": "health_dimension",
+        "label": "搜索占位",
+        "confidence": "medium"
+      },
+      {
+        "source": "health_dimension",
+        "label": "达人结构",
+        "confidence": "medium"
+      },
+      {
+        "source": "health_dimension",
+        "label": "转化潜力",
+        "confidence": "low"
+      },
+      {
+        "source": "metric",
+        "label": "品牌在90天内拥有稳定的声量基础和较高的用户互动水平。",
+        "confidence": "high"
+      },
+      {
+        "source": "metric",
+        "label": "品牌内容互动效率（平均互动）高于主要竞争对手欧莱雅。",
+        "confidence": "high"
+      },
+      {
+        "source": "metric",
+        "label": "品牌通过明星合作（如李云霄）和官方账号进行内容营销，但部分高互动内容与品牌核心信息关联度较弱。",
+        "confidence": "medium"
+      },
+      {
+        "source": "metric",
+        "label": "品牌在细分需求场景（如“去屑洗发水”、“控油蓬松”）的搜索占位中，影响力低于更泛的品类话题。",
+        "confidence": "medium"
+      },
+      {
+        "source": "metric",
+        "label": "缺乏直接的转化数据，无法准确评估品牌的购买转化潜力。",
+        "confidence": "low"
+      },
+      {
+        "source": "content",
+        "label": "结合传统养生（如八段锦）与头皮护理的“中式养发”内容能引发高互动和收藏。",
+        "confidence": "high"
+      },
+      {
+        "source": "content",
+        "label": "针对“油屑头”痛点，提供具体、震撼的解决方案（如特定成分洗发水）的内容容易获得高点赞和收藏。",
+        "confidence": "high"
+      },
+      {
+        "source": "content",
+        "label": "将产品融入生活Vlog（如学生党、打工人日常），通过真实场景和情感共鸣带动互动，但品牌关联度可能较弱。",
+        "confidence": "medium"
+      },
+      {
+        "source": "content",
+        "label": "深度成分科普（如二硫化硒、水杨酸）能吸引成分党用户，获得高收藏和深度评论。",
+        "confidence": "high"
+      },
+      {
+        "source": "content",
+        "label": "明星合作内容（如品牌大使李云霄）能有效提升品牌声量和粉丝互动。",
+        "confidence": "medium"
+      },
+      {
+        "source": "audience_motivation",
+        "label": "解决头屑反复、头油、头皮瘙痒等具体头皮问题",
+        "confidence": "high"
+      },
+      {
+        "source": "audience_motivation",
+        "label": "追求头发蓬松、控油持久，改善细软塌发质，提升发型美观度",
+        "confidence": "high"
+      },
+      {
+        "source": "audience_motivation",
+        "label": "对产品成分（如水杨酸、二硫化硒）有认知，相信其能从根源解决头皮问题",
+        "confidence": "high"
+      },
+      {
+        "source": "audience_motivation",
+        "label": "寻求防脱、固发、增加发量的效果",
+        "confidence": "medium"
+      },
+      {
+        "source": "audience_motivation",
+        "label": "被博主真实体验、测评或明星代言（如李云霄）种草",
+        "confidence": "medium"
+      },
+      {
+        "source": "audience_motivation",
+        "label": "需要便捷、省时的护发解决方案（如免洗洗发巾）",
+        "confidence": "medium"
+      },
+      {
+        "source": "audience_pain",
+        "label": "头屑反复出现，难以根治，影响社交自信和外观",
+        "confidence": "high"
+      },
+      {
+        "source": "audience_pain",
+        "label": "头皮易出油，头发扁塌，需要频繁洗头，费时费力",
+        "confidence": "high"
+      }
+    ]
+  },
+  "chart_data": {
+    "weekly_trend": [
+      {
+        "type": "weekly_trend",
+        "week_start": "2026-03-23",
+        "note_count": 231,
+        "interaction_total": 66835
+      },
+      {
+        "type": "weekly_trend",
+        "week_start": "2026-03-30",
+        "note_count": 242,
+        "interaction_total": 35862
+      },
+      {
+        "type": "weekly_trend",
+        "week_start": "2026-04-06",
+        "note_count": 41,
+        "interaction_total": 7878
+      },
+      {
+        "type": "weekly_trend",
+        "week_start": "2026-04-13",
+        "note_count": 113,
+        "interaction_total": 13
+      },
+      {
+        "type": "weekly_trend",
+        "week_start": "2026-04-20",
+        "note_count": 17,
+        "interaction_total": 0
+      }
+    ],
+    "competitor_quadrant": [
+      {
+        "brand": "本品牌",
+        "note_count": 644,
+        "avg_interaction": 171.72,
+        "volume_index": 100.0,
+        "efficiency_index": 100.0,
+        "position": "基准",
+        "caution": ""
+      },
+      {
+        "brand": "清扬",
+        "note_count": 3,
+        "avg_interaction": 1.0,
+        "volume_index": 0.5,
+        "efficiency_index": 0.6,
+        "position": "低声量低效率",
+        "caution": "样本量明显低于本品牌，篇均互动不宜直接外推"
+      },
+      {
+        "brand": "潘婷",
+        "note_count": 3,
+        "avg_interaction": 1359.0,
+        "volume_index": 0.5,
+        "efficiency_index": 791.4,
+        "position": "小样本高效率",
+        "caution": "样本量明显低于本品牌，篇均互动不宜直接外推"
+      },
+      {
+        "brand": "欧莱雅",
+        "note_count": 11962,
+        "avg_interaction": 59.19,
+        "volume_index": 1857.5,
+        "efficiency_index": 34.5,
+        "position": "高声量待提效",
+        "caution": ""
+      },
+      {
+        "brand": "沙宣",
+        "note_count": 2,
+        "avg_interaction": 156.5,
+        "volume_index": 0.3,
+        "efficiency_index": 91.1,
+        "position": "低声量低效率",
+        "caution": "样本量明显低于本品牌，篇均互动不宜直接外推"
+      }
+    ],
+    "keyword_matrix": [
+      {
+        "keyword": "洗发水",
+        "category": "产品词",
+        "note_count": 19,
+        "interaction_total": 22773,
+        "avg_interaction": 1198.58,
+        "relevance_score": 90,
+        "reason": "命中核心产品/产品线，适合转成内容选题。",
+        "recommended_action": "围绕“洗发水”产出测评、使用教程和横向对比内容。",
+        "demand_score": 87.5,
+        "supply_gap_score": 37.5,
+        "opportunity_score": 77.5
+      },
+      {
+        "keyword": "海飞丝",
+        "category": "品牌词",
+        "note_count": 611,
+        "interaction_total": 68784,
+        "avg_interaction": 112.58,
+        "relevance_score": 96,
+        "reason": "品牌主动搜索词，适合观察心智承接。",
+        "recommended_action": "复盘“海飞丝”下高互动内容，稳定承接主动搜索需求。",
+        "demand_score": 62.5,
+        "supply_gap_score": 12.5,
+        "opportunity_score": 66.1
+      },
+      {
+        "keyword": "熬夜恢复",
+        "category": "场景词",
+        "note_count": 1,
+        "interaction_total": 1864,
+        "avg_interaction": 1864.0,
+        "relevance_score": 68,
+        "reason": "命中使用场景，可用于拓展内容入口。",
+        "recommended_action": "小规模测试“熬夜恢复”场景内容，验证是否能带来新增互动。",
+        "demand_score": 37.5,
+        "supply_gap_score": 87.5,
+        "opportunity_score": 60.8
+      },
+      {
+        "keyword": "敏感肌修护",
+        "category": "功效词",
+        "note_count": 2,
+        "interaction_total": 1967,
+        "avg_interaction": 983.5,
+        "relevance_score": 80,
+        "reason": "命中用户问题或功效诉求，适合做转化型内容。",
+        "recommended_action": "用真实问题场景解释“敏感肌修护”相关功效，补充评论区答疑。",
+        "demand_score": 12.5,
+        "supply_gap_score": 62.5,
+        "opportunity_score": 57.2
+      }
+    ],
+    "confidence_summary": {
+      "counts": {
+        "high": 27,
+        "medium": 31,
+        "low": 3
+      },
+      "strong_evidence_ratio": 44.3,
+      "claim_count": 61,
+      "sample": [
+        {
+          "source": "health_dimension",
+          "label": "声量渗透",
+          "confidence": "high"
+        },
+        {
+          "source": "health_dimension",
+          "label": "互动质量",
+          "confidence": "high"
+        },
+        {
+          "source": "health_dimension",
+          "label": "内容资产",
+          "confidence": "medium"
+        },
+        {
+          "source": "health_dimension",
+          "label": "搜索占位",
+          "confidence": "medium"
+        },
+        {
+          "source": "health_dimension",
+          "label": "达人结构",
+          "confidence": "medium"
+        },
+        {
+          "source": "health_dimension",
+          "label": "转化潜力",
+          "confidence": "low"
+        },
+        {
+          "source": "metric",
+          "label": "品牌在90天内拥有稳定的声量基础和较高的用户互动水平。",
+          "confidence": "high"
+        },
+        {
+          "source": "metric",
+          "label": "品牌内容互动效率（平均互动）高于主要竞争对手欧莱雅。",
+          "confidence": "high"
+        },
+        {
+          "source": "metric",
+          "label": "品牌通过明星合作（如李云霄）和官方账号进行内容营销，但部分高互动内容与品牌核心信息关联度较弱。",
+          "confidence": "medium"
+        },
+        {
+          "source": "metric",
+          "label": "品牌在细分需求场景（如“去屑洗发水”、“控油蓬松”）的搜索占位中，影响力低于更泛的品类话题。",
+          "confidence": "medium"
+        },
+        {
+          "source": "metric",
+          "label": "缺乏直接的转化数据，无法准确评估品牌的购买转化潜力。",
+          "confidence": "low"
+        },
+        {
+          "source": "content",
+          "label": "结合传统养生（如八段锦）与头皮护理的“中式养发”内容能引发高互动和收藏。",
+          "confidence": "high"
+        },
+        {
+          "source": "content",
+          "label": "针对“油屑头”痛点，提供具体、震撼的解决方案（如特定成分洗发水）的内容容易获得高点赞和收藏。",
+          "confidence": "high"
+        },
+        {
+          "source": "content",
+          "label": "将产品融入生活Vlog（如学生党、打工人日常），通过真实场景和情感共鸣带动互动，但品牌关联度可能较弱。",
+          "confidence": "medium"
+        },
+        {
+          "source": "content",
+          "label": "深度成分科普（如二硫化硒、水杨酸）能吸引成分党用户，获得高收藏和深度评论。",
+          "confidence": "high"
+        },
+        {
+          "source": "content",
+          "label": "明星合作内容（如品牌大使李云霄）能有效提升品牌声量和粉丝互动。",
+          "confidence": "medium"
+        },
+        {
+          "source": "audience_motivation",
+          "label": "解决头屑反复、头油、头皮瘙痒等具体头皮问题",
+          "confidence": "high"
+        },
+        {
+          "source": "audience_motivation",
+          "label": "追求头发蓬松、控油持久，改善细软塌发质，提升发型美观度",
+          "confidence": "high"
+        },
+        {
+          "source": "audience_motivation",
+          "label": "对产品成分（如水杨酸、二硫化硒）有认知，相信其能从根源解决头皮问题",
+          "confidence": "high"
+        },
+        {
+          "source": "audience_motivation",
+          "label": "寻求防脱、固发、增加发量的效果",
+          "confidence": "medium"
+        },
+        {
+          "source": "audience_motivation",
+          "label": "被博主真实体验、测评或明星代言（如李云霄）种草",
+          "confidence": "medium"
+        },
+        {
+          "source": "audience_motivation",
+          "label": "需要便捷、省时的护发解决方案（如免洗洗发巾）",
+          "confidence": "medium"
+        },
+        {
+          "source": "audience_pain",
+          "label": "头屑反复出现，难以根治，影响社交自信和外观",
+          "confidence": "high"
+        },
+        {
+          "source": "audience_pain",
+          "label": "头皮易出油，头发扁塌，需要频繁洗头，费时费力",
+          "confidence": "high"
+        }
+      ]
+    },
+    "content_clusters": [
+      {
+        "cluster_name": "成分党深度科普",
+        "description": "聚焦产品核心成分（如二硫化硒、水杨酸、乌诺地尔）的原理、功效与使用方法，强调科学依据和解决根本问题。",
+        "evidence_ids": [
+          "N7",
+          "N12",
+          "N14",
+          "N19",
+          "N27"
+        ],
+        "key_elements": [
+          "成分解析",
+          "作用机理",
+          "对比传统产品",
+          "解决反复问题"
+        ]
+      },
+      {
+        "cluster_name": "真实体验与效果见证",
+        "description": "以个人使用前后对比、长期使用感受为核心，突出产品在去屑、控油、蓬松、防脱等方面的具体效果和惊喜点。",
+        "evidence_ids": [
+          "N2",
+          "N4",
+          "N10",
+          "N15",
+          "N23",
+          "N24"
+        ],
+        "key_elements": [
+          "使用前后对比",
+          "具体效果描述（如头屑消失、控油持久）",
+          "使用感受（泡沫、香味）",
+          "解决特定痛点（油头、细软塌）"
+        ]
+      },
+      {
+        "cluster_name": "生活方式与场景融合",
+        "description": "将护发产品融入日常生活场景（如打工人、学生党、懒人、养生），强调便捷性、场景适配性和情感共鸣。",
+        "evidence_ids": [
+          "N1",
+          "N3",
+          "N5",
+          "N11",
+          "N13",
+          "N20",
+          "N22",
+          "N28"
+        ],
+        "key_elements": [
+          "场景化（通勤、熬夜、运动、独处）",
+          "情感共鸣（焦虑、治愈、自律）",
+          "便捷解决方案（免洗、快速护理）",
+          "跨品类关联（健身、养生、美食）"
+        ]
+      },
+      {
+        "cluster_name": "明星合作与品牌官宣",
+        "description": "围绕品牌代言人/大使（如李云霄）的官宣、同款、活动内容，旨在提升品牌形象和粉丝互动。",
+        "evidence_ids": [
+          "N8",
+          "N17",
+          "N25"
+        ],
+        "key_elements": [
+          "明星同款",
+          "品牌活动",
+          "形象关联",
+          "粉丝向内容"
+        ]
+      },
+      {
+        "cluster_name": "多品牌测评与推荐",
+        "description": "在洗发水品类测评中，将海飞丝与其他品牌（如康如、薇姿、潘婷）进行对比，提供选购指南。",
+        "evidence_ids": [
+          "N9",
+          "N15",
+          "N16"
+        ],
+        "key_elements": [
+          "横向对比",
+          "成分对比",
+          "适用人群推荐",
+          "红黑榜"
+        ]
+      }
+    ]
+  },
+  "action_plan_90d": [
+    "提升细分场景声量：在“二硫化硒洗发水”、“控油蓬松”、“脂溢性皮炎”等高潜力细分话题中，将品牌相关话题互动量提升20%。",
+    "优化内容关联度：将高互动但低关联度的内容占比降低15%，确保核心内容更聚焦于产品功效、成分和头皮健康解决方案。",
+    "建立转化评估体系：通过合作达人笔记挂链、评论区引导等方式，初步建立对内容引流至电商或搜索的转化效果追踪。",
+    "深化成分教育：针对“水杨酸”、“二硫化硒”等核心成分，产出至少3篇深度科普内容，巩固品牌在成分赛道的专业形象。"
+  ],
+  "fact_check": {
+    "approved_claims": [
+      {
+        "claim": "品牌在90天内拥有稳定的声量基础和较高的用户互动水平。",
+        "evidence_ids": [
+          "core_metrics"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim": "品牌内容互动效率（平均互动）高于主要竞争对手欧莱雅。",
+        "evidence_ids": [
+          "core_metrics",
+          "competitor_metrics"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim": "结合传统养生（如八段锦）与头皮护理的“中式养发”内容能引发高互动和收藏。",
+        "evidence_ids": [
+          "N1"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim": "针对“油屑头”痛点，提供具体、震撼的解决方案（如特定成分洗发水）的内容容易获得高点赞和收藏。",
+        "evidence_ids": [
+          "N2",
+          "N4",
+          "N15"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim": "深度成分科普（如二硫化硒、水杨酸）能吸引成分党用户，获得高收藏和深度评论。",
+        "evidence_ids": [
+          "N7",
+          "N12",
+          "N19"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim": "受头屑、头油、头皮瘙痒等问题困扰的消费者是品牌的核心受众。",
+        "evidence_ids": [
+          "N2",
+          "N4",
+          "N7",
+          "N12",
+          "N15",
+          "N16",
+          "N23",
+          "N24",
+          "N29"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim": "关注头皮健康、成分功效（如水杨酸、二硫化硒）的成分党或护肤爱好者是品牌的核心受众。",
+        "evidence_ids": [
+          "N7",
+          "N9",
+          "N12",
+          "N19",
+          "N24"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim": "追求头发蓬松、控油效果，希望改善细软塌发质的用户是品牌的核心受众。",
+        "evidence_ids": [
+          "N4",
+          "N10",
+          "N19",
+          "N22",
+          "N26"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim": "解决头屑反复、头油、头皮瘙痒等具体头皮问题是用户的主要购买动机。",
+        "evidence_ids": [
+          "N2",
+          "N4",
+          "N7",
+          "N12",
+          "N15",
+          "N16",
+          "N23",
+          "N24",
+          "N29"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim": "追求头发蓬松、控油持久，改善细软塌发质，提升发型美观度是用户的主要购买动机。",
+        "evidence_ids": [
+          "N4",
+          "N10",
+          "N19",
+          "N22",
+          "N26"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim": "对产品成分（如水杨酸、二硫化硒）有认知，相信其能从根源解决头皮问题是用户的主要购买动机。",
+        "evidence_ids": [
+          "N7",
+          "N9",
+          "N12",
+          "N19",
+          "N24"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim": "头屑反复出现，难以根治，影响社交自信和外观是用户的主要痛点。",
+        "evidence_ids": [
+          "N7",
+          "N12",
+          "N15",
+          "N23"
+        ],
+        "confidence": "high"
+      },
+      {
+        "claim": "头皮易出油，头发扁塌，需要频繁洗头，费时费力是用户的主要痛点。",
+        "evidence_ids": [
+          "N4",
+          "N19",
+          "N22",
+          "N26",
+          "C42",
+          "C43"
+        ],
+        "confidence": "high"
+      }
+    ],
+    "downgraded_claims": [
+      {
+        "claim": "品牌通过明星合作（如李云霄）和官方账号进行内容营销，但部分高互动内容与品牌核心信息关联度较弱。",
+        "evidence_ids": [
+          "N8",
+          "N17",
+          "N3",
+          "N11"
+        ],
+        "confidence": "medium"
+      },
+      {
+        "claim": "将产品融入生活Vlog（如学生党、打工人日常），通过真实场景和情感共鸣带动互动，但品牌关联度可能较弱。",
+        "evidence_ids": [
+          "N3",
+          "N5",
+          "N11",
+          "N13",
+          "N20"
+        ],
+        "confidence": "medium"
+      },
+      {
+        "claim": "明星合作内容（如品牌大使李云霄）能有效提升品牌声量和粉丝互动。",
+        "evidence_ids": [
+          "N8",
+          "N17",
+          "N25"
+        ],
+        "confidence": "medium"
+      },
+      {
+        "claim": "面临脱发、发量焦虑，寻求防脱解决方案的用户是品牌的受众。",
+        "evidence_ids": [
+          "N14",
+          "N18",
+          "N27",
+          "N30"
+        ],
+        "confidence": "medium"
+      },
+      {
+        "claim": "生活节奏快、追求便捷护发（如免洗产品）的懒人或忙碌人群是品牌的受众。",
+        "evidence_ids": [
+          "N22",
+          "N28",
+          "C1",
+          "C2",
+          "C4",
+          "C8",
+          "C20",
+          "C26",
+          "C29"
+        ],
+        "confidence": "medium"
+      },
+      {
+        "claim": "受脂溢性皮炎等头皮问题困扰，寻求专业护理建议的用户是品牌的受众。",
+        "evidence_ids": [
+          "N21",
+          "N29"
+        ],
+        "confidence": "medium"
+      },
+      {
+        "claim": "寻求防脱、固发、增加发量的效果是用户的购买动机。",
+        "evidence_ids": [
+          "N14",
+          "N18",
+          "N27",
+          "N30"
+        ],
+        "confidence": "medium"
+      },
+      {
+        "claim": "被博主真实体验、测评或明星代言（如李云霄）种草是用户的购买动机。",
+        "evidence_ids": [
+          "N8",
+          "N17",
+          "N25",
+          "top_authors"
+        ],
+        "confidence": "medium"
+      },
+      {
+        "claim": "需要便捷、省时的护发解决方案（如免洗洗发巾）是用户的购买动机。",
+        "evidence_ids": [
+          "N22",
+          "N28",
+          "C1",
+          "C2",
+          "C4",
+          "C8"
+        ],
+        "confidence": "medium"
+      },
+      {
+        "claim": "头皮敏感、瘙痒，使用部分产品后可能出现刺激或不适是用户的痛点。",
+        "evidence_ids": [
+          "N12",
+          "C34",
+          "C39",
+          "C40",
+          "C47"
+        ],
+        "confidence": "medium"
+      },
+      {
+        "claim": "脱发、掉发严重，发量减少，产生焦虑是用户的痛点。",
+        "evidence_ids": [
+          "N14",
+          "N18",
+          "N27"
+        ],
+        "confidence": "medium"
+      },
+      {
+        "claim": "尝试过多种洗发水但效果不佳或踩雷，对产品选择感到困惑是用户的痛点。",
+        "evidence_ids": [
+          "N12",
+          "N15",
+          "C46"
+        ],
+        "confidence": "medium"
+      },
+      {
+        "claim": "脂溢性皮炎等头皮问题带来长期困扰，需要专业护理是用户的痛点。",
+        "evidence_ids": [
+          "N21",
+          "N29"
+        ],
+        "confidence": "medium"
+      },
+      {
+        "claim": "品牌在细分需求场景（如“去屑洗发水”、“控油蓬松”）的搜索占位中，影响力低于更泛的品类话题。",
+        "evidence_ids": [
+          "keyword_signals"
+        ],
+        "confidence": "medium"
+      },
+      {
+        "claim": "高互动内容主要围绕成分科普（如二硫化硒、水杨酸）、真实效果见证和生活方式融合，但部分生活Vlog类内容与品牌核心信息关联度较弱。",
+        "evidence_ids": [
+          "N1",
+          "N2",
+          "N3",
+          "N7",
+          "N11",
+          "N12",
+          "N19"
+        ],
+        "confidence": "medium"
+      }
+    ],
+    "removed_claims": [
+      "缺乏直接的转化数据，无法准确评估品牌的购买转化潜力。",
+      "缺乏直接的转化数据（如购买转化率），无法准确评估营销活动的实际销售效果。"
+    ],
+    "required_disclaimers": [
+      "数据不足：缺乏用户年龄、收入、城市等具体人口统计学属性，无法进行精准的人群画像细分。",
+      "数据不足：评论样本数量有限且未提供情感分析，难以全面、量化地评估用户对品牌或产品的真实情感倾向和满意度。",
+      "数据不足：部分高互动笔记（如生活Vlog）与品牌核心产品关联度较弱，可能影响对受众关注点判断的纯粹性。",
+      "数据不足：无法从现有数据中判断用户购买后的实际使用效果和复购意愿。",
+      "数据不足：竞争对手数据（清扬、潘婷、沙宣）异常低，可能影响对市场竞争格局下受众需求差异的判断。",
+      "数据不足：缺乏直接的转化指标（如点击购买、搜索转化率），无法准确评估品牌的购买转化潜力。",
+      "数据不足：缺乏竞品达人结构（如合作达人数量、粉丝层级分布、内容类型）的详细对比数据，无法精确评估差距。",
+      "数据不足：缺乏竞品转化数据（如购买转化率、客单价）的对比，无法评估品牌在转化效率上的相对位置。",
+      "数据不足：提供的竞争对手数据中，清扬、潘婷、沙宣的笔记数和互动量极低，可能与数据抓取范围或品牌在该平台的声量策略有关，需谨慎解读。",
+      "数据不足：部分高互动笔记内容与海飞丝品牌关联度较弱（如生活Vlog、美食内容），可能影响品牌声量分析的纯粹性。",
+      "数据不足：数据时间窗口为90天，可能无法反映品牌长期的声量趋势或季节性波动。",
+      "数据不足：用户评论样本数量有限，且未提供情感分析结果，难以全面评估用户对品牌的真实情感倾向。",
+      "数据不足：笔记内容中提及的竞品（如康如、薇姿、蔓迪等）在提供的竞争对手列表中未出现，表明市场竞争格局可能比预设的更复杂。",
+      "数据不足：无法从现有数据中判断品牌营销活动（如明星合作）的具体效果和投入产出比。"
+    ]
+  },
+  "report_sections": [
+    {
+      "section_id": "section-01",
+      "title": "封面与报告范围",
+      "eyebrow": "小红书品牌健康度售前诊断",
+      "core_judgment": "海飞丝在小红书平台健康度得分为72.0，展现出稳健的声量基础与高效的用户互动能力。近90天内，品牌相关笔记644篇，总互动量超11万次，篇均互动（171.72）显著高于主要竞品欧莱雅（59.19），表明现有内容能有效引发用户参与。然而，品牌",
+      "evidence": [
+        "近 90 天全量相关笔记 644 条",
+        "参与作者 572 个，总互动 110588"
+      ],
+      "body": [
+        "海飞丝在小红书平台健康度得分为72.0，展现出稳健的声量基础与高效的用户互动能力。近90天内，品牌相关笔记644篇，总互动量超11万次，篇均互动（171.72）显著高于主要竞品欧莱雅（59.19），表明现有内容能有效引发用户参与。然而，品牌声量规模与头部竞品存在数量级差距，且在“去屑洗发水”、“控油蓬松”等核心细分需求场景的搜索影响力有待加强。部分高互动内容（如生活Vlog）与品牌核心信息关联度较弱，可能稀释专业形象。最关键的是，数据中缺乏直接的转化指标，使得营销投入的商业回报难以评估。本报告基于确定性数据聚合与事实校验结论生成，但需注意：竞争对手数据（清扬、潘婷、沙宣）样本量极低，可能影响市场格局判断；评论样本有限且无情感分析，用户真实倾向评估存在局限。"
+      ],
+      "bullets": [
+        "报告对象：海飞丝",
+        "品类：洗护发与去屑头皮护理",
+        "核心产品：去屑洗发水、头皮护理、洗发露",
+        "分析窗口：近 90 天"
+      ],
+      "table": [
+        {
+          "指标": "核心产品",
+          "当前值": "去屑洗发水、头皮护理、洗发露"
+        },
+        {
+          "指标": "竞品品牌",
+          "当前值": "清扬、潘婷、欧莱雅、沙宣"
+        }
+      ],
+      "cards": []
+    },
+    {
+      "section_id": "section-02",
+      "title": "管理层摘要",
+      "eyebrow": "小红书品牌健康度售前诊断",
+      "core_judgment": "海飞丝在小红书平台处于“声量稳健但增长受限，互动高效但转化不明”的状态。品牌已建立有效的声量基础和高于部分竞品的内容互动效率，内容资产覆盖了成分科普、效果见证等有效模式。然而，管理层需关注三大结构性挑战：第一，声量规模与头部竞品差距巨大，增",
+      "evidence": [
+        "近 90 天全量相关笔记 644 条",
+        "参与作者 572 个，总互动 110588"
+      ],
+      "body": [
+        "海飞丝在小红书平台处于“声量稳健但增长受限，互动高效但转化不明”的状态。品牌已建立有效的声量基础和高于部分竞品的内容互动效率，内容资产覆盖了成分科普、效果见证等有效模式。然而，管理层需关注三大结构性挑战：第一，声量规模与头部竞品差距巨大，增长面临瓶颈；第二，部分高互动内容与品牌核心价值关联度不足，存在稀释专业形象的风险；第三，也是最关键的一点，缺乏转化数据使得营销投入的回报难以评估，存在资源错配风险。未来90天，建议优先聚焦细分场景声量提升（如“二硫化硒洗发水”、“控油蓬松”），优化内容关联度，并初步建立转化评估体系，将内容优势转化为可衡量的商业价值。"
+      ],
+      "bullets": [
+        "声量效率优势明显，但规模差距显著：海飞丝篇均互动（171.72）远高于欧莱雅（59.19），内容互动效率突出。但笔记总量（644篇）仅为欧莱雅（11962篇）的5.4%，声量规模存在巨大差距，限制了品牌在平台的整体影响力。",
+        "内容资产覆盖有效模式，但关联度需优化：品牌成功的内容集群包括“成分党深度科普”（如二硫化硒、水杨酸）、“真实效果见证”和“生活方式融合”。然而，部分高互动笔记（如生活Vlog、美食内容）与品牌核心产品关联度弱，可能分散用户对品牌专业价值的认知。",
+        "细分场景搜索占位不足：在“去屑洗发水”、“控油蓬松”等高需求细分话题中，品牌相关话题的互动量低于更泛的品类话题，表明品牌在精准触达目标用户、承接细分需求方面存在短板。",
+        "核心受众与痛点清晰，但转化路径不明：数据表明，受头屑、头油困扰的消费者，关注成分功效的“成分党”，以及追求蓬松控油的用户是品牌核心受众。其主要痛点为头屑反复、头皮易油。然而，缺乏购买转化、搜索转化等直接效果数据，无法评估内容种草到购买的实际效率。",
+        "竞争情报存在盲区：提供的竞争对手数据中，清扬、潘婷、沙宣的笔记数和互动量异常低，可能与数据抓取范围或品牌策略有关，需谨慎解读。同时，笔记中频繁提及的竞品（如康如、薇姿）未在对比列表中，市场竞争格局可能比预设的更复杂。"
+      ],
+      "table": [],
+      "cards": []
+    },
+    {
+      "section_id": "section-03",
+      "title": "核心指标速览",
+      "eyebrow": "小红书品牌健康度售前诊断",
+      "core_judgment": "核心指标用于快速判断品牌在小红书的可见度、内容效率和用户反馈厚度。售前沟通中应重点解释声量是否形成资产、互动是否有效、搜索词是否被品牌承接。",
+      "evidence": [
+        "近 90 天全量相关笔记 644 条",
+        "参与作者 572 个，总互动 110588"
+      ],
+      "body": [
+        "核心指标用于快速判断品牌在小红书的可见度、内容效率和用户反馈厚度。售前沟通中应重点解释声量是否形成资产、互动是否有效、搜索词是否被品牌承接。"
+      ],
+      "bullets": [
+        "健康度 72.0/100",
+        "篇均互动 171.72",
+        "收藏总量 31042",
+        "评论总量 6924"
+      ],
+      "table": [
+        {
+          "指标": "笔记数",
+          "当前值": 644
+        },
+        {
+          "指标": "作者数",
+          "当前值": 572
+        },
+        {
+          "指标": "总互动",
+          "当前值": 110588
+        }
+      ],
+      "cards": []
+    },
+    {
+      "section_id": "section-04",
+      "title": "关键发现",
+      "eyebrow": "小红书品牌健康度售前诊断",
+      "core_judgment": "关键发现用于建立售前讨论的主线：先说明品牌当前位置，再指出增长瓶颈，最后引出我们可以帮助品牌优化的方向。",
+      "evidence": [
+        "近 90 天全量相关笔记 644 条",
+        "参与作者 572 个，总互动 110588"
+      ],
+      "body": [
+        "关键发现用于建立售前讨论的主线：先说明品牌当前位置，再指出增长瓶颈，最后引出我们可以帮助品牌优化的方向。"
+      ],
+      "bullets": [
+        "海飞丝在小红书平台拥有显著的声量基础和较高的用户互动效率，但声量规模与头部竞品（如欧莱雅）存在较大差距。",
+        "品牌内容互动效率（平均互动171.72）高于主要竞争对手欧莱雅（59.19），表明现有内容能有效引发用户参与。",
+        "高互动内容主要围绕成分科普（如二硫化硒、水杨酸）、真实效果见证和生活方式融合，但部分生活Vlog类内容与品牌核心信息关联度较弱。",
+        "品牌在细分需求场景（如“去屑洗发水”、“控油蓬松”）的搜索占位中，影响力低于更泛的品类话题，表明在精准触达目标用户方面存在不足。",
+        "缺乏直接的转化数据（如购买转化率），无法准确评估营销活动的实际销售效果。"
+      ],
+      "table": [],
+      "cards": []
+    },
+    {
+      "section_id": "section-05",
+      "title": "小红书平台与品类机会",
+      "eyebrow": "小红书品牌健康度售前诊断",
+      "core_judgment": "小红书对 洗护发与去屑头皮护理 的价值在于同时承接搜索、种草、内容资产和用户反馈。报告不把平台当作单纯曝光渠道，而是评估品牌是否围绕核心产品形成可持续的内容经营能力。",
+      "evidence": [
+        "近 90 天全量相关笔记 644 条",
+        "参与作者 572 个，总互动 110588"
+      ],
+      "body": [
+        "小红书对 洗护发与去屑头皮护理 的价值在于同时承接搜索、种草、内容资产和用户反馈。报告不把平台当作单纯曝光渠道，而是评估品牌是否围绕核心产品形成可持续的内容经营能力。"
+      ],
+      "bullets": [
+        "搜索词承接决定用户主动需求能否被捕捉",
+        "收藏和评论反映内容是否具备决策价值",
+        "核心产品优先看：去屑洗发水、头皮护理、洗发露"
+      ],
+      "table": [
+        {
+          "机会": "海飞丝",
+          "笔记数": 611,
+          "互动": 68784
+        },
+        {
+          "机会": "洗发水",
+          "笔记数": 19,
+          "互动": 22773
+        },
+        {
+          "机会": "敏感肌修护",
+          "笔记数": 2,
+          "互动": 1967
+        },
+        {
+          "机会": "运动",
+          "笔记数": 1,
+          "互动": 7651
+        },
+        {
+          "机会": "未标注",
+          "笔记数": 1,
+          "互动": 2235
+        }
+      ],
+      "cards": []
+    },
+    {
+      "section_id": "section-06",
+      "title": "品牌小红书现状盘点",
+      "eyebrow": "小红书品牌健康度售前诊断",
+      "core_judgment": "海飞丝 当前在数据库中具备 644 条相关笔记和 572 个参与作者。下一步需要判断这些声量是否真正围绕 去屑洗发水、头皮护理、洗发露 沉淀为内容资产。",
+      "evidence": [
+        "近 90 天全量相关笔记 644 条",
+        "参与作者 572 个，总互动 110588"
+      ],
+      "body": [
+        "海飞丝 当前在数据库中具备 644 条相关笔记和 572 个参与作者。下一步需要判断这些声量是否真正围绕 去屑洗发水、头皮护理、洗发露 沉淀为内容资产。"
+      ],
+      "bullets": [
+        "总互动 110588",
+        "收藏 31042",
+        "分享 2941"
+      ],
+      "table": [
+        {
+          "标题": "5min头皮八段锦🔥跟老祖宗养头发‼️头发疯长",
+          "作者": "蛋挞美研社",
+          "互动": 7651
+        },
+        {
+          "标题": "头发养护大公开‍！给油屑头一点震撼",
+          "作者": "杨毛卷er",
+          "互动": 5487
+        },
+        {
+          "标题": "vlog🍜📦这是我研二下去工位的一天",
+          "作者": "油条小豆蒋",
+          "互动": 2665
+        },
+        {
+          "标题": "油头已经开始期待夏天了！！！",
+          "作者": "小小",
+          "互动": 2523
+        },
+        {
+          "标题": "妈妈喜欢提前很早把即将用完的东西给装满",
+          "作者": "可可乐乐",
+          "互动": 2456
+        }
+      ],
+      "cards": []
+    },
+    {
+      "section_id": "section-07",
+      "title": "六维品牌健康评分体系",
+      "eyebrow": "小红书品牌健康度售前诊断",
+      "core_judgment": "六维评分用于把复杂内容生态压缩成管理层可读的诊断框架。分数不是销售预测，而是品牌在小红书经营成熟度的横向观察。",
+      "evidence": [
+        "近 90 天全量相关笔记 644 条",
+        "参与作者 572 个，总互动 110588"
+      ],
+      "body": [
+        "六维评分用于把复杂内容生态压缩成管理层可读的诊断框架。分数不是销售预测，而是品牌在小红书经营成熟度的横向观察。"
+      ],
+      "bullets": [
+        "声量渗透: 85.0 - 品牌在90天内拥有644篇笔记和572位作者，总互动量达110,588次，平均互动171.72次，表明品牌在平台上有显著的声量基础和用户参与度。与主要竞争对手（如欧莱雅）相比，笔记数和互动总量存在差距，但平均互动水平较高。",
+        "互动质量: 78.0 - 平均互动（171.72）和平均收藏（48.2）均处于较高水平，表明内容能有效引发用户互动和深度兴趣。Top笔记中，互动量最高的笔记（如N1）互动达7651次，且包含大量收藏和分享，显示内容具有传播力。",
+        "内容资产: 70.0 - 品牌拥有官方账号（如“海飞丝头与肩”）和明星合作内容（如品牌大使李云霄），内容形式涵盖产品测评、生活Vlog、成分科普等。但部分高互动笔记（如N3、N11）与品牌关联度较弱，可能稀释品牌核心信息的传递。",
+        "搜索占位: 65.0 - 品牌关键词“海飞丝”相关笔记611篇，互动68,784次，在搜索中占据一定份额。但相关话题如“去屑洗发水”、“控油蓬松”等互动量更高，表明品牌在细分需求场景中的占位有待加强。",
+        "达人结构: 75.0 - Top作者中包括头部达人（如蛋挞美研社，粉丝61.8万）和品牌官方号，能覆盖不同粉丝层级。但作者分布中，粉丝量级跨度大，且部分高互动作者（如可可乐乐，粉丝仅24）内容与品牌关联度低，达人合作结构的精准度和效果评估数据不足。",
+        "转化潜力: 60.0 - 数据中缺乏直接的转化指标（如点击购买、搜索转化率）。从内容看，部分笔记（如N2、N4、N12）包含明确的产品推荐和功效描述，可能引导购买兴趣。但评论样本有限且未提供情感分析，无法准确评估用户购买意向和转化效果。"
+      ],
+      "table": [
+        {
+          "维度": "声量渗透",
+          "得分": 85.0,
+          "置信度": "high"
+        },
+        {
+          "维度": "互动质量",
+          "得分": 78.0,
+          "置信度": "high"
+        },
+        {
+          "维度": "内容资产",
+          "得分": 70.0,
+          "置信度": "medium"
+        },
+        {
+          "维度": "搜索占位",
+          "得分": 65.0,
+          "置信度": "medium"
+        },
+        {
+          "维度": "达人结构",
+          "得分": 75.0,
+          "置信度": "medium"
+        },
+        {
+          "维度": "转化潜力",
+          "得分": 60.0,
+          "置信度": "low"
+        }
+      ],
+      "cards": []
+    },
+    {
+      "section_id": "section-08",
+      "title": "内容声量与趋势",
+      "eyebrow": "小红书品牌健康度售前诊断",
+      "core_judgment": "内容声量需要和趋势一起看。短期声量高说明品牌容易被召回，但如果趋势由少数爆文或单一主题驱动，后续增长稳定性仍需要谨慎判断。",
+      "evidence": [
+        "近 90 天全量相关笔记 644 条",
+        "参与作者 572 个，总互动 110588"
+      ],
+      "body": [
+        "内容声量需要和趋势一起看。短期声量高说明品牌容易被召回，但如果趋势由少数爆文或单一主题驱动，后续增长稳定性仍需要谨慎判断。"
+      ],
+      "bullets": [
+        "相关笔记 644",
+        "作者覆盖 572",
+        "建议按周追踪声量和互动变化"
+      ],
+      "table": [
+        {
+          "type": "weekly_trend",
+          "week_start": "2026-03-23",
+          "note_count": 231,
+          "interaction_total": 66835
+        },
+        {
+          "type": "weekly_trend",
+          "week_start": "2026-03-30",
+          "note_count": 242,
+          "interaction_total": 35862
+        },
+        {
+          "type": "weekly_trend",
+          "week_start": "2026-04-06",
+          "note_count": 41,
+          "interaction_total": 7878
+        },
+        {
+          "type": "weekly_trend",
+          "week_start": "2026-04-13",
+          "note_count": 113,
+          "interaction_total": 13
+        },
+        {
+          "type": "weekly_trend",
+          "week_start": "2026-04-20",
+          "note_count": 17,
+          "interaction_total": 0
+        }
+      ],
+      "cards": []
+    },
+    {
+      "section_id": "section-09",
+      "title": "互动质量与内容资产",
+      "eyebrow": "小红书品牌健康度售前诊断",
+      "core_judgment": "互动质量决定内容能否从曝光转化为真实兴趣。收藏代表回看和决策价值，评论代表疑问和讨论，分享代表二次传播。",
+      "evidence": [
+        "近 90 天全量相关笔记 644 条",
+        "参与作者 572 个，总互动 110588"
+      ],
+      "body": [
+        "互动质量决定内容能否从曝光转化为真实兴趣。收藏代表回看和决策价值，评论代表疑问和讨论，分享代表二次传播。"
+      ],
+      "bullets": [
+        "篇均互动 171.72",
+        "篇均收藏 48.2",
+        "评论总量 6924"
+      ],
+      "table": [
+        {
+          "内容": "5min头皮八段锦🔥跟老祖宗养头发‼️头发疯长",
+          "互动": 7651,
+          "收藏": 4374,
+          "评论": 42
+        },
+        {
+          "内容": "头发养护大公开‍！给油屑头一点震撼",
+          "互动": 5487,
+          "收藏": 1664,
+          "评论": 62
+        },
+        {
+          "内容": "vlog🍜📦这是我研二下去工位的一天",
+          "互动": 2665,
+          "收藏": 84,
+          "评论": 127
+        },
+        {
+          "内容": "油头已经开始期待夏天了！！！",
+          "互动": 2523,
+          "收藏": 787,
+          "评论": 56
+        },
+        {
+          "内容": "妈妈喜欢提前很早把即将用完的东西给装满",
+          "互动": 2456,
+          "收藏": 112,
+          "评论": 385
+        },
+        {
+          "内容": "🎁X13～去宝洁大楼给我的美发屋进点货",
+          "互动": 2266,
+          "收藏": 252,
+          "评论": 282
+        }
+      ],
+      "cards": []
+    },
+    {
+      "section_id": "section-10",
+      "title": "竞品对标与差距诊断",
+      "eyebrow": "小红书品牌健康度售前诊断",
+      "core_judgment": "竞品对标用于判断问题是品牌自身短板，还是品类共同现象。售前沟通应优先抓住与主要竞品差距最大的指标。",
+      "evidence": [
+        "近 90 天全量相关笔记 644 条",
+        "参与作者 572 个，总互动 110588"
+      ],
+      "body": [
+        "竞品对标用于判断问题是品牌自身短板，还是品类共同现象。售前沟通应优先抓住与主要竞品差距最大的指标。"
+      ],
+      "bullets": [
+        "声量渗透: 与欧莱雅相比，笔记数量（644 vs 11962）和总互动量（110,588 vs 707,995）存在显著差距，表明品牌在平台声量规模上仍有较大提升空间。; 互动质量: 平均互动（171.72）高于欧莱雅（59.19），显示品牌内容互动效率较高，但需持续优化以维持优势。; 内容资产: 缺乏与竞品（如欧莱雅）在内容类型、发布频率、合作达人层级等方面的详细对比数据，无法精确评估差距。; 搜索占位: 在核心品类关键词（如“去屑洗发水”）的搜索占位中，品牌相关话题互动量（如“海飞丝”14,775）低于更泛的品类话题（如“去屑洗发水”27,049），表明品牌在细分需求场景中的搜索影响力有待加强。; 达人结构: 缺乏竞品达人结构（如合作达人数量、粉丝层级分布、内容类型）的详细对比数据，无法精确评估差距。; 转化潜力: 缺乏竞品转化数据（如购买转化率、客单价）的对比，无法评估品牌在转化效率上的相对位置。"
+      ],
+      "table": [
+        {
+          "品牌": "清扬",
+          "笔记": 3,
+          "作者": 3,
+          "篇均互动": 1.0
+        },
+        {
+          "品牌": "潘婷",
+          "笔记": 3,
+          "作者": 3,
+          "篇均互动": 1359.0
+        },
+        {
+          "品牌": "欧莱雅",
+          "笔记": 11962,
+          "作者": 9450,
+          "篇均互动": 59.19
+        },
+        {
+          "品牌": "沙宣",
+          "笔记": 2,
+          "作者": 2,
+          "篇均互动": 156.5
+        }
+      ],
+      "cards": []
+    },
+    {
+      "section_id": "section-11",
+      "title": "内容主题与爆文拆解",
+      "eyebrow": "小红书品牌健康度售前诊断",
+      "core_judgment": "内容主题和爆文拆解用于回答：品牌靠什么内容被看见，哪些主题可以复用，哪些主题只是偶发。",
+      "evidence": [
+        "近 90 天全量相关笔记 644 条",
+        "参与作者 572 个，总互动 110588"
+      ],
+      "body": [
+        "内容主题和爆文拆解用于回答：品牌靠什么内容被看见，哪些主题可以复用，哪些主题只是偶发。"
+      ],
+      "bullets": [
+        "结合传统养生（如八段锦）与头皮护理的“中式养发”内容能引发高互动和收藏。",
+        "针对“油屑头”痛点，提供具体、震撼的解决方案（如特定成分洗发水）的内容容易获得高点赞和收藏。",
+        "将产品融入生活Vlog（如学生党、打工人日常），通过真实场景和情感共鸣带动互动，但品牌关联度可能较弱。",
+        "深度成分科普（如二硫化硒、水杨酸）能吸引成分党用户，获得高收藏和深度评论。",
+        "明星合作内容（如品牌大使李云霄）能有效提升品牌声量和粉丝互动。"
+      ],
+      "table": [
+        {
+          "主题": "海飞丝",
+          "笔记数": 146,
+          "互动": 14775
+        },
+        {
+          "主题": "洗发水推荐",
+          "笔记数": 95,
+          "互动": 23211
+        },
+        {
+          "主题": "去屑洗发水",
+          "笔记数": 63,
+          "互动": 27049
+        },
+        {
+          "主题": "上薯喝咖啡",
+          "笔记数": 60,
+          "互动": 0
+        },
+        {
+          "主题": "洗发水",
+          "笔记数": 49,
+          "互动": 5741
+        },
+        {
+          "主题": "李云霄海飞丝",
+          "笔记数": 49,
+          "互动": 1097
+        },
+        {
+          "主题": "李沛恩",
+          "笔记数": 44,
+          "互动": 539
+        },
+        {
+          "主题": "李云霄",
+          "笔记数": 39,
+          "互动": 7697
+        }
+      ],
+      "cards": []
+    },
+    {
+      "section_id": "section-12",
+      "title": "搜索占位与关键词机会",
+      "eyebrow": "小红书品牌健康度售前诊断",
+      "core_judgment": "搜索占位反映用户主动需求是否被品牌接住。品牌词强只能说明已有认知，产品词和场景词才更接近新增需求。",
+      "evidence": [
+        "近 90 天全量相关笔记 644 条",
+        "参与作者 572 个，总互动 110588"
+      ],
+      "body": [
+        "搜索占位反映用户主动需求是否被品牌接住。品牌词强只能说明已有认知，产品词和场景词才更接近新增需求。"
+      ],
+      "bullets": [
+        "keyword: 二硫化硒洗发水; opportunity: 该话题互动量高（10,997），且海飞丝有相关产品（海飞丝二硫化硒洗发水）和内容（N12, N24），可加强在此细分成分赛道的占位。; evidence_ids: ['keyword_signals', 'N12', 'N24']",
+        "keyword: 控油蓬松; opportunity: 该话题互动量高（7,184），是用户核心需求。海飞丝有相关产品（如玫瑰双抗瓶、肌底控油瓶）和内容，可进一步强化“控油蓬松”的解决方案输出。; evidence_ids: ['keyword_signals', 'N4', 'N10', 'N19']",
+        "keyword: 脂溢性皮炎/脂头; opportunity: 相关话题（如“脂头”）有互动（2,946），且用户评论中存在相关咨询（C39）。海飞丝二硫化硒产品可针对此专业需求进行内容深化。; evidence_ids: ['keyword_signals', 'N24', 'comment_signals']",
+        "keyword: 头皮护理; opportunity: 该话题互动量极高（23,001），是品类核心。海飞丝内容已涉及，但可更系统地从“头皮健康”角度输出内容，超越单一产品推荐。; evidence_ids: ['keyword_signals', 'N1', 'N19']"
+      ],
+      "table": [
+        {
+          "关键词": "海飞丝",
+          "笔记数": 611,
+          "互动": 68784
+        },
+        {
+          "关键词": "洗发水",
+          "笔记数": 19,
+          "互动": 22773
+        },
+        {
+          "关键词": "敏感肌修护",
+          "笔记数": 2,
+          "互动": 1967
+        },
+        {
+          "关键词": "运动",
+          "笔记数": 1,
+          "互动": 7651
+        },
+        {
+          "关键词": "未标注",
+          "笔记数": 1,
+          "互动": 2235
+        },
+        {
+          "关键词": "熬夜恢复",
+          "笔记数": 1,
+          "互动": 1864
+        },
+        {
+          "关键词": "彩妆",
+          "笔记数": 1,
+          "互动": 1545
+        },
+        {
+          "关键词": "软装",
+          "笔记数": 1,
+          "互动": 1337
+        }
+      ],
+      "cards": []
+    },
+    {
+      "section_id": "section-13",
+      "title": "用户洞察：人群、动机、痛点、场景",
+      "eyebrow": "小红书品牌健康度售前诊断",
+      "core_judgment": "用户洞察主要来自评论、笔记文本、搜索词和内容场景。报告不强行推断年龄收入，而是聚焦用户动机、痛点和使用场景。",
+      "evidence": [
+        "近 90 天全量相关笔记 644 条",
+        "参与作者 572 个，总互动 110588"
+      ],
+      "body": [
+        "用户洞察主要来自评论、笔记文本、搜索词和内容场景。报告不强行推断年龄收入，而是聚焦用户动机、痛点和使用场景。"
+      ],
+      "bullets": [
+        "解决头屑反复、头油、头皮瘙痒等具体头皮问题",
+        "追求头发蓬松、控油持久，改善细软塌发质，提升发型美观度",
+        "对产品成分（如水杨酸、二硫化硒）有认知，相信其能从根源解决头皮问题",
+        "寻求防脱、固发、增加发量的效果",
+        "头屑反复出现，难以根治，影响社交自信和外观",
+        "头皮易出油，头发扁塌，需要频繁洗头，费时费力"
+      ],
+      "table": [
+        {
+          "claim": "受头屑、头油、头皮瘙痒等问题困扰的消费者",
+          "evidence_ids": [
+            "N2",
+            "N4",
+            "N7",
+            "N12",
+            "N15",
+            "N16",
+            "N23",
+            "N24",
+            "N29"
+          ],
+          "confidence": "high"
+        },
+        {
+          "claim": "关注头皮健康、成分功效（如水杨酸、二硫化硒）的成分党或护肤爱好者",
+          "evidence_ids": [
+            "N7",
+            "N9",
+            "N12",
+            "N19",
+            "N24"
+          ],
+          "confidence": "high"
+        },
+        {
+          "claim": "追求头发蓬松、控油效果，希望改善细软塌发质的用户",
+          "evidence_ids": [
+            "N4",
+            "N10",
+            "N19",
+            "N22",
+            "N26"
+          ],
+          "confidence": "high"
+        },
+        {
+          "claim": "面临脱发、发量焦虑，寻求防脱解决方案的用户",
+          "evidence_ids": [
+            "N14",
+            "N18",
+            "N27",
+            "N30"
+          ],
+          "confidence": "medium"
+        },
+        {
+          "claim": "生活节奏快、追求便捷护发（如免洗产品）的懒人或忙碌人群",
+          "evidence_ids": [
+            "N22",
+            "N28",
+            "C1",
+            "C2",
+            "C4",
+            "C8",
+            "C20",
+            "C26",
+            "C29"
+          ],
+          "confidence": "medium"
+        },
+        {
+          "claim": "受脂溢性皮炎等头皮问题困扰，寻求专业护理建议的用户",
+          "evidence_ids": [
+            "N21",
+            "N29"
+          ],
+          "confidence": "medium"
+        }
+      ],
+      "cards": []
+    },
+    {
+      "section_id": "section-14",
+      "title": "品牌风险与增长机会",
+      "eyebrow": "小红书品牌健康度售前诊断",
+      "core_judgment": "风险与机会用于把健康诊断转化为售前切入点。风险不是为了制造焦虑，而是帮助客户看见当前小红书经营中最应该优先处理的结构问题。",
+      "evidence": [
+        "近 90 天全量相关笔记 644 条",
+        "参与作者 572 个，总互动 110588"
+      ],
+      "body": [
+        "风险与机会用于把健康诊断转化为售前切入点。风险不是为了制造焦虑，而是帮助客户看见当前小红书经营中最应该优先处理的结构问题。"
+      ],
+      "bullets": [
+        "声量规模差距大：与头部竞品欧莱雅相比，笔记数量和总互动量存在数量级差距，限制了品牌在平台的整体影响力。",
+        "内容关联度稀释：部分高互动笔记（如生活Vlog、美食内容）与品牌核心产品关联度弱，可能分散用户对品牌专业价值的认知。",
+        "细分场景占位不足：在“去屑洗发水”、“控油蓬松”等高需求细分话题中，品牌话题的互动量低于泛品类话题，精准触达能力有待提升。",
+        "转化效果不明：缺乏购买转化、搜索转化等直接效果数据，无法评估营销活动的实际商业回报。",
+        "评论中出现对特定人群（如青春期学生、产后脱发）的咨询，但现有高互动笔记中针对性内容较少。",
+        "有笔记展示产品组合使用（如N19），且评论中有对搭配使用的疑问，但此类系统性教程内容不足。"
+      ],
+      "table": [
+        {
+          "类型": "风险",
+          "内容": "声量规模差距大：与头部竞品欧莱雅相比，笔记数量和总互动量存在数量级差距，限制了品牌在平台的整体影响力。"
+        },
+        {
+          "类型": "风险",
+          "内容": "内容关联度稀释：部分高互动笔记（如生活Vlog、美食内容）与品牌核心产品关联度弱，可能分散用户对品牌专业价值的认知。"
+        },
+        {
+          "类型": "风险",
+          "内容": "细分场景占位不足：在“去屑洗发水”、“控油蓬松”等高需求细分话题中，品牌话题的互动量低于泛品类话题，精准触达能力有待提升。"
+        },
+        {
+          "类型": "风险",
+          "内容": "转化效果不明：缺乏购买转化、搜索转化等直接效果数据，无法评估营销活动的实际商业回报。"
+        },
+        {
+          "类型": "机会",
+          "内容": "评论中出现对特定人群（如青春期学生、产后脱发）的咨询，但现有高互动笔记中针对性内容较少。"
+        },
+        {
+          "类型": "机会",
+          "内容": "有笔记展示产品组合使用（如N19），且评论中有对搭配使用的疑问，但此类系统性教程内容不足。"
+        },
+        {
+          "类型": "机会",
+          "内容": "评论中用户关心使用频率、见效周期等长期管理问题，但现有内容多聚焦单次使用效果。"
+        },
+        {
+          "类型": "机会",
+          "内容": "评论中多次出现对“敏感头皮”、“是否刺激”的担忧，但专门针对此痛点的高互动内容较少。"
+        }
+      ],
+      "cards": []
+    },
+    {
+      "section_id": "section-15",
+      "title": "90 天方向与动作清单",
+      "eyebrow": "小红书品牌健康度售前诊断",
+      "core_judgment": "90 天动作清单用于把诊断转成可执行方向。售前阶段不展开完整 SOP，但需要明确优先级、抓手和预期改善方向。",
+      "evidence": [
+        "近 90 天全量相关笔记 644 条",
+        "参与作者 572 个，总互动 110588"
+      ],
+      "body": [
+        "90 天动作清单用于把诊断转成可执行方向。售前阶段不展开完整 SOP，但需要明确优先级、抓手和预期改善方向。"
+      ],
+      "bullets": [
+        "内容策略聚焦：减少与品牌核心价值关联度低的生活Vlog类内容投放，将资源集中于“成分科普”、“效果见证”和“场景化解决方案”三大高效内容集群。",
+        "细分话题占位：针对“二硫化硒洗发水”、“控油蓬松”、“敏感头皮”等搜索机会，策划并投放系列内容，强化品牌在细分需求场景中的搜索排名和内容占比。",
+        "达人合作优化：在保持头部达人合作的同时，增加与中腰部成分党、皮肤科背景达人的合作，产出更专业、可信的深度内容。",
+        "转化路径测试：在部分高互动笔记中测试添加产品购买链接或引导搜索关键词，初步收集转化数据，评估内容种草到购买的效率。",
+        "竞争情报补全：重新评估或补充主要竞争对手（特别是康如、薇姿等在笔记中频繁出现的品牌）在小红书平台的真实声量与内容策略，以制定更精准的竞争策略。"
+      ],
+      "table": [
+        {
+          "优先级": "P0",
+          "动作": "提升细分场景声量：在“二硫化硒洗发水”、“控油蓬松”、“脂溢性皮炎”等高潜力细分话题中，将品牌相关话题互动量提升20%。"
+        },
+        {
+          "优先级": "P1",
+          "动作": "优化内容关联度：将高互动但低关联度的内容占比降低15%，确保核心内容更聚焦于产品功效、成分和头皮健康解决方案。"
+        },
+        {
+          "优先级": "P2",
+          "动作": "建立转化评估体系：通过合作达人笔记挂链、评论区引导等方式，初步建立对内容引流至电商或搜索的转化效果追踪。"
+        },
+        {
+          "优先级": "P3",
+          "动作": "深化成分教育：针对“水杨酸”、“二硫化硒”等核心成分，产出至少3篇深度科普内容，巩固品牌在成分赛道的专业形象。"
+        }
+      ],
+      "cards": []
+    }
+  ],
+  "quality_warnings": [
+    {
+      "type": "generic_copy",
+      "message": "section-04 contains generic template copy"
+    },
+    {
+      "type": "generic_copy",
+      "message": "section-05 contains generic template copy"
+    },
+    {
+      "type": "generic_copy",
+      "message": "section-15 contains generic template copy"
+    }
+  ],
+  "model_usage": {
+    "executive_editor": {
+      "enabled": true,
+      "status": "used",
+      "model": "mimo-v2.5-pro"
+    },
+    "section_writer": {
+      "enabled": true,
+      "status": "fallback",
+      "model": "mimo-v2.5-pro",
+      "error_type": "LLMError",
+      "error": "HTTPSConnectionPool(host='token-plan-cn.xiaomimimo.com', port=443): Read timed out. (read timeout=90)"
+    }
+  }
+}

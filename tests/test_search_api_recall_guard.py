@@ -1,6 +1,8 @@
 import unittest
+from datetime import datetime, timezone
 
 from app.api import search as search_api
+from app.schemas import BrandCategorySearchRequest
 
 
 class SearchRecallGuardTests(unittest.TestCase):
@@ -183,6 +185,34 @@ class SearchRecallGuardTests(unittest.TestCase):
             search_api.query_brand_category_db_first = original_query_brand
             search_api.query_brand_category_db_first_v2 = original_query_brand_v2
 
+    def test_running_job_returns_partial_rows_without_waiting_for_full_page(self) -> None:
+        original_try_sync = search_api.try_sync_job_status_with_crawl
+        original_partial = search_api._build_partial_job_result
+        try:
+            search_api.try_sync_job_status_with_crawl = lambda _db, job_id: {
+                "job_id": job_id,
+                "status": "running",
+                "search_type": "brand_category",
+                "query": "防晒",
+                "task_id": "task-1",
+                "crawl_batch_id": "batch-1",
+                "request_payload": {"mode": "category"},
+            }
+            search_api._build_partial_job_result = lambda _db, job, page, size: {
+                "hit": True,
+                "items": [{"note_id": "n1"}],
+                "summary": {"note_count": 1},
+                "pagination": {"total": 1, "page": page, "size": size, "has_more": False},
+                "freshness": datetime.now(timezone.utc).isoformat(),
+            }
+            response = search_api.get_unified_search_job("job-1", page=1, size=30, db=object())
+            self.assertEqual(response.data["status"], "pending")
+            self.assertEqual(response.data["pending_reason"], "partial_ready")
+            self.assertEqual(len(response.data["items"]), 1)
+        finally:
+            search_api.try_sync_job_status_with_crawl = original_try_sync
+            search_api._build_partial_job_result = original_partial
+
     def test_add_health_reasons_dedupes_and_marks_worker_unhealthy(self) -> None:
         health = search_api._add_health_reasons(
             {"healthy": True, "reasons": ["low_results"]},
@@ -191,6 +221,82 @@ class SearchRecallGuardTests(unittest.TestCase):
         )
         self.assertEqual(health["reasons"], ["low_results", "worker_unavailable"])
         self.assertFalse(health["healthy"])
+
+    def test_cached_rows_return_ready_without_scheduling_refresh(self) -> None:
+        original_read_cache = search_api._read_result_cache
+        original_schedule = search_api._safe_schedule_backfill
+        try:
+            search_api._read_result_cache = lambda _key: {
+                "status": "pending",
+                "job_id": "job-1",
+                "items": [{"note_id": "n1"}],
+                "summary": {"note_count": 1},
+                "pagination": {"total": 1, "page": 1, "size": 30, "has_more": False},
+                "health": {"healthy": True, "reasons": []},
+            }
+
+            def _unexpected_schedule(*_args, **_kwargs):
+                raise AssertionError("cached rows should not schedule refresh")
+
+            search_api._safe_schedule_backfill = _unexpected_schedule
+            response = search_api.search_brand_or_category(
+                BrandCategorySearchRequest(query="YSL", mode="brand", page=1, size=30),
+                db=object(),
+            )
+            self.assertEqual(response.data["status"], "ready")
+            self.assertNotIn("pending_reason", response.data)
+            self.assertNotIn("next_poll_after_ms", response.data)
+            self.assertIn("served_from_cache", response.data["health"]["reasons"])
+        finally:
+            search_api._read_result_cache = original_read_cache
+            search_api._safe_schedule_backfill = original_schedule
+
+    def test_healthy_db_hit_does_not_schedule_background_backfill(self) -> None:
+        original_read_cache = search_api._read_result_cache
+        original_write_cache = search_api._write_result_cache
+        original_query_v2 = search_api.query_brand_category_db_first_v2
+        original_query_legacy = search_api.query_brand_category_db_first
+        original_schedule = search_api._safe_schedule_backfill
+        original_quota = search_api._has_recent_quota_exhausted_collect_task
+        original_statement_timeout = search_api._run_with_statement_timeout
+        try:
+            search_api._read_result_cache = lambda _key: None
+            search_api._write_result_cache = lambda *_args, **_kwargs: None
+            search_api._has_recent_quota_exhausted_collect_task = lambda _db: False
+            search_api._run_with_statement_timeout = lambda _db, _timeout_ms, fn: fn()
+            search_api.query_brand_category_db_first = lambda *_args, **_kwargs: {
+                "hit": False,
+                "items": [],
+                "summary": {},
+                "pagination": {"total": 0},
+                "freshness": None,
+            }
+            search_api.query_brand_category_db_first_v2 = lambda *_args, **_kwargs: {
+                "hit": True,
+                "items": [{"note_id": f"n{i}"} for i in range(30)],
+                "summary": {"note_count": 100, "creator_count": 20, "comment_total": 50},
+                "pagination": {"total": 100, "page": 1, "size": 30, "has_more": True},
+                "freshness": datetime.now(timezone.utc).isoformat(),
+            }
+
+            def _unexpected_schedule(*_args, **_kwargs):
+                raise AssertionError("healthy DB hit should not schedule background backfill")
+
+            search_api._safe_schedule_backfill = _unexpected_schedule
+            response = search_api.search_brand_or_category(
+                BrandCategorySearchRequest(query="YSL", mode="brand", page=1, size=30),
+                db=object(),
+            )
+            self.assertEqual(response.data["status"], "ready")
+            self.assertEqual(response.data["pagination"]["total"], 100)
+        finally:
+            search_api._read_result_cache = original_read_cache
+            search_api._write_result_cache = original_write_cache
+            search_api.query_brand_category_db_first_v2 = original_query_v2
+            search_api.query_brand_category_db_first = original_query_legacy
+            search_api._safe_schedule_backfill = original_schedule
+            search_api._has_recent_quota_exhausted_collect_task = original_quota
+            search_api._run_with_statement_timeout = original_statement_timeout
 
 
 if __name__ == "__main__":

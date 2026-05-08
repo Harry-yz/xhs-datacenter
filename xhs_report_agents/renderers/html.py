@@ -80,6 +80,7 @@ body {{
     radial-gradient(circle at 16% 8%, rgba(217,109,69,.18), transparent 30%),
     linear-gradient(135deg,#f8efe5 0%,#fffaf4 42%,#f2eadf 100%);
 }}
+.main, .panel, .section, .hero-content {{ min-width:0; }}
 .shell {{ width:min(1600px, calc(100% - 44px)); margin:0 auto; padding:28px 0 64px; display:grid; grid-template-columns:292px minmax(0,1fr); gap:26px; }}
 .side {{ position:sticky; top:24px; align-self:start; max-height:calc(100vh - 48px); overflow:auto; padding:24px; border:1px solid rgba(234,222,210,.9); border-radius:30px; background:rgba(255,253,249,.84); box-shadow:var(--shadow); backdrop-filter:blur(18px); scrollbar-width:thin; scrollbar-color:rgba(217,109,69,.46) rgba(255,246,236,.62); }}
 .side::-webkit-scrollbar {{ width:8px; }}
@@ -108,7 +109,11 @@ body {{
 .section {{ padding:30px; }}
 .section-head {{ display:flex; align-items:flex-end; justify-content:space-between; gap:18px; margin-bottom:20px; }}
 .section h3 {{ margin:0; font-size:30px; line-height:1.1; letter-spacing:0; }}
-.section-copy {{ margin:8px 0 0; color:var(--muted); line-height:1.7; max-width:820px; }}
+.section-copy {{
+  margin:8px 0 0; color:var(--muted); line-height:1.78; max-width:980px;
+  font-size:15px; letter-spacing:0; line-break:strict; word-break:normal; overflow-wrap:normal; text-wrap:pretty;
+}}
+.report-section > .panel .section-copy {{ max-width:1120px; color:#5f564e; }}
 .grid-2 {{ display:grid; grid-template-columns:1.08fr .92fr; gap:18px; }}
 .grid-3 {{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }}
 .panel {{ background:var(--card); border:1px solid var(--line); border-radius:24px; padding:20px; min-width:0; }}
@@ -121,10 +126,16 @@ body {{
 .fill {{ height:100%; border-radius:999px; background:linear-gradient(90deg,var(--accent),var(--gold)); }}
 .radar-wrap {{ display:grid; place-items:center; min-height:310px; }}
 .radar-label {{ fill:#6d6258; font-size:11px; }}
-.table {{ width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border:1px solid var(--line); border-radius:18px; }}
-.table th,.table td {{ padding:13px 14px; text-align:left; border-bottom:1px solid var(--line); font-size:14px; }}
+.table-wrap {{ width:100%; overflow-x:auto; border:1px solid var(--line); border-radius:18px; -webkit-overflow-scrolling:touch; }}
+.table {{ width:100%; min-width:620px; border-collapse:separate; border-spacing:0; overflow:hidden; }}
+.table th,.table td {{ padding:13px 14px; text-align:left; border-bottom:1px solid var(--line); font-size:14px; line-height:1.55; vertical-align:top; }}
 .table th {{ background:#fbf3ea; color:#6a5544; font-weight:800; }}
 .table tr:last-child td {{ border-bottom:0; }}
+.table td {{ overflow-wrap:anywhere; word-break:break-word; }}
+.evidence-cards {{ display:grid; gap:12px; }}
+.evidence-card {{ padding:15px 16px; border:1px solid var(--line); border-radius:18px; background:#fffaf4; }}
+.evidence-card strong {{ display:block; margin-bottom:6px; color:#3b3028; }}
+.evidence-card p {{ margin:0; color:#5f564e; line-height:1.68; }}
 .chips {{ display:flex; flex-wrap:wrap; gap:10px; }}
 .chip {{ display:inline-flex; gap:8px; align-items:center; padding:9px 12px; background:#fff7ef; border:1px solid #ecd9ca; border-radius:999px; font-size:13px; color:#5b4d42; }}
 .note-list {{ display:grid; gap:12px; }}
@@ -137,9 +148,14 @@ body {{
 .chart-box {{ min-height:300px; display:grid; align-content:center; }}
 .axis-label {{ fill:#7b7067; font-size:11px; }}
 .dot-label {{ fill:#4d4239; font-size:11px; font-weight:800; }}
-.matrix {{ display:grid; gap:10px; }}
+.matrix {{ display:grid; gap:12px; }}
+.matrix-card {{ display:grid; gap:9px; padding:14px; border:1px solid var(--line); border-radius:18px; background:#fffaf4; }}
+.matrix-top {{ display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:10px; align-items:center; }}
+.matrix-reason {{ margin:0; color:#655d55; font-size:13px; line-height:1.62; }}
+.matrix-action {{ margin:0; color:#8a5338; font-size:13px; line-height:1.62; }}
 .matrix-row {{ display:grid; grid-template-columns:76px minmax(0,1fr) 48px; gap:10px; align-items:center; font-size:13px; }}
 .pill {{ display:inline-flex; align-items:center; justify-content:center; padding:5px 8px; border-radius:999px; background:#fff6ec; border:1px solid #ecd9ca; color:#8a5338; font-size:12px; white-space:nowrap; }}
+@supports not (text-wrap: pretty) {{ .section-copy {{ text-wrap:normal; }} }}
 @media (max-width: 1080px) {{ .shell {{ grid-template-columns:1fr; }} .side {{ position:relative; top:auto; }} .kpis,.grid-3,.grid-2 {{ grid-template-columns:1fr 1fr; }} }}
 @media (max-width: 720px) {{ .shell {{ width:min(100% - 24px,1600px); padding-top:14px; }} .hero,.section {{ border-radius:24px; padding:22px; }} .kpis,.grid-3,.grid-2,.chart-grid {{ grid-template-columns:1fr; }} .hero h2 {{ font-size:38px; }} .bar-row {{ grid-template-columns:88px minmax(0,1fr) 42px; }} }}
 </style>
@@ -223,8 +239,11 @@ def _table_panel(rows: Any) -> str:
             break
     headers = headers[:5]
     head = "".join(f"<th>{_e(h)}</th>" for h in headers)
-    body = "".join("<tr>" + "".join(f"<td>{_e(row.get(h, ''))}</td>" for h in headers) + "</tr>" for row in dict_rows[:10])
-    return f'<div class="panel" style="margin-top:18px"><h4>结构化证据</h4><table class="table"><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>'
+    if _is_long_text_table(dict_rows, headers):
+        cards = "".join(_evidence_card(row, headers) for row in dict_rows[:8])
+        return f'<div class="panel" style="margin-top:18px"><h4>结构化证据</h4><div class="evidence-cards">{cards}</div></div>'
+    body = "".join("<tr>" + "".join(f"<td>{_e(_cell_value(row.get(h, '')))}</td>" for h in headers) + "</tr>" for row in dict_rows[:10])
+    return f'<div class="panel" style="margin-top:18px"><h4>结构化证据</h4><div class="table-wrap"><table class="table"><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div></div>'
 
 
 def _cards_panel(cards: Any) -> str:
@@ -420,10 +439,19 @@ def _keyword_matrix(rows: list[dict[str, Any]]) -> str:
     if not rows:
         return '<p class="section-copy">暂无关键词机会数据。</p>'
     html_rows = []
-    for item in rows[:8]:
+    for item in rows[:5]:
         score = max(0, min(100, _float(item.get("opportunity_score"))))
+        relevance = max(0, min(100, _float(item.get("relevance_score"))))
+        reason = item.get("reason") or "基于相关性、需求强度和供给缺口综合计算。"
+        action = item.get("recommended_action") or "建议小规模测试内容供给，并跟踪互动与收藏变化。"
         html_rows.append(
-            f'<div class="matrix-row"><span class="pill">{_e(item.get("category"))}</span><div><div class="note-title">{_e(item.get("keyword"))}</div><div class="track"><div class="fill" style="width:{score:.1f}%"></div></div></div><strong>{score:.0f}</strong></div>'
+            f'''
+            <div class="matrix-card">
+              <div class="matrix-top"><span class="pill">{_e(item.get("category"))}</span><div><div class="note-title">{_e(item.get("keyword"))}</div><div class="track"><div class="fill" style="width:{score:.1f}%"></div></div></div><strong>{score:.0f}</strong></div>
+              <p class="matrix-reason">相关性 {relevance:.0f} · 笔记 {_fmt(item.get("note_count"))} · 互动 {_fmt(item.get("interaction_total"))}。{_e(reason)}</p>
+              <p class="matrix-action">{_e(action)}</p>
+            </div>
+            '''
         )
     return f'<div class="matrix">{"".join(html_rows)}</div>'
 
@@ -540,6 +568,34 @@ def _fmt(value: Any) -> str:
     if num.is_integer():
         return f"{int(num):,}"
     return f"{num:.1f}"
+
+
+def _cell_value(value: Any) -> str:
+    if isinstance(value, (int, float)):
+        return _fmt(value)
+    return str(value or "")
+
+
+def _is_long_text_table(rows: list[dict[str, Any]], headers: list[str]) -> bool:
+    long_cells = 0
+    for row in rows[:10]:
+        for header in headers:
+            value = str(row.get(header, "") or "")
+            if len(value) >= 36:
+                long_cells += 1
+    return long_cells >= 2
+
+
+def _evidence_card(row: dict[str, Any], headers: list[str]) -> str:
+    title_key = headers[0] if headers else "项目"
+    title = row.get(title_key, "证据")
+    body_parts = []
+    for header in headers[1:] or headers[:1]:
+        value = row.get(header, "")
+        if value:
+            body_parts.append(f"{header}：{_cell_value(value)}")
+    body = "；".join(body_parts) or _cell_value(title)
+    return f'<article class="evidence-card"><strong>{_e(title)}</strong><p>{_e(body)}</p></article>'
 
 
 def _float(value: Any) -> float:

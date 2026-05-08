@@ -636,6 +636,21 @@ def _result_items_count(result: dict | None) -> int:
     return len(items)
 
 
+def _result_has_usable_rows(result: dict | None) -> bool:
+    return _result_items_count(result) > 0
+
+
+def _ready_cached_payload(cached: dict) -> dict:
+    payload = dict(cached)
+    payload["status"] = "ready"
+    payload.pop("pending_reason", None)
+    payload.pop("next_poll_after_ms", None)
+    health = _safe_payload(payload.get("health"))
+    if health:
+        payload["health"] = _add_health_reasons(health, "served_from_cache")
+    return payload
+
+
 def _should_schedule_background_backfill(
     result: dict | None,
     *,
@@ -881,7 +896,7 @@ def _schedule_influencer_backfill_job(
                 "keyword": query or str(industry or "小红书"),
                 "sort": 1,
                 "max_items": 240,
-                "auto_enrich": True,
+                "auto_enrich": False,
                 "trigger_comments": False,
             },
             queue=settings.task_priority_queue,
@@ -890,7 +905,7 @@ def _schedule_influencer_backfill_job(
             kwargs={
                 "keyword": query or str(industry or "小红书"),
                 "max_items": 120,
-                "auto_enrich": True,
+                "auto_enrich": False,
             },
             queue=settings.task_priority_queue,
         )
@@ -982,7 +997,7 @@ def _schedule_brand_category_backfill_job(
                 "keyword": query,
                 "sort": 1,
                 "max_items": 260,
-                "auto_enrich": True,
+                "auto_enrich": False,
                 "trigger_comments": False,
             },
             queue=settings.task_priority_queue,
@@ -1229,7 +1244,7 @@ def _enqueue_creator_profile_backfill(db: Session, items: list[dict]) -> None:
                 author_id=author_id,
                 hours=cooldown_hours,
             ):
-                trigger_anchor_info.apply_async(args=[author_id], queue=settings.task_priority_queue)
+                trigger_anchor_info.apply_async(args=[author_id], queue=settings.task_default_queue)
 
             anchor_link = db.execute(
                 text(
@@ -1249,7 +1264,7 @@ def _enqueue_creator_profile_backfill(db: Session, items: list[dict]) -> None:
                 author_id=author_id,
                 hours=cooldown_hours,
             ):
-                trigger_fans_portrait.apply_async(args=[author_id], queue=settings.task_priority_queue)
+                trigger_fans_portrait.apply_async(args=[author_id], queue=settings.task_default_queue)
         except Exception:
             # Non-blocking best effort.
             continue
@@ -1357,13 +1372,16 @@ def search_category(req: SearchCategoryRequest, db: Session = Depends(get_db)) -
     )
     db.commit()
 
-    task = run_search_notes.delay(
-        batch_id=batch_id,
-        keyword=keyword,
-        sort=req.sort,
-        auto_enrich=req.auto_enrich,
-        trigger_comments=req.trigger_comments,
-        max_items=req.max_items,
+    task = run_search_notes.apply_async(
+        kwargs={
+            "batch_id": batch_id,
+            "keyword": keyword,
+            "sort": req.sort,
+            "auto_enrich": req.auto_enrich,
+            "trigger_comments": req.trigger_comments,
+            "max_items": req.max_items,
+        },
+        queue=settings.task_priority_queue,
     )
 
     create_crawl_log(
@@ -1477,6 +1495,8 @@ def search_influencer(req: InfluencerSearchRequest, db: Session = Depends(get_db
     if not req.force_refresh:
         cached = _read_result_cache(result_cache_key)
         if cached:
+            if _result_has_usable_rows(cached):
+                return APIResponse(data=_ready_cached_payload(cached))
             if str(cached.get("status") or "") in {"pending", "running"} and str(cached.get("job_id") or "").strip():
                 return APIResponse(data=cached)
             refresh_job = _safe_schedule_backfill(
@@ -1671,7 +1691,7 @@ def search_influencer(req: InfluencerSearchRequest, db: Session = Depends(get_db
         }
     if result["hit"]:
         refresh_job = None
-        if should_backfill or not req.force_refresh:
+        if should_backfill:
             refresh_job = _safe_schedule_backfill(
                 _schedule_influencer_backfill_job,
                 db,
@@ -1683,7 +1703,7 @@ def search_influencer(req: InfluencerSearchRequest, db: Session = Depends(get_db
                 wait_ms_if_locked=0,
             )
             if refresh_job is not None:
-                health = _add_health_reasons(health, "backfill_queued")
+                health = _add_health_reasons(health, "background_refresh_queued")
         stable_payload = _build_display_payload(
             result=result,
             search_type="influencer",
@@ -1696,18 +1716,7 @@ def search_influencer(req: InfluencerSearchRequest, db: Session = Depends(get_db
             stable_payload,
             ttl_seconds=int(getattr(settings, "search_result_cache_ttl_seconds", 60)),
         )
-        display_payload = stable_payload
-        if refresh_job is not None:
-            display_payload = _build_display_payload(
-                result=result,
-                search_type="influencer",
-                query=query,
-                health=health,
-                pending_job=refresh_job,
-                pending_reason="refreshing_cached_results",
-                status="pending",
-            )
-        return APIResponse(data=display_payload)
+        return APIResponse(data=stable_payload)
 
     job = _safe_schedule_backfill(
         _schedule_influencer_backfill_job,
@@ -1775,6 +1784,8 @@ def search_brand_or_category(req: BrandCategorySearchRequest, db: Session = Depe
     if not req.force_refresh:
         cached = _read_result_cache(result_cache_key)
         if cached:
+            if _result_has_usable_rows(cached):
+                return APIResponse(data=_ready_cached_payload(cached))
             if str(cached.get("status") or "") in {"pending", "running"} and str(cached.get("job_id") or "").strip():
                 return APIResponse(data=cached)
             refresh_job = _safe_schedule_backfill(
@@ -1931,7 +1942,7 @@ def search_brand_or_category(req: BrandCategorySearchRequest, db: Session = Depe
         }
     if result["hit"]:
         refresh_job = None
-        if should_backfill or not req.force_refresh:
+        if should_backfill:
             refresh_job = _safe_schedule_backfill(
                 _schedule_brand_category_backfill_job,
                 db,
@@ -1944,7 +1955,7 @@ def search_brand_or_category(req: BrandCategorySearchRequest, db: Session = Depe
                 wait_ms_if_locked=0,
             )
             if refresh_job is not None:
-                health = _add_health_reasons(health, "backfill_queued")
+                health = _add_health_reasons(health, "background_refresh_queued")
         stable_payload = _build_display_payload(
             result=result,
             search_type="brand_category",
@@ -1958,19 +1969,7 @@ def search_brand_or_category(req: BrandCategorySearchRequest, db: Session = Depe
             stable_payload,
             ttl_seconds=int(getattr(settings, "search_result_cache_ttl_seconds", 60)),
         )
-        display_payload = stable_payload
-        if refresh_job is not None:
-            display_payload = _build_display_payload(
-                result=result,
-                search_type="brand_category",
-                query=query,
-                health=health,
-                mode_type=effective_mode,
-                pending_job=refresh_job,
-                pending_reason="refreshing_cached_results",
-                status="pending",
-            )
-        return APIResponse(data=display_payload)
+        return APIResponse(data=stable_payload)
 
     job = _safe_schedule_backfill(
         _schedule_brand_category_backfill_job,
@@ -2225,7 +2224,7 @@ def get_unified_search_job(
         )
 
     partial_result = _build_partial_job_result(db, job=job, page=page, size=size)
-    if partial_result and _result_items_count(partial_result) >= _partial_ready_threshold(size):
+    if partial_result and _result_items_count(partial_result) > 0:
         partial_health = _needs_backfill(partial_result, force_refresh=False)[1]
         return APIResponse(
             data=_add_result_meta(

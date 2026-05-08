@@ -164,19 +164,23 @@ def _resolve_anchor_target(db: Session, anchor_ref: str | None) -> tuple[str | N
 
 
 def _recent_note_comment_limit_errors(db: Session, window_minutes: int = 20) -> int:
+    return _recent_task_limit_events(db, task_type="note_comment", window_minutes=window_minutes)
+
+
+def _recent_task_limit_events(db: Session, *, task_type: str, window_minutes: int = 20) -> int:
     value = db.execute(
         text(
             """
             SELECT COUNT(*)
             FROM xhs_crawl_log
-            WHERE task_type = 'note_comment'
-              AND status = 'failed'
+            WHERE task_type = :task_type
               AND created_at >= now() - (:window_minutes || ' minute')::interval
               AND (
                     COALESCE(error_msg, '') ILIKE '%当前任务已达上限%'
                  OR COALESCE(error_msg, '') ILIKE '%任务已达上限%'
                  OR COALESCE(error_msg, '') ILIKE '%task limit%'
                  OR COALESCE(error_msg, '') ILIKE '%reached the limit%'
+                 OR COALESCE(response_payload::text, '') ILIKE '%provider_%_task_pool_saturated%'
                  OR COALESCE(response_payload::text, '') ILIKE '%当前任务已达上限%'
                  OR COALESCE(response_payload::text, '') ILIKE '%任务已达上限%'
                  OR COALESCE(response_payload::text, '') ILIKE '%task limit%'
@@ -184,9 +188,15 @@ def _recent_note_comment_limit_errors(db: Session, window_minutes: int = 20) -> 
               )
             """
         ),
-        {"window_minutes": max(5, window_minutes)},
+        {"task_type": task_type, "window_minutes": max(5, window_minutes)},
     ).scalar()
     return int(value or 0)
+
+
+def _provider_pool_guard_active(db: Session, *, task_type: str) -> bool:
+    threshold = max(1, int(getattr(settings, "huitun_limit_guard_threshold", 60)))
+    window_minutes = max(5, int(getattr(settings, "huitun_limit_guard_window_minutes", 20)))
+    return _recent_task_limit_events(db, task_type=task_type, window_minutes=window_minutes) >= threshold
 
 
 def _log_quota_skipped(
@@ -359,10 +369,14 @@ def run_search_notes(
             if not note_id:
                 continue
             note_countdown = max(0, settings.huitun_auto_note_info_spacing_seconds * idx)
-            trigger_note_info.apply_async(args=[note_id], countdown=note_countdown)
+            trigger_note_info.apply_async(args=[note_id], countdown=note_countdown, queue=settings.task_default_queue)
             if trigger_comments:
                 comment_countdown = max(0, settings.huitun_auto_note_comment_spacing_seconds * (idx + 1))
-                trigger_note_comments.apply_async(args=[note_id], countdown=comment_countdown)
+                trigger_note_comments.apply_async(
+                    args=[note_id],
+                    countdown=comment_countdown,
+                    queue=settings.task_default_queue,
+                )
 
     return {"batch_id": batch_id, "count": len(items)}
 
@@ -463,7 +477,7 @@ def run_search_anchors(
                 continue
             trigger_anchor_info.apply_async(
                 args=[author_id],
-                queue=settings.task_priority_queue,
+                queue=settings.task_default_queue,
                 countdown=idx * 2,
             )
 
@@ -490,6 +504,24 @@ def trigger_note_info(self, note_id: str) -> dict:
                 task_id=self.request.id,
                 back_url=back_url,
             )
+        if _provider_pool_guard_active(db, task_type="note_info"):
+            create_crawl_log(
+                db,
+                batch_id=batch_id,
+                task_type="note_info",
+                biz_type="collect",
+                status="success",
+                note_id=note_id,
+                task_id=self.request.id,
+                request_payload={"note_id": note_id, "back_url": back_url},
+                response_payload={
+                    "skipped": True,
+                    "reason": "provider_note_info_task_pool_saturated",
+                    "window_minutes": settings.huitun_limit_guard_window_minutes,
+                },
+            )
+            db.commit()
+            return {"batch_id": batch_id, "skipped": True, "reason": "provider_note_info_task_pool_saturated"}
         response = client.create_note_info(note_link=note_id, back_url=back_url)
         create_crawl_log(
             db,
@@ -551,6 +583,24 @@ def trigger_anchor_info(self, anchor_ref: str) -> dict:
     try:
         author_id, anchor_link = _resolve_anchor_target(db, anchor_ref)
         request_anchor = anchor_link or anchor_ref
+        if _provider_pool_guard_active(db, task_type="anchor_info"):
+            create_crawl_log(
+                db,
+                batch_id=batch_id,
+                task_type="anchor_info",
+                biz_type="collect",
+                status="success",
+                author_id=author_id,
+                task_id=self.request.id,
+                request_payload={"anchor_ref": anchor_ref, "anchor_link": request_anchor, "back_url": back_url},
+                response_payload={
+                    "skipped": True,
+                    "reason": "provider_anchor_info_task_pool_saturated",
+                    "window_minutes": settings.huitun_limit_guard_window_minutes,
+                },
+            )
+            db.commit()
+            return {"batch_id": batch_id, "skipped": True, "reason": "provider_anchor_info_task_pool_saturated"}
         response = client.create_anchor_info(anchor_link=request_anchor, back_url=back_url)
         create_crawl_log(
             db,
@@ -593,6 +643,25 @@ def trigger_fans_portrait(self, anchor_ref: str) -> dict:
         author_id, anchor_link = _resolve_anchor_target(db, anchor_ref)
         if not anchor_link:
             raise ValueError(f"anchor_link missing for fans_portrait: {anchor_ref}")
+
+        if _provider_pool_guard_active(db, task_type="fans_portrait"):
+            create_crawl_log(
+                db,
+                batch_id=batch_id,
+                task_type="fans_portrait",
+                biz_type="collect",
+                status="success",
+                author_id=author_id,
+                task_id=self.request.id,
+                request_payload={"anchor_ref": anchor_ref, "anchor_link": anchor_link, "back_url": back_url},
+                response_payload={
+                    "skipped": True,
+                    "reason": "provider_fans_portrait_task_pool_saturated",
+                    "window_minutes": settings.huitun_limit_guard_window_minutes,
+                },
+            )
+            db.commit()
+            return {"batch_id": batch_id, "skipped": True, "reason": "provider_fans_portrait_task_pool_saturated"}
 
         response = client.create_fans_portrait(anchor_link=anchor_link, back_url=back_url)
         create_crawl_log(
@@ -723,7 +792,7 @@ def trigger_search_backfill(
     query: str,
     sort: int = 1,
     max_items: int = 260,
-    auto_enrich: bool = True,
+    auto_enrich: bool = False,
     trigger_comments: bool = False,
 ) -> dict:
     batch_id = uuid.uuid4().hex[:16]
@@ -735,13 +804,16 @@ def trigger_search_backfill(
             crawl_batch_id=batch_id,
             task_id=self.request.id,
         )
-        task = run_search_notes.delay(
-            batch_id=batch_id,
-            keyword=query,
-            sort=sort,
-            auto_enrich=auto_enrich,
-            trigger_comments=trigger_comments,
-            max_items=max(1, min(max_items, 500)),
+        task = run_search_notes.apply_async(
+            kwargs={
+                "batch_id": batch_id,
+                "keyword": query,
+                "sort": sort,
+                "auto_enrich": auto_enrich,
+                "trigger_comments": trigger_comments,
+                "max_items": max(1, min(max_items, 500)),
+            },
+            queue=settings.task_priority_queue,
         )
         mark_search_job_running(
             db,

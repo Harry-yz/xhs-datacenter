@@ -1120,6 +1120,7 @@ def query_brand_category_db_first_v2(
     freshness_hours: int,
     sort: CategorySortKey = "stat",
     order: SortOrder = "desc",
+    fast_count: bool = True,
 ) -> dict[str, Any]:
     normalized_query = query.strip()
     if not normalized_query:
@@ -1219,52 +1220,55 @@ def query_brand_category_db_first_v2(
         params,
     ).mappings().all()
 
-    total = int(
-        db.execute(
-            text(
-                """
-                WITH candidate_notes AS (
-                    SELECT
-                        r.note_id,
-                        MAX(r.weight)::int AS term_score,
-                        MAX(r.updated_at) AS term_updated_at
-                    FROM xhs_note_term_rel r
-                    WHERE r.term = ANY(CAST(:query_terms AS text[]))
-                    GROUP BY r.note_id
-                    ORDER BY term_score DESC, term_updated_at DESC
-                    LIMIT :candidate_limit
-                )
-                SELECT COUNT(*)::bigint
-                FROM candidate_notes c
-                JOIN xhs_note_fact f ON f.note_id = c.note_id
-                WHERE COALESCE(f.like_count, 0) >= :min_like
-                  AND COALESCE(f.publish_time, f.updated_at, f.created_at) >= now() - ((:date_range)::text || ' day')::interval
-                  AND (
-                        (:industry_key)::text IS NULL
-                     OR EXISTS (
-                            SELECT 1
-                            FROM xhs_note_industry_rel nir
-                            WHERE nir.note_id = f.note_id
-                              AND nir.industry_key = (:industry_key)::text
-                        )
-                  )
-                  AND (
-                        (:mode)::text = 'category'
-                        OR EXISTS (
-                            SELECT 1
-                            FROM xhs_note_brand_rel rel
-                            WHERE rel.note_id = f.note_id
-                              AND rel.brand_name = ANY(CAST(:query_terms AS text[]))
-                        )
-                  )
-                """
-            ),
-            params,
-        ).scalar()
-        or 0
-    )
     has_more = len(rows) > size
     page_rows = rows[:size]
+    if fast_count:
+        total = offset + len(page_rows) + (1 if has_more else 0)
+    else:
+        total = int(
+            db.execute(
+                text(
+                    """
+                    WITH candidate_notes AS (
+                        SELECT
+                            r.note_id,
+                            MAX(r.weight)::int AS term_score,
+                            MAX(r.updated_at) AS term_updated_at
+                        FROM xhs_note_term_rel r
+                        WHERE r.term = ANY(CAST(:query_terms AS text[]))
+                        GROUP BY r.note_id
+                        ORDER BY term_score DESC, term_updated_at DESC
+                        LIMIT :candidate_limit
+                    )
+                    SELECT COUNT(*)::bigint
+                    FROM candidate_notes c
+                    JOIN xhs_note_fact f ON f.note_id = c.note_id
+                    WHERE COALESCE(f.like_count, 0) >= :min_like
+                      AND COALESCE(f.publish_time, f.updated_at, f.created_at) >= now() - ((:date_range)::text || ' day')::interval
+                      AND (
+                            (:industry_key)::text IS NULL
+                         OR EXISTS (
+                                SELECT 1
+                                FROM xhs_note_industry_rel nir
+                                WHERE nir.note_id = f.note_id
+                                  AND nir.industry_key = (:industry_key)::text
+                            )
+                      )
+                      AND (
+                            (:mode)::text = 'category'
+                            OR EXISTS (
+                                SELECT 1
+                                FROM xhs_note_brand_rel rel
+                                WHERE rel.note_id = f.note_id
+                                  AND rel.brand_name = ANY(CAST(:query_terms AS text[]))
+                            )
+                      )
+                    """
+                ),
+                params,
+            ).scalar()
+            or 0
+        )
     has_more = has_more or (offset + len(page_rows) < total)
     latest_dt = max((row.get("latest_data_at") for row in page_rows if row.get("latest_data_at")), default=None)
     items: list[dict[str, Any]] = []
@@ -1316,6 +1320,7 @@ def query_influencers_db_first_v2(
     sort: CreatorSortKey = "relevance",
     order: SortOrder = "desc",
     include_notes: bool = False,
+    fast_count: bool = True,
 ) -> dict[str, Any]:
     normalized_query = query.strip()
     if not normalized_query:
@@ -1429,63 +1434,66 @@ def query_influencers_db_first_v2(
         params,
     ).mappings().all()
 
-    total = int(
-        db.execute(
-            text(
-                f"""
-                WITH candidate_notes AS (
-                    SELECT
-                        r.note_id,
-                        MAX(r.weight)::int AS term_score,
-                        MAX(r.updated_at) AS term_updated_at
-                    FROM xhs_note_term_rel r
-                    WHERE r.term = ANY(CAST(:query_terms AS text[]))
-                    GROUP BY r.note_id
-                    ORDER BY term_score DESC, term_updated_at DESC
-                    LIMIT :candidate_limit
-                ),
-                scoped_notes AS (
-                    SELECT f.*
-                    FROM candidate_notes c
-                    JOIN xhs_note_fact f ON f.note_id = c.note_id
-                    LEFT JOIN xhs_note_industry_rel rel
-                      ON rel.note_id = f.note_id
-                     AND rel.industry_key = (:industry_key)::text
-                    WHERE f.author_id IS NOT NULL
-                      AND f.author_id <> ''
-                      AND COALESCE(f.publish_time, f.updated_at, f.created_at) >= now() - ((:date_range)::text || ' day')::interval
-                      AND ((:industry_key)::text IS NULL OR rel.note_id IS NOT NULL)
-                ),
-                author_stats AS (
-                    SELECT
-                        n.author_id,
-                        MAX(COALESCE(n.author_nickname, '')) AS author_nickname,
-                        COUNT(*)::bigint AS matched_note_count,
-                        MAX(COALESCE(n.author_fans_count, 0))::bigint AS note_max_fans,
-                        SUM(COALESCE(n.like_count, 0))::bigint AS like_total,
-                        SUM(COALESCE(n.comment_count, 0))::bigint AS comment_total,
-                        SUM(COALESCE(n.collection_count, 0))::bigint AS collection_total,
-                        SUM(COALESCE(n.share_count, 0))::bigint AS share_total,
-                        SUM(COALESCE(n.interaction_total, COALESCE(n.like_count,0)+COALESCE(n.comment_count,0)+COALESCE(n.collection_count,0)+COALESCE(n.share_count,0)))::bigint AS interaction_total
-                    FROM scoped_notes n
-                    GROUP BY n.author_id
-                )
-                SELECT COUNT(*)::bigint
-                FROM author_stats s
-                LEFT JOIN xhs_author_metrics_30d m ON m.author_id = s.author_id
-                LEFT JOIN xhs_anchor_dim a ON a.author_id = s.author_id
-                WHERE ((:follower_min)::bigint IS NULL OR COALESCE(NULLIF(COALESCE(a.fans_count, m.note_max_fans), 0), NULLIF(s.note_max_fans, 0), 0) >= (:follower_min)::bigint)
-                  AND ((:follower_max)::bigint IS NULL OR COALESCE(NULLIF(COALESCE(a.fans_count, m.note_max_fans), 0), NULLIF(s.note_max_fans, 0), 0) <= (:follower_max)::bigint)
-                  AND ((:interaction_min)::bigint IS NULL OR GREATEST(COALESCE(m.interaction_total, 0), COALESCE(s.interaction_total, 0)) >= (:interaction_min)::bigint)
-                  AND ((:interaction_max)::bigint IS NULL OR GREATEST(COALESCE(m.interaction_total, 0), COALESCE(s.interaction_total, 0)) <= (:interaction_max)::bigint)
-                """
-            ),
-            params,
-        ).scalar()
-        or 0
-    )
     has_more = len(rows) > size
     page_rows = rows[:size]
+    if fast_count:
+        total = offset + len(page_rows) + (1 if has_more else 0)
+    else:
+        total = int(
+            db.execute(
+                text(
+                    f"""
+                    WITH candidate_notes AS (
+                        SELECT
+                            r.note_id,
+                            MAX(r.weight)::int AS term_score,
+                            MAX(r.updated_at) AS term_updated_at
+                        FROM xhs_note_term_rel r
+                        WHERE r.term = ANY(CAST(:query_terms AS text[]))
+                        GROUP BY r.note_id
+                        ORDER BY term_score DESC, term_updated_at DESC
+                        LIMIT :candidate_limit
+                    ),
+                    scoped_notes AS (
+                        SELECT f.*
+                        FROM candidate_notes c
+                        JOIN xhs_note_fact f ON f.note_id = c.note_id
+                        LEFT JOIN xhs_note_industry_rel rel
+                          ON rel.note_id = f.note_id
+                         AND rel.industry_key = (:industry_key)::text
+                        WHERE f.author_id IS NOT NULL
+                          AND f.author_id <> ''
+                          AND COALESCE(f.publish_time, f.updated_at, f.created_at) >= now() - ((:date_range)::text || ' day')::interval
+                          AND ((:industry_key)::text IS NULL OR rel.note_id IS NOT NULL)
+                    ),
+                    author_stats AS (
+                        SELECT
+                            n.author_id,
+                            MAX(COALESCE(n.author_nickname, '')) AS author_nickname,
+                            COUNT(*)::bigint AS matched_note_count,
+                            MAX(COALESCE(n.author_fans_count, 0))::bigint AS note_max_fans,
+                            SUM(COALESCE(n.like_count, 0))::bigint AS like_total,
+                            SUM(COALESCE(n.comment_count, 0))::bigint AS comment_total,
+                            SUM(COALESCE(n.collection_count, 0))::bigint AS collection_total,
+                            SUM(COALESCE(n.share_count, 0))::bigint AS share_total,
+                            SUM(COALESCE(n.interaction_total, COALESCE(n.like_count,0)+COALESCE(n.comment_count,0)+COALESCE(n.collection_count,0)+COALESCE(n.share_count,0)))::bigint AS interaction_total
+                        FROM scoped_notes n
+                        GROUP BY n.author_id
+                    )
+                    SELECT COUNT(*)::bigint
+                    FROM author_stats s
+                    LEFT JOIN xhs_author_metrics_30d m ON m.author_id = s.author_id
+                    LEFT JOIN xhs_anchor_dim a ON a.author_id = s.author_id
+                    WHERE ((:follower_min)::bigint IS NULL OR COALESCE(NULLIF(COALESCE(a.fans_count, m.note_max_fans), 0), NULLIF(s.note_max_fans, 0), 0) >= (:follower_min)::bigint)
+                      AND ((:follower_max)::bigint IS NULL OR COALESCE(NULLIF(COALESCE(a.fans_count, m.note_max_fans), 0), NULLIF(s.note_max_fans, 0), 0) <= (:follower_max)::bigint)
+                      AND ((:interaction_min)::bigint IS NULL OR GREATEST(COALESCE(m.interaction_total, 0), COALESCE(s.interaction_total, 0)) >= (:interaction_min)::bigint)
+                      AND ((:interaction_max)::bigint IS NULL OR GREATEST(COALESCE(m.interaction_total, 0), COALESCE(s.interaction_total, 0)) <= (:interaction_max)::bigint)
+                    """
+                ),
+                params,
+            ).scalar()
+            or 0
+        )
     has_more = has_more or (offset + len(page_rows) < total)
     latest_dt = max((row.get("latest_data_at") for row in page_rows if row.get("latest_data_at")), default=None)
     items: list[dict[str, Any]] = []

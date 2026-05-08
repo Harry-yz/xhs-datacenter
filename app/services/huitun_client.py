@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import time
 from typing import Any
 
 import requests
 import urllib3
 from urllib3.exceptions import InsecureRequestWarning
+from requests.adapters import HTTPAdapter
 
 from app.config import get_settings
 from app.services.signer import build_sign_params
@@ -23,6 +25,10 @@ class HuitunClient:
         self.secret_key = self.settings.huitun_secret_key
         self.platform = getattr(self.settings, "huitun_platform", "xhs")
         self.timeout = 60
+        self.session = requests.Session()
+        adapter = HTTPAdapter(pool_connections=10, pool_maxsize=30, max_retries=0)
+        self.session.mount("http://", adapter)
+        self.session.mount("https://", adapter)
 
     def _request(
         self,
@@ -31,6 +37,7 @@ class HuitunClient:
         path: str,
         params: dict[str, Any] | None = None,
         include_platform: bool = True,
+        retry_read: bool = False,
     ) -> dict[str, Any]:
         payload = dict(params or {})
 
@@ -46,31 +53,48 @@ class HuitunClient:
         )
 
         url = f"{self.base_url}{path}"
+        attempts = 3 if retry_read else 1
+        last_exc: Exception | None = None
 
-        # 文档里的业务接口以 GET + Query 为主
-        if method.upper() == "GET":
-            resp = requests.get(
-                url,
-                params=signed,
-                timeout=self.timeout,
-                verify=self.settings.huitun_verify_ssl,
-            )
-        else:
-            resp = requests.post(
-                url,
-                params=signed,
-                timeout=self.timeout,
-                verify=self.settings.huitun_verify_ssl,
-            )
+        for attempt in range(attempts):
+            try:
+                # 文档里的业务接口以 GET + Query 为主
+                if method.upper() == "GET":
+                    resp = self.session.get(
+                        url,
+                        params=signed,
+                        timeout=self.timeout,
+                        verify=self.settings.huitun_verify_ssl,
+                    )
+                else:
+                    resp = self.session.post(
+                        url,
+                        params=signed,
+                        timeout=self.timeout,
+                        verify=self.settings.huitun_verify_ssl,
+                    )
 
-        resp.raise_for_status()
-        data = resp.json()
+                if retry_read and resp.status_code in {429, 500, 502, 503, 504} and attempt < attempts - 1:
+                    time.sleep(0.4 * (attempt + 1))
+                    continue
 
-        status = data.get("status")
-        if status not in (200, "200", None):
-            raise RuntimeError(f"huitun error: {data}")
+                resp.raise_for_status()
+                data = resp.json()
 
-        return data
+                status = data.get("status")
+                if status not in (200, "200", None):
+                    raise RuntimeError(f"huitun error: {data}")
+
+                return data
+            except requests.RequestException as exc:
+                last_exc = exc
+                if not retry_read or attempt >= attempts - 1:
+                    raise
+                time.sleep(0.4 * (attempt + 1))
+
+        if last_exc:
+            raise last_exc
+        raise RuntimeError("huitun request failed")
 
     # 4. 获取笔记分类
     # noteTag 实测不接受 platform，所以这里关闭 include_platform
@@ -80,6 +104,7 @@ class HuitunClient:
             path="/api/v1/cg/noteTag",
             params={},
             include_platform=False,
+            retry_read=True,
         )
 
     # 5. 笔记搜索
@@ -100,6 +125,7 @@ class HuitunClient:
             path="/api/v1/cg/note/search",
             params=params,
             include_platform=True,
+            retry_read=True,
         )
 
     # 6. 达人搜索
@@ -119,6 +145,7 @@ class HuitunClient:
             path="/api/v1/cg/anchor/search",
             params=params,
             include_platform=True,
+            retry_read=True,
         )
 
     # 3. 获取笔记信息（异步）
@@ -238,6 +265,7 @@ class HuitunClient:
             path="/api/v1/cg/brand/search",
             params={"keyword": keyword},
             include_platform=True,
+            retry_read=True,
         )
 
     # 10. 获取品牌关联账号信息
@@ -247,6 +275,7 @@ class HuitunClient:
             path="/api/v1/cg/brandEnt/search",
             params={"keyword": keyword},
             include_platform=True,
+            retry_read=True,
         )
 
     # 11. 接口剩余次数
@@ -262,6 +291,7 @@ class HuitunClient:
                     path=path,
                     params={},
                     include_platform=True,
+                    retry_read=True,
                 )
             except requests.HTTPError as exc:
                 last_exc = exc

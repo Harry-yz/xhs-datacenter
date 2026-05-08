@@ -203,13 +203,10 @@ function buildCacheKey(state: SearchState) {
 }
 
 function hasUsableRows(payload: SearchResultsSliceVM, type: SearchType) {
-  if (payload.pending) {
-    return false;
-  }
   if (type === "creator") {
-    return (payload.resultTotals?.creator ?? 0) > 0 || payload.creators.length > 0;
+    return payload.creators.length > 0 || (payload.resultTotals?.creator ?? 0) > 0;
   }
-  return (payload.resultTotals?.category ?? 0) > 0 || payload.notes.length > 0;
+  return payload.notes.length > 0 || (payload.resultTotals?.category ?? 0) > 0;
 }
 
 function getVisibleRowCount(payload: SearchResultsSliceVM, type: SearchType) {
@@ -717,25 +714,7 @@ export function XhsSearchResultsView({
               return;
             }
 
-            // Job status can lag behind actual ingest completion. Probe the direct
-            // search endpoint and switch to ready data as soon as DB has it.
-            void fetchSearchSlice(searchState, locale, controller.signal, false)
-              .then((directPayload) => {
-                if (controller.signal.aborted) {
-                  return;
-                }
-                if (!directPayload.pending || directPayload.pending.status !== "pending") {
-                  applyPayload(directPayload);
-                  return;
-                }
-                applyPayload(jobPayload);
-              })
-              .catch((directError: unknown) => {
-                if ((directError as Error)?.name === "AbortError") {
-                  return;
-                }
-                applyPayload(jobPayload);
-              });
+            applyPayload(jobPayload);
           })
           .catch((error: unknown) => {
             if ((error as Error)?.name === "AbortError") {

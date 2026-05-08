@@ -139,8 +139,12 @@ section_id, title, eyebrow, core_judgment, evidence, body, bullets, table, cards
 要求：
 - core_judgment 是一句明确商业判断。
 - evidence 至少 1 条，必须引用 report_json 中的数字、关键词、竞品、证据 ID 或数据口径。
-- body 写 2-4 段，每段 80-180 中文字。
+- body 写 2-4 段，每段 80-160 中文字；每段必须包含品牌名、具体指标、关键词、竞品或证据 ID 中至少一种。
 - bullets 写 3-6 条可展示要点。
 - table 或 cards 至少一个有内容。
+- table 只放短字段，单元格尽量控制在 40 中文字以内；长解释、动作说明、风险原因必须放入 body、bullets 或 cards。
+- 禁止复读模板句，例如“用于建立售前讨论的主线”“用于把诊断转成可执行方向”“售前阶段不展开完整 SOP”。
+- 关键词机会必须优先使用 report_json.keyword_opportunity_matrix 中的高 relevance_score 词；不要把弱相关泛词包装成机会。
+- 如果某个数据点样本量过小，必须写“样本较小/需复核”，不能夸大为确定机会。
 - 语气专业、克制、有售前洞察感；不要写“联网补充”“AI分析”等字样。
 - 不使用 Markdown 标题符号，不输出 HTML。"""

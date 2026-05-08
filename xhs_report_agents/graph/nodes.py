@@ -239,7 +239,7 @@ class ReportGraphRuntime:
                 SectionWriterOutput,
             )
             status = {"enabled": True, "status": "used", "model": model}
-        except Exception:
+        except Exception as exc:
             report_json = dict(state["report_json"])
             fallback_report = self.composer.compose(
                 evidence=EvidencePack.model_validate(state["evidence_pack"]),
@@ -252,7 +252,13 @@ class ReportGraphRuntime:
                 external_context=ExternalContext.model_validate(state.get("external_context", {})),
             )
             output = SectionWriterOutput.model_validate({"report_sections": fallback_report["report_sections"]})
-            status = {"enabled": True, "status": "fallback", "model": model}
+            status = {
+                "enabled": True,
+                "status": "fallback",
+                "model": model,
+                "error_type": type(exc).__name__,
+                "error": str(exc)[:500],
+            }
         report_json = dict(state["report_json"])
         usage = dict(report_json.get("model_usage", {}))
         usage["section_writer"] = status

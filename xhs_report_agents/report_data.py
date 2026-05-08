@@ -14,6 +14,7 @@ from .schemas import (
     MetricAnalysis,
     ReportSection,
 )
+from .quality import ReportQualityGate
 
 
 class ReportDataComposer:
@@ -38,7 +39,13 @@ class ReportDataComposer:
         content_clusters = content.content_clusters or _topic_clusters(topics, metrics.note_count)
         competitor_benchmark = [{"brand": item.brand, **item.metrics.model_dump()} for item in evidence.competitor_metrics]
         competitor_positioning = _competitor_positioning(metrics, competitor_benchmark)
-        keyword_matrix = _keyword_opportunity_matrix(keywords, content.search_keyword_opportunities)
+        keyword_matrix = _keyword_opportunity_matrix(
+            keywords,
+            content.search_keyword_opportunities,
+            brand=evidence.brand,
+            category=evidence.category,
+            core_products=evidence.core_products,
+        )
         confidence_summary = _confidence_summary(metric, content, audience, diagnosis, fact_check)
         evidence_groups = _evidence_group_summary(evidence)
         sections = report_sections or _fallback_sections(
@@ -50,7 +57,7 @@ class ReportDataComposer:
             editorial=editorial,
             topics=topics,
         )
-        return {
+        report = {
             "report_meta": {
                 "brand": evidence.brand,
                 "report_type": "sales_15_xhs_brand_health",
@@ -168,6 +175,8 @@ class ReportDataComposer:
             "fact_check": fact_check.model_dump(),
             "report_sections": [item.model_dump() for item in sections],
         }
+        report["quality_warnings"] = ReportQualityGate().evaluate(report)
+        return report
 
 
 def _fallback_editorial(evidence: EvidencePack, metric: MetricAnalysis, diagnosis: Diagnosis) -> ExecutiveEditorial:
@@ -245,42 +254,150 @@ def _competitor_positioning(brand_metrics, competitors: list[dict[str, Any]]) ->
     return rows
 
 
-def _keyword_opportunity_matrix(keywords: list[dict[str, Any]], opportunities: list[str]) -> list[dict[str, Any]]:
-    opportunity_terms = " ".join(opportunities)
-    rows = []
-    for item in keywords[:32]:
+class KeywordOpportunityScorer:
+    def __init__(self, *, brand: str = "", category: str = "", core_products: list[str] | None = None, opportunities: list[str] | None = None):
+        self.brand = brand.strip()
+        self.category = category.strip()
+        self.core_products = [item.strip() for item in (core_products or []) if item.strip()]
+        self.opportunities = [item.strip() for item in (opportunities or []) if item.strip()]
+        self.context = " ".join([self.brand, self.category, *self.core_products, *self.opportunities]).lower()
+        self.domain_terms = _domain_terms(self.context)
+
+    def score(self, keywords: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        candidates: list[dict[str, Any]] = []
+        for item in keywords[:48]:
+            row = self._candidate(item)
+            if row:
+                candidates.append(row)
+        if not candidates:
+            return []
+        demand_values = [item["_demand_raw"] for item in candidates]
+        supply_values = [item["_supply_raw"] for item in candidates]
+        for item in candidates:
+            demand = _percentile(item["_demand_raw"], demand_values)
+            supply_gap = _percentile(item["_supply_raw"], supply_values)
+            intent = item.pop("_intent_score")
+            relevance = item["relevance_score"]
+            score = round(relevance * 0.40 + demand * 0.30 + supply_gap * 0.20 + intent * 0.10, 1)
+            item["demand_score"] = round(demand, 1)
+            item["supply_gap_score"] = round(supply_gap, 1)
+            item["opportunity_score"] = min(96.0, max(12.0, score))
+            item.pop("_demand_raw", None)
+            item.pop("_supply_raw", None)
+        return sorted(candidates, key=lambda x: (x["opportunity_score"], x["relevance_score"], x["interaction_total"]), reverse=True)
+
+    def _candidate(self, item: dict[str, Any]) -> dict[str, Any] | None:
         keyword = str(item.get("search_keyword") or item.get("keyword") or "未标注")
+        keyword = keyword.strip()
+        if not keyword or keyword == "未标注":
+            return None
         note_count = int(item.get("note_count") or 0)
         interaction_total = int(item.get("interaction_total") or 0)
         avg_interaction = round(interaction_total / note_count, 2) if note_count else 0
-        if any(token in keyword for token in ("兰蔻", "lancome")):
-            category = "品牌词"
-        elif any(token in keyword for token in ("小黑瓶", "粉水", "菁纯", "小白管", "极光水", "粉底", "眼霜", "精华", "防晒")):
-            category = "产品词"
-        elif any(token in keyword for token in ("抗老", "修护", "美白", "保湿", "防晒", "敏感", "熬夜", "紧致")):
-            category = "功效词"
-        elif any(token in keyword for token in ("通勤", "约会", "旅行", "春日", "户外", "日常")):
-            category = "场景词"
-        else:
-            category = "泛搜索词"
-        demand = min(100, round(avg_interaction / 2 + min(note_count, 1000) / 20, 1))
-        supply_gap = max(0, round(100 - min(note_count, 1000) / 10, 1))
-        score = round(demand * 0.62 + supply_gap * 0.38, 1)
-        if keyword and keyword in opportunity_terms:
-            score = min(100, round(score + 12, 1))
-        rows.append(
-            {
-                "keyword": keyword,
-                "category": category,
-                "note_count": note_count,
-                "interaction_total": interaction_total,
-                "avg_interaction": avg_interaction,
-                "demand_score": demand,
-                "supply_gap_score": supply_gap,
-                "opportunity_score": score,
-            }
-        )
-    return sorted(rows, key=lambda x: x["opportunity_score"], reverse=True)
+        relevance, category, reason = self._relevance(keyword)
+        if relevance < 48:
+            return None
+        return {
+            "keyword": keyword,
+            "category": category,
+            "note_count": note_count,
+            "interaction_total": interaction_total,
+            "avg_interaction": avg_interaction,
+            "relevance_score": relevance,
+            "reason": reason,
+            "recommended_action": _keyword_action(keyword, category),
+            "_demand_raw": _log_score(interaction_total) * 0.65 + _log_score(avg_interaction) * 0.35,
+            "_supply_raw": 1 / max(note_count, 1),
+            "_intent_score": _conversion_intent(keyword, category),
+        }
+
+    def _relevance(self, keyword: str) -> tuple[float, str, str]:
+        key = keyword.lower()
+        if self.brand and (self.brand.lower() in key or key in self.brand.lower()):
+            return 96, "品牌词", "品牌主动搜索词，适合观察心智承接。"
+        for product in self.core_products:
+            p = product.lower()
+            if p and (p in key or key in p):
+                return 90, "产品词", "命中核心产品/产品线，适合转成内容选题。"
+        if any(term in key for term in self.domain_terms["product"]):
+            return 84, "产品/品类词", "命中品类或产品功效，和品牌经营目标相关。"
+        if any(term in key for term in self.domain_terms["effect"]):
+            return 80, "功效词", "命中用户问题或功效诉求，适合做转化型内容。"
+        if any(term in key for term in self.domain_terms["scenario"]):
+            return 68, "场景词", "命中使用场景，可用于拓展内容入口。"
+        if any(key in item.lower() or item.lower() in key for item in self.opportunities if len(item) >= 2):
+            return 62, "机会词", "被内容 Agent 标记为潜在机会，需结合样本复核。"
+        if key in {"电脑", "软装", "运动", "彩妆", "面霜", "未标注"}:
+            return 0, "弱相关词", "与当前品牌/品类弱相关，不进入机会矩阵。"
+        if len(key) >= 2 and key in self.context:
+            return 56, "上下文相关词", "出现在输入上下文中，但需要人工复核具体内容。"
+        return 0, "泛搜索词", "缺少品牌、品类或功效相关性。"
+
+
+def _keyword_opportunity_matrix(
+    keywords: list[dict[str, Any]],
+    opportunities: list[str],
+    *,
+    brand: str = "",
+    category: str = "",
+    core_products: list[str] | None = None,
+) -> list[dict[str, Any]]:
+    return KeywordOpportunityScorer(
+        brand=brand,
+        category=category,
+        core_products=core_products or [],
+        opportunities=opportunities,
+    ).score(keywords)
+
+
+def _domain_terms(context: str) -> dict[str, set[str]]:
+    product = {"洗发", "洗发水", "洗发露", "护发", "头皮", "去屑", "头屑", "控油", "止痒", "蓬松", "发质", "发量", "脱发", "油头", "头油", "二硫化硒", "水杨酸"}
+    effect = {"去屑", "控油", "止痒", "蓬松", "修护", "防脱", "脱发", "头皮痒", "敏感头皮", "油屑", "发缝"}
+    scenario = {"熬夜", "夏天", "通勤", "学生党", "出油", "运动后", "姨妈期", "产后", "青春期"}
+    if any(token in context for token in ("美妆", "护肤", "兰蔻", "精华", "面霜", "粉底", "防晒")):
+        product |= {"精华", "面霜", "粉底", "眼霜", "防晒", "口红", "洁面", "爽肤水"}
+        effect |= {"抗老", "修护", "美白", "保湿", "防晒", "敏感肌", "紧致", "暗沉"}
+        scenario |= {"通勤", "约会", "旅行", "春日", "户外", "日常", "熬夜恢复"}
+    return {"product": product, "effect": effect, "scenario": scenario}
+
+
+def _percentile(value: float, values: list[float]) -> float:
+    if not values:
+        return 0.0
+    sorted_values = sorted(values)
+    if len(sorted_values) == 1:
+        return 72.0
+    below = sum(1 for item in sorted_values if item < value)
+    equal = sum(1 for item in sorted_values if item == value)
+    return round((below + equal * 0.5) / len(sorted_values) * 100, 1)
+
+
+def _log_score(value: float) -> float:
+    import math
+
+    return math.log1p(max(value, 0))
+
+
+def _conversion_intent(keyword: str, category: str) -> float:
+    if category in {"产品词", "产品/品类词", "功效词"}:
+        base = 78
+    elif category == "品牌词":
+        base = 64
+    else:
+        base = 48
+    if any(token in keyword for token in ("去屑", "控油", "止痒", "防脱", "修护", "抗老", "美白", "防晒")):
+        base += 12
+    return min(100, base)
+
+
+def _keyword_action(keyword: str, category: str) -> str:
+    if category == "品牌词":
+        return f"复盘“{keyword}”下高互动内容，稳定承接主动搜索需求。"
+    if category in {"产品词", "产品/品类词"}:
+        return f"围绕“{keyword}”产出测评、使用教程和横向对比内容。"
+    if category == "功效词":
+        return f"用真实问题场景解释“{keyword}”相关功效，补充评论区答疑。"
+    return f"小规模测试“{keyword}”场景内容，验证是否能带来新增互动。"
 
 
 def _confidence_summary(metric, content, audience, diagnosis, fact_check) -> dict[str, Any]:
